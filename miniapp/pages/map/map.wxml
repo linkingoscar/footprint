@@ -1,0 +1,14 @@
+<view class="map-page">
+    <map id="footprintMap" class="map" latitude="{{center.latitude}}" longitude="{{center.longitude}}" scale="{{scale}}" markers="{{markers}}" polyline="{{polyline}}" show-location></map>
+    <view class="panel">
+        <view class="panel-title">已定位记录</view>
+        <view wx:if="{{records.length === 0}}" class="text-muted">暂无带坐标的记录</view>
+        <view wx:for="{{records}}" wx:key="id" class="map-item">
+            <view class="map-index">{{index + 1}}</view>
+            <view>
+                <view class="map-title">{{item.title}}</view>
+                <view class="map-desc">{{item.location}} {{item.date}}</view>
+            </view>
+        </view>
+    </view>
+</view>

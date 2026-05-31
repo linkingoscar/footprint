@@ -1,0 +1,9 @@
+.map-page { min-height: 100vh; background: var(--bg); }
+.map { width: 100%; height: 58vh; }
+.panel { margin: -24rpx 24rpx 24rpx; position: relative; z-index: 2; background: var(--bg-white); border-radius: 24rpx; padding: 24rpx; box-shadow: 0 8rpx 28rpx rgba(0,0,0,.12); }
+.panel-title { font-size: 32rpx; font-weight: 700; margin-bottom: 18rpx; }
+.map-item { display: flex; gap: 18rpx; padding: 16rpx 0; border-bottom: 1rpx solid var(--border); }
+.map-item:last-child { border-bottom: 0; }
+.map-index { width: 44rpx; height: 44rpx; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 24rpx; font-weight: 700; }
+.map-title { font-size: 28rpx; font-weight: 600; }
+.map-desc { font-size: 24rpx; color: var(--text-muted); margin-top: 6rpx; }

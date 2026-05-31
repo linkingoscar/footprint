@@ -1,0 +1,57 @@
+{
+    "pages": [
+        "pages/index/index",
+        "pages/map/map",
+        "pages/album/album",
+        "pages/settings/settings"
+    ],
+    "window": {
+        "backgroundTextStyle": "dark",
+        "navigationBarBackgroundColor": "#0F0F14",
+        "navigationBarTitleText": "足迹",
+        "navigationBarTextStyle": "white",
+        "backgroundColor": "#0F0F14"
+    },
+    "tabBar": {
+        "color": "#999999",
+        "selectedColor": "#FF2442",
+        "backgroundColor": "#ffffff",
+        "borderStyle": "black",
+        "list": [
+            {
+                "pagePath": "pages/index/index",
+                "text": "首页",
+                "iconPath": "images/tab-home.png",
+                "selectedIconPath": "images/tab-home-active.png"
+            },
+            {
+                "pagePath": "pages/map/map",
+                "text": "地图",
+                "iconPath": "images/tab-map.png",
+                "selectedIconPath": "images/tab-map-active.png"
+            },
+            {
+                "pagePath": "pages/album/album",
+                "text": "相册",
+                "iconPath": "images/tab-album.png",
+                "selectedIconPath": "images/tab-album-active.png"
+            },
+            {
+                "pagePath": "pages/settings/settings",
+                "text": "我的",
+                "iconPath": "images/tab-my.png",
+                "selectedIconPath": "images/tab-my-active.png"
+            }
+        ]
+    },
+    "permission": {
+        "scope.userLocation": {
+            "desc": "用于获取照片拍摄位置"
+        }
+    },
+    "requiredPrivateInfos": [
+        "chooseImage",
+        "chooseLocation",
+        "getLocation"
+    ]
+}

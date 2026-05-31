@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-mode="travel">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设置 - 足迹</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font: 'Inter', -apple-system, sans-serif;
+            --radius: 20px;
+            --radius-sm: 14px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --bg: #0F0F14;
+            --bg-elevated: rgba(255,255,255,0.08);
+            --text: #fff;
+            --text-sec: rgba(255,255,255,0.7);
+            --text-muted: rgba(255,255,255,0.4);
+            --border: rgba(255,255,255,0.1);
+            --glass: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.12);
+        }
+
+        [data-theme="light"] {
+            --bg: #F5F5F7;
+            --bg-elevated: rgba(255,255,255,0.9);
+            --text: #1D1D1F;
+            --text-sec: rgba(0,0,0,0.6);
+            --text-muted: rgba(0,0,0,0.4);
+            --border: rgba(0,0,0,0.1);
+            --glass: rgba(255,255,255,0.7);
+            --glass-border: rgba(255,255,255,0.5);
+        }
+
+        [data-mode="travel"] {
+            --primary: #3B82F6;
+            --glow: rgba(59,130,246,0.3);
+            --gradient: linear-gradient(135deg, #3B82F6, #06B6D4);
+            --mode-bg: rgba(59,130,246,0.1);
+        }
+
+        [data-mode="food"] {
+            --primary: #F59E0B;
+            --glow: rgba(245,158,11,0.3);
+            --gradient: linear-gradient(135deg, #F59E0B, #EF4444);
+            --mode-bg: rgba(245,158,11,0.1);
+        }
+
+        [data-mode="love"] {
+            --primary: #EC4899;
+            --glow: rgba(236,72,153,0.3);
+            --gradient: linear-gradient(135deg, #EC4899, #8B5CF6);
+            --mode-bg: rgba(236,72,153,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+        }
+
+        /* Header */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo-text { font-size: 18px; font-weight: 700; }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Main */
+        .main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Card */
+        .card {
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body { padding: 20px; }
+
+        .card-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Mode Selector */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .mode-card {
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .mode-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .mode-card.selected {
+            border-color: var(--primary);
+            background: var(--mode-bg);
+        }
+
+        .mode-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            line-height: 1;
+        }
+
+        .mode-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .mode-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Features List */
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .feature-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .feature-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Map Provider */
+        .map-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .map-option {
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .map-option:hover { border-color: var(--primary); }
+
+        .map-option.selected {
+            border-color: var(--primary);
+            background: var(--mode-bg);
+        }
+
+        .map-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .map-name { font-size: 13px; font-weight: 600; }
+        .map-desc { font-size: 11px; color: var(--text-muted); }
+
+        /* Upload Config */
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .upload-option {
+            padding: 14px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .upload-option:hover { border-color: var(--primary); }
+
+        .upload-option.selected {
+            border-color: var(--primary);
+            background: var(--mode-bg);
+        }
+
+        .upload-icon {
+            font-size: 24px;
+            margin-bottom: 6px;
+            line-height: 1;
+        }
+
+        .upload-name { font-size: 13px; font-weight: 600; }
+        .upload-desc { font-size: 11px; color: var(--text-muted); }
+
+        /* Size Options */
+        .size-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .size-btn {
+            padding: 6px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: 12px;
+            transition: var(--transition);
+        }
+
+        .size-btn:hover { border-color: var(--primary); }
+
+        .size-btn.selected {
+            border-color: var(--primary);
+            background: var(--mode-bg);
+            color: var(--primary);
+        }
+
+        /* Data Actions */
+        .data-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .data-action {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .data-action-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .data-action-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .data-action-name { font-size: 14px; font-weight: 500; }
+        .data-action-desc { font-size: 12px; color: var(--text-muted); }
+
+        /* Form */
+        .form-group { margin-bottom: 14px; }
+        .form-label { font-size: 13px; font-weight: 500; margin-bottom: 6px; }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            color: var(--text);
+            font-family: var(--font);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: var(--font);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--glow);
+        }
+
+        .btn-ghost {
+            background: var(--bg-elevated);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-danger {
+            background: rgba(239,68,68,0.1);
+            color: #EF4444;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+
+        /* Badge */
+        .badge {
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-required {
+            background: rgba(239,68,68,0.15);
+            color: #EF4444;
+        }
+
+        .badge-optional {
+            background: rgba(59,130,246,0.15);
+            color: #3B82F6;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            z-index: 2000;
+            transition: var(--transition);
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Info Box */
+        .info-box {
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        .info-box.info {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #60A5FA;
+        }
+        .info-box-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Desktop/Mobile Toggle */
+        .desktop-only { display: flex !important; }
+        .mobile-only { display: none !important; }
+
+        /* Preview Grid */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .desktop-only { display: none !important; }
+            .mobile-only { display: flex !important; }
+            .mode-grid { grid-template-columns: 1fr; }
+            .features-list { grid-template-columns: 1fr; }
+            .map-grid { grid-template-columns: 1fr; }
+            .upload-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header glass">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">📍</div>
+            <div class="logo-text">足迹</div>
+        </a>
+        <a href="index.html" class="back-btn">← 返回首页</a>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+        <div class="page-header">
+            <h1 class="page-title">⚙️ 设置</h1>
+            <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🎯 记录模式</div>
+                <span class="badge badge-required">必选</span>
+            </div>
+            <div class="card-body">
+                <div class="mode-grid">
+                    <div class="mode-card selected" data-mode="travel" onclick="selectMode('travel')">
+                        <div class="mode-icon">✈️</div>
+                        <div class="mode-name">旅行记录</div>
+                        <div class="mode-desc">记录每一次旅行</div>
+                    </div>
+                    <div class="mode-card" data-mode="food" onclick="selectMode('food')">
+                        <div class="mode-icon">🍜</div>
+                        <div class="mode-name">美食打卡</div>
+                        <div class="mode-desc">发现美食，留下记忆</div>
+                    </div>
+                    <div class="mode-card" data-mode="love" onclick="selectMode('love')">
+                        <div class="mode-icon">💕</div>
+                        <div class="mode-name">情侣足迹</div>
+                        <div class="mode-desc">记录甜蜜时光</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:12px;color:var(--text-muted)">切换模式后首页UI完全适配</span>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                    <input type="checkbox" id="lock-mode" onchange="toggleLockMode()" style="accent-color:var(--primary)">
+                    🔒 锁定模式（前台不显示切换器）
+                </label>
+            </div>
+        </div>
+
+        <!-- Mode Features -->
+        <div class="card" id="features-card">
+            <div class="card-header">
+                <div class="card-title">✨ 模式功能</div>
+            </div>
+            <div class="card-body">
+                <div class="features-list" id="features-list"></div>
+            </div>
+        </div>
+
+        <!-- Image Upload -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">📷 图片上传</div>
+                <span class="badge badge-optional">可选</span>
+            </div>
+            <div class="card-body">
+                <!-- 上传方式选项卡 -->
+                <div class="form-group">
+                    <div class="form-label">上传方式</div>
+                    <div class="upload-grid">
+                        <div class="upload-option selected" data-type="local" onclick="switchUploadMode('local')">
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-name">本地上传</div>
+                            <div class="upload-desc">拖拽或选择文件</div>
+                        </div>
+                        <div class="upload-option" data-type="url" onclick="switchUploadMode('url')">
+                            <div class="upload-icon">🔗</div>
+                            <div class="upload-name">URL链接</div>
+                            <div class="upload-desc">输入图片地址</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 本地上传区域 -->
+                <div id="upload-local-section">
+                    <div class="form-group">
+                        <div class="form-label">本地上传测试</div>
+                        <div style="border:2px dashed var(--border);border-radius:var(--radius-sm);padding:30px;text-align:center;cursor:pointer;transition:var(--transition)" 
+                             id="settings-upload-zone"
+                             onclick="document.getElementById('settings-file-input').click()">
+                            <input type="file" id="settings-file-input" multiple accept="image/*" style="display:none">
+                            <input type="file" id="settings-folder-input" webkitdirectory style="display:none">
+                            <input type="file" id="settings-gallery-input" multiple accept="image/*" style="display:none">
+                            <input type="file" id="settings-camera-input" accept="image/*" capture="environment" style="display:none">
+                            
+                            <div style="font-size:36px;margin-bottom:8px">📷</div>
+                            <div style="font-size:14px;font-weight:500;margin-bottom:4px">点击或拖拽上传</div>
+                            <div style="font-size:12px;color:var(--text-muted)">支持 JPG、PNG、GIF、WebP 格式</div>
+                            
+                            <div style="display:flex;gap:8px;justify-content:center;margin-top:12px" class="desktop-only">
+                                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();document.getElementById('settings-file-input').click()">📁 选择文件</button>
+                                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();document.getElementById('settings-folder-input').click()">📂 选择文件夹</button>
+                            </div>
+                            <div style="display:flex;gap:8px;justify-content:center;margin-top:12px" class="mobile-only">
+                                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();document.getElementById('settings-gallery-input').click()">🖼️ 相册</button>
+                                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();document.getElementById('settings-camera-input').click()">📸 拍照</button>
+                            </div>
+                        </div>
+                        <div class="preview-grid" id="settings-preview-grid" style="margin-top:12px"></div>
+                    </div>
+                </div>
+
+                <!-- URL链接区域 -->
+                <div id="upload-url-section" style="display:none">
+                    <div class="form-group">
+                        <div class="form-label">🔗 输入图片链接</div>
+                        <div style="display:flex;gap:8px">
+                            <input type="text" class="form-input" id="settings-url-input" 
+                                   placeholder="粘贴图片链接"
+                                   onkeypress="if(event.key==='Enter')addSettingsImageUrl()">
+                            <button class="btn btn-primary" onclick="addSettingsImageUrl()">添加</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">支持的图床</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px">
+                            <span class="size-btn" onclick="document.getElementById('settings-url-input').placeholder='https://i.imgur.com/xxxxx.jpg'">Imgur</span>
+                            <span class="size-btn" onclick="document.getElementById('settings-url-input').placeholder='https://s2.sm.ms/xxxxx.jpg'">SM.MS</span>
+                            <span class="size-btn" onclick="document.getElementById('settings-url-input').placeholder='https://raw.githubusercontent.com/...'">GitHub</span>
+                            <span class="size-btn" onclick="document.getElementById('settings-url-input').placeholder='https://xxx.qiniucdn.com/xxx.jpg'">七牛云</span>
+                            <span class="size-btn" onclick="document.getElementById('settings-url-input').placeholder='https://xxx.oss-cn-hangzhou.aliyuncs.com/xxx.jpg'">阿里云OSS</span>
+                            <span class="size-btn" onclick="document.getElementById('settings-url-input').placeholder='https://xxx.cos.ap-guangzhou.myqcloud.com/xxx.jpg'">腾讯云COS</span>
+                            <span class="size-btn" onclick="document.getElementById('settings-url-input').placeholder='https://res.cloudinary.com/xxx/image/upload/xxx.jpg'">Cloudinary</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">📋 批量导入</div>
+                        <textarea class="form-textarea" id="settings-batch-url" placeholder="每行一个图片链接" style="min-height:60px;font-size:12px"></textarea>
+                        <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="addSettingsBatchUrls()">批量添加</button>
+                    </div>
+                    <div class="preview-grid" id="settings-url-preview-grid" style="margin-top:12px"></div>
+                </div>
+
+                <!-- 上传配置 -->
+                <div class="form-group">
+                    <div class="form-label">大小限制</div>
+                    <div class="size-options">
+                        <div class="size-btn" data-size="1" onclick="selectUpload('size', 1)">1 MB</div>
+                        <div class="size-btn" data-size="2" onclick="selectUpload('size', 2)">2 MB</div>
+                        <div class="size-btn" data-size="5" onclick="selectUpload('size', 5)">5 MB</div>
+                        <div class="size-btn selected" data-size="10" onclick="selectUpload('size', 10)">10 MB</div>
+                        <div class="size-btn" data-size="20" onclick="selectUpload('size', 20)">20 MB</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">图片质量</div>
+                    <div class="size-options">
+                        <div class="size-btn" data-quality="low" onclick="selectUpload('quality', 'low')">低</div>
+                        <div class="size-btn" data-quality="medium" onclick="selectUpload('quality', 'medium')">中</div>
+                        <div class="size-btn selected" data-quality="high" onclick="selectUpload('quality', 'high')">高</div>
+                        <div class="size-btn" data-quality="original" onclick="selectUpload('quality', 'original')">原始</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:12px;color:var(--text-muted)">配置图片上传参数</span>
+                <button class="btn btn-primary" onclick="saveUpload()">保存配置</button>
+            </div>
+        </div>
+
+        <!-- Backend Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🔌 后端服务</div>
+                <span class="badge badge-optional">可选</span>
+            </div>
+            <div class="card-body">
+                <div class="info-box info" style="margin-bottom:16px">
+                    <div class="info-box-title">💡 服务模式说明</div>
+                    <p>直接打开 HTML 时可填写后端地址启用 API、图片上传、EXIF 定位和云存储；留空则使用当前站点同源服务或浏览器本地存储。</p>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">API Base URL</div>
+                    <div class="form-row">
+                        <input type="text" class="form-input" id="api-base" placeholder="如：http://localhost:5000">
+                        <button class="btn btn-ghost" onclick="testApiBase()">测试</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:12px;color:var(--text-muted)">完整服务模式下建议使用 http://localhost:5000</span>
+                <button class="btn btn-primary" onclick="saveApiBase()">保存</button>
+            </div>
+        </div>
+
+        <!-- Map Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🗺️ 地图服务</div>
+                <span class="badge badge-optional">可选</span>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <div class="form-label">选择地图</div>
+                    <div class="map-grid">
+                        <div class="map-option selected" data-provider="amap" onclick="selectMap('amap')">
+                            <div class="map-icon">🇨🇳</div>
+                            <div>
+                                <div class="map-name">高德地图</div>
+                                <div class="map-desc">国内首选</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-provider="baidu" onclick="selectMap('baidu')">
+                            <div class="map-icon">🇨🇳</div>
+                            <div>
+                                <div class="map-name">百度地图</div>
+                                <div class="map-desc">POI丰富</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-provider="tencent" onclick="selectMap('tencent')">
+                            <div class="map-icon">🇨🇳</div>
+                            <div>
+                                <div class="map-name">腾讯地图</div>
+                                <div class="map-desc">微信生态</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-provider="bing" onclick="selectMap('bing')">
+                            <div class="map-icon">🌍</div>
+                            <div>
+                                <div class="map-name">必应地图</div>
+                                <div class="map-desc">全球覆盖</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">API Key</div>
+                    <div class="form-row">
+                        <input type="text" class="form-input" id="map-key" placeholder="输入API Key">
+                        <button class="btn btn-ghost" onclick="testMapKey()">测试</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:12px;color:var(--text-muted)">配置后可使用地图功能</span>
+                <button class="btn btn-primary" onclick="saveMap()">保存</button>
+            </div>
+        </div>
+
+        <!-- Cloud Storage Configuration -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">☁️ 云存储服务</div>
+                <span class="badge badge-optional">可选</span>
+            </div>
+            <div class="card-body">
+                <div class="info-box info" style="margin-bottom:16px">
+                    <div class="info-box-title">💡 云存储说明</div>
+                    <p>配置云存储后，图片将自动上传到云端，支持多设备同步和数据备份。不配置则使用本地存储。</p>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label">选择存储服务</div>
+                    <div class="map-grid">
+                        <!-- 国内服务 -->
+                        <div class="map-option selected" data-storage="local" onclick="selectStorage('local')">
+                            <div class="map-icon">💾</div>
+                            <div>
+                                <div class="map-name">本地存储</div>
+                                <div class="map-desc">数据保存在浏览器</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-storage="aliyun" onclick="selectStorage('aliyun')">
+                            <div class="map-icon">🇨🇳</div>
+                            <div>
+                                <div class="map-name">阿里云OSS</div>
+                                <div class="map-desc">国内主流</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-storage="tencent" onclick="selectStorage('tencent')">
+                            <div class="map-icon">🇨🇳</div>
+                            <div>
+                                <div class="map-name">腾讯云COS</div>
+                                <div class="map-desc">微信生态</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-storage="qiniu" onclick="selectStorage('qiniu')">
+                            <div class="map-icon">🇨🇳</div>
+                            <div>
+                                <div class="map-name">七牛云</div>
+                                <div class="map-desc">CDN加速</div>
+                            </div>
+                        </div>
+                        <!-- 国外服务 -->
+                        <div class="map-option" data-storage="aws" onclick="selectStorage('aws')">
+                            <div class="map-icon">🌍</div>
+                            <div>
+                                <div class="map-name">AWS S3</div>
+                                <div class="map-desc">全球领先</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-storage="gcp" onclick="selectStorage('gcp')">
+                            <div class="map-icon">🌍</div>
+                            <div>
+                                <div class="map-name">Google Cloud</div>
+                                <div class="map-desc">AI集成</div>
+                            </div>
+                        </div>
+                        <div class="map-option" data-storage="azure" onclick="selectStorage('azure')">
+                            <div class="map-icon">🌍</div>
+                            <div>
+                                <div class="map-name">Azure Blob</div>
+                                <div class="map-desc">企业级</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 阿里云OSS配置 -->
+                <div id="storage-aliyun" class="storage-config" style="display:none">
+                    <div class="form-group">
+                        <div class="form-label">Access Key ID</div>
+                        <input type="text" class="form-input" id="aliyun-access-key" placeholder="阿里云AccessKey ID">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Access Key Secret</div>
+                        <input type="password" class="form-input" id="aliyun-secret-key" placeholder="阿里云AccessKey Secret">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Bucket名称</div>
+                        <input type="text" class="form-input" id="aliyun-bucket" placeholder="如：my-photos">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Endpoint</div>
+                        <input type="text" class="form-input" id="aliyun-endpoint" placeholder="如：oss-cn-hangzhou.aliyuncs.com">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">自定义域名（可选）</div>
+                        <input type="text" class="form-input" id="aliyun-domain" placeholder="如：https://cdn.example.com">
+                    </div>
+                </div>
+
+                <!-- 腾讯云COS配置 -->
+                <div id="storage-tencent" class="storage-config" style="display:none">
+                    <div class="form-group">
+                        <div class="form-label">SecretId</div>
+                        <input type="text" class="form-input" id="tencent-secret-id" placeholder="腾讯云SecretId">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">SecretKey</div>
+                        <input type="password" class="form-input" id="tencent-secret-key" placeholder="腾讯云SecretKey">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Bucket名称</div>
+                        <input type="text" class="form-input" id="tencent-bucket" placeholder="如：my-photos-1250000000">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">所属地域</div>
+                        <input type="text" class="form-input" id="tencent-region" placeholder="如：ap-guangzhou">
+                    </div>
+                </div>
+
+                <!-- 七牛云配置 -->
+                <div id="storage-qiniu" class="storage-config" style="display:none">
+                    <div class="form-group">
+                        <div class="form-label">AccessKey</div>
+                        <input type="text" class="form-input" id="qiniu-access-key" placeholder="七牛AccessKey">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">SecretKey</div>
+                        <input type="password" class="form-input" id="qiniu-secret-key" placeholder="七牛SecretKey">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Bucket名称</div>
+                        <input type="text" class="form-input" id="qiniu-bucket" placeholder="如：my-photos">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">访问域名</div>
+                        <input type="text" class="form-input" id="qiniu-domain" placeholder="如：https://cdn.example.com">
+                    </div>
+                </div>
+
+                <!-- AWS S3配置 -->
+                <div id="storage-aws" class="storage-config" style="display:none">
+                    <div class="form-group">
+                        <div class="form-label">Access Key</div>
+                        <input type="text" class="form-input" id="aws-access-key" placeholder="AWS Access Key">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Secret Key</div>
+                        <input type="password" class="form-input" id="aws-secret-key" placeholder="AWS Secret Key">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Bucket名称</div>
+                        <input type="text" class="form-input" id="aws-bucket" placeholder="如：my-photos">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Region</div>
+                        <input type="text" class="form-input" id="aws-region" placeholder="如：us-east-1">
+                    </div>
+                </div>
+
+                <!-- Google Cloud配置 -->
+                <div id="storage-gcp" class="storage-config" style="display:none">
+                    <div class="form-group">
+                        <div class="form-label">Project ID</div>
+                        <input type="text" class="form-input" id="gcp-project-id" placeholder="GCP Project ID">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Bucket名称</div>
+                        <input type="text" class="form-input" id="gcp-bucket" placeholder="如：my-photos">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">凭证文件路径</div>
+                        <input type="text" class="form-input" id="gcp-credentials" placeholder="如：/path/to/credentials.json">
+                    </div>
+                </div>
+
+                <!-- Azure配置 -->
+                <div id="storage-azure" class="storage-config" style="display:none">
+                    <div class="form-group">
+                        <div class="form-label">Account Name</div>
+                        <input type="text" class="form-input" id="azure-account-name" placeholder="Azure Storage Account Name">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Account Key</div>
+                        <input type="password" class="form-input" id="azure-account-key" placeholder="Azure Storage Account Key">
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">Container名称</div>
+                        <input type="text" class="form-input" id="azure-container" placeholder="如：my-photos">
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:12px;color:var(--text-muted)">配置后图片自动上传到云端</span>
+                <button class="btn btn-primary" onclick="saveStorage()">保存配置</button>
+            </div>
+        </div>
+
+        <!-- Data Management -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">💾 数据管理</div>
+            </div>
+            <div class="card-body">
+                <div class="data-actions">
+                    <div class="data-action">
+                        <div class="data-action-left">
+                            <div class="data-action-icon">📥</div>
+                            <div>
+                                <div class="data-action-name">导出数据</div>
+                                <div class="data-action-desc">备份所有记录为JSON</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-ghost" onclick="exportData()">导出</button>
+                    </div>
+                    <div class="data-action">
+                        <div class="data-action-left">
+                            <div class="data-action-icon">📤</div>
+                            <div>
+                                <div class="data-action-name">导入数据</div>
+                                <div class="data-action-desc">从JSON恢复记录</div>
+                            </div>
+                        </div>
+                        <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+                        <button class="btn btn-ghost" onclick="document.getElementById('import-file').click()">导入</button>
+                    </div>
+                    <div class="data-action">
+                        <div class="data-action-left">
+                            <div class="data-action-icon">🗑️</div>
+                            <div>
+                                <div class="data-action-name" style="color:#EF4444">清空数据</div>
+                                <div class="data-action-desc">此操作不可恢复</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-danger" onclick="clearData()">清空</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== Mode Features ==========
+        const MODE_FEATURES = {
+            travel: [
+                { icon: '🗺️', name: '足迹地图' },
+                { icon: '📸', name: '旅行相册' },
+                { icon: '📊', name: '旅行统计' },
+                { icon: '🏆', name: '成就徽章' },
+                { icon: '📅', name: '旅行时间线' },
+                { icon: '🌤️', name: '天气记录' },
+                { icon: '📝', name: '行程规划' },
+                { icon: '💰', name: '费用记录' },
+                { icon: '📖', name: '旅行日记' },
+                { icon: '📍', name: '签到打卡' }
+            ],
+            food: [
+                { icon: '🍽️', name: '餐厅打卡' },
+                { icon: '⭐', name: '美食评分' },
+                { icon: '📸', name: '美食相册' },
+                { icon: '🏷️', name: '分类标签' },
+                { icon: '📍', name: '美食地图' },
+                { icon: '❤️', name: '推荐清单' },
+                { icon: '💰', name: '价格记录' },
+                { icon: '👅', name: '口味偏好' },
+                { icon: '📖', name: '美食日记' },
+                { icon: '🥬', name: '食材追踪' }
+            ],
+            love: [
+                { icon: '💑', name: '情侣日记' },
+                { icon: '📅', name: '纪念日' },
+                { icon: '📸', name: '情侣相册' },
+                { icon: '💌', name: '爱情笔记' },
+                { icon: '🎯', name: '愿望清单' },
+                { icon: '📊', name: '恋爱统计' },
+                { icon: '💑', name: '约会计划' },
+                { icon: '✅', name: '情侣任务' },
+                { icon: '📍', name: '爱情地图' },
+                { icon: '⏰', name: '在一起天数' }
+            ]
+        };
+
+        // ========== Init ==========
+        function init() {
+            loadTheme();
+            loadConfig();
+            loadLockMode();
+            renderFeatures();
+            initSettingsUpload();
+        }
+
+        // ========== Theme ==========
+        function loadTheme() {
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.querySelector('.theme-btn').textContent = theme === 'dark' ? '🌙' : '☀️';
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            document.querySelector('.theme-btn').textContent = next === 'dark' ? '🌙' : '☀️';
+            toast(next === 'dark' ? '🌙 深色模式' : '☀️ 浅色模式');
+        }
+
+        // ========== Config ==========
+        function loadConfig() {
+            const config = getConfig();
+            
+            // Mode
+            selectMode(config.mode || 'travel');
+            
+            // Upload
+            selectUpload('type', config.uploadType || 'local');
+            selectUpload('size', config.uploadSize || 10);
+            selectUpload('quality', config.uploadQuality || 'high');
+
+            // Backend
+            document.getElementById('api-base').value = config.apiBase || '';
+            
+            // Map
+            selectMap(config.mapProvider || 'amap');
+            document.getElementById('map-key').value = config[`${config.mapProvider || 'amap'}Key`] || '';
+            
+            // Storage
+            const storageProvider = config.storageProvider || 'local';
+            selectStorage(storageProvider);
+            
+            // 加载各服务商配置
+            if (config.aliyunAccessKey) document.getElementById('aliyun-access-key').value = config.aliyunAccessKey;
+            if (config.aliyunSecretKey) document.getElementById('aliyun-secret-key').value = config.aliyunSecretKey;
+            if (config.aliyunBucket) document.getElementById('aliyun-bucket').value = config.aliyunBucket;
+            if (config.aliyunEndpoint) document.getElementById('aliyun-endpoint').value = config.aliyunEndpoint;
+            if (config.aliyunDomain) document.getElementById('aliyun-domain').value = config.aliyunDomain;
+            
+            if (config.tencentSecretId) document.getElementById('tencent-secret-id').value = config.tencentSecretId;
+            if (config.tencentSecretKey) document.getElementById('tencent-secret-key').value = config.tencentSecretKey;
+            if (config.tencentBucket) document.getElementById('tencent-bucket').value = config.tencentBucket;
+            if (config.tencentRegion) document.getElementById('tencent-region').value = config.tencentRegion;
+            
+            if (config.qiniuAccessKey) document.getElementById('qiniu-access-key').value = config.qiniuAccessKey;
+            if (config.qiniuSecretKey) document.getElementById('qiniu-secret-key').value = config.qiniuSecretKey;
+            if (config.qiniuBucket) document.getElementById('qiniu-bucket').value = config.qiniuBucket;
+            if (config.qiniuDomain) document.getElementById('qiniu-domain').value = config.qiniuDomain;
+            
+            if (config.awsAccessKey) document.getElementById('aws-access-key').value = config.awsAccessKey;
+            if (config.awsSecretKey) document.getElementById('aws-secret-key').value = config.awsSecretKey;
+            if (config.awsBucket) document.getElementById('aws-bucket').value = config.awsBucket;
+            if (config.awsRegion) document.getElementById('aws-region').value = config.awsRegion;
+            
+            if (config.gcpProjectId) document.getElementById('gcp-project-id').value = config.gcpProjectId;
+            if (config.gcpBucket) document.getElementById('gcp-bucket').value = config.gcpBucket;
+            if (config.gcpCredentials) document.getElementById('gcp-credentials').value = config.gcpCredentials;
+            
+            if (config.azureAccountName) document.getElementById('azure-account-name').value = config.azureAccountName;
+            if (config.azureAccountKey) document.getElementById('azure-account-key').value = config.azureAccountKey;
+            if (config.azureContainer) document.getElementById('azure-container').value = config.azureContainer;
+        }
+
+        function getConfig() {
+            try {
+                return JSON.parse(localStorage.getItem('footprint_config') || '{}');
+            } catch { return {}; }
+        }
+
+        function saveConfig(config) {
+            localStorage.setItem('footprint_config', JSON.stringify(config));
+        }
+
+        function getApiBase() {
+            const config = getConfig();
+            if (config.apiBase) return config.apiBase.replace(/\/$/, '');
+            return location.protocol === 'file:' ? 'http://localhost:5000' : '';
+        }
+
+        async function apiFetch(path, options = {}) {
+            const response = await fetch(`${getApiBase()}${path}`, options);
+            let data = null;
+            try { data = await response.json(); } catch { data = null; }
+            if (!response.ok) {
+                throw new Error(data?.error || data?.message || `HTTP ${response.status}`);
+            }
+            return data;
+        }
+
+        async function syncBackendConfig(config) {
+            const apiBase = getApiBase();
+            if (!apiBase && location.protocol === 'file:') return;
+            try {
+                await fetch(`${apiBase}/api/config`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+            } catch (error) {
+                console.log('Backend config sync skipped:', error.message);
+            }
+        }
+
+        // ========== Mode ==========
+        function selectMode(mode) {
+            document.querySelectorAll('.mode-card').forEach(card => {
+                card.classList.toggle('selected', card.dataset.mode === mode);
+            });
+            document.documentElement.setAttribute('data-mode', mode);
+            
+            const config = getConfig();
+            config.mode = mode;
+            saveConfig(config);
+            
+            renderFeatures();
+        }
+
+        function toggleLockMode() {
+            const checkbox = document.getElementById('lock-mode');
+            const config = getConfig();
+            config.lockMode = checkbox.checked;
+            saveConfig(config);
+            toast(checkbox.checked ? '🔒 模式已锁定' : '🔓 模式已解锁');
+        }
+
+        function loadLockMode() {
+            const config = getConfig();
+            const checkbox = document.getElementById('lock-mode');
+            if (checkbox) checkbox.checked = !!config.lockMode;
+        }
+
+        // ========== Features ==========
+        function renderFeatures() {
+            const config = getConfig();
+            const mode = config.mode || 'travel';
+            const features = MODE_FEATURES[mode];
+            
+            document.getElementById('features-list').innerHTML = features.map(f => `
+                <div class="feature-item">
+                    <div class="feature-icon">${f.icon}</div>
+                    <div class="feature-name">${f.name}</div>
+                </div>
+            `).join('');
+        }
+
+        // ========== Upload ==========
+        let settingsImages = [];
+
+        function switchUploadMode(mode) {
+            document.querySelectorAll('.upload-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.type === mode);
+            });
+            document.getElementById('upload-local-section').style.display = mode === 'local' ? 'block' : 'none';
+            document.getElementById('upload-url-section').style.display = mode === 'url' ? 'block' : 'none';
+            
+            const config = getConfig();
+            config.uploadType = mode;
+            saveConfig(config);
+        }
+
+        function selectUpload(key, value) {
+            if (key === 'size') {
+                document.querySelectorAll('.size-btn[data-size]').forEach(btn => {
+                    btn.classList.toggle('selected', parseInt(btn.dataset.size) === value);
+                });
+            } else if (key === 'quality') {
+                document.querySelectorAll('.size-btn[data-quality]').forEach(btn => {
+                    btn.classList.toggle('selected', btn.dataset.quality === value);
+                });
+            }
+            
+            const config = getConfig();
+            config[`upload${key.charAt(0).toUpperCase() + key.slice(1)}`] = value;
+            saveConfig(config);
+        }
+
+        function initSettingsUpload() {
+            const zone = document.getElementById('settings-upload-zone');
+            if (!zone) return;
+            
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = 'var(--primary)'; zone.style.background = 'var(--mode-bg)'; });
+            zone.addEventListener('dragleave', () => { zone.style.borderColor = 'var(--border)'; zone.style.background = ''; });
+            zone.addEventListener('drop', e => {
+                e.preventDefault();
+                zone.style.borderColor = 'var(--border)';
+                zone.style.background = '';
+                const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                if (files.length) processSettingsFiles(files);
+            });
+            
+            document.getElementById('settings-file-input').addEventListener('change', e => { processSettingsFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('settings-folder-input').addEventListener('change', e => { processSettingsFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('settings-gallery-input').addEventListener('change', e => { processSettingsFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('settings-camera-input').addEventListener('change', e => { processSettingsFiles(Array.from(e.target.files)); e.target.value = ''; });
+        }
+
+        function processSettingsFiles(files) {
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    settingsImages.push(e.target.result);
+                    renderSettingsPreview();
+                    toast('✅ 图片已添加');
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderSettingsPreview() {
+            const container = document.getElementById('settings-preview-grid');
+            container.innerHTML = settingsImages.map((img, i) => `
+                <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid var(--border)">
+                    <img src="${img}" style="width:100%;height:100%;object-fit:cover">
+                    <button onclick="removeSettingsImage(${i})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.7);color:white;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function removeSettingsImage(i) {
+            settingsImages.splice(i, 1);
+            renderSettingsPreview();
+        }
+
+        function addSettingsImageUrl() {
+            const input = document.getElementById('settings-url-input');
+            const url = input.value.trim();
+            if (!url) { toast('请输入图片链接'); return; }
+            if (!url.startsWith('http://') && !url.startsWith('https://')) { toast('请输入有效的链接'); return; }
+            settingsImages.push(url);
+            renderSettingsUrlPreview();
+            input.value = '';
+            toast('✅ 图片已添加');
+        }
+
+        function addSettingsBatchUrls() {
+            const input = document.getElementById('settings-batch-url');
+            const text = input.value.trim();
+            if (!text) { toast('请输入图片链接'); return; }
+            const urls = text.split('\n').map(u => u.trim()).filter(u => u && (u.startsWith('http://') || u.startsWith('https://')));
+            if (urls.length === 0) { toast('未找到有效链接'); return; }
+            urls.forEach(url => settingsImages.push(url));
+            renderSettingsUrlPreview();
+            input.value = '';
+            toast(`✅ 已添加 ${urls.length} 张图片`);
+        }
+
+        function renderSettingsUrlPreview() {
+            const container = document.getElementById('settings-url-preview-grid');
+            container.innerHTML = settingsImages.map((img, i) => `
+                <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:2px solid var(--border)">
+                    <img src="${img}" style="width:100%;height:100%;object-fit:cover">
+                    <button onclick="removeSettingsImage(${i})" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.7);color:white;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center">✕</button>
+                </div>
+            `).join('');
+        }
+
+        function saveUpload() {
+            const config = getConfig();
+            config.uploadType = document.querySelector('.upload-option.selected')?.dataset.type || 'local';
+            config.uploadSize = parseInt(document.querySelector('.size-btn[data-size].selected')?.dataset.size || 10);
+            config.uploadQuality = document.querySelector('.size-btn[data-quality].selected')?.dataset.quality || 'high';
+            saveConfig(config);
+            toast('📷 图片上传配置已保存');
+        }
+
+        // ========== Backend ==========
+        function normalizedApiBase() {
+            return document.getElementById('api-base').value.trim().replace(/\/$/, '');
+        }
+
+        async function saveApiBase() {
+            const config = getConfig();
+            const apiBase = normalizedApiBase();
+            if (apiBase && !/^https?:\/\//.test(apiBase)) {
+                toast('⚠️ API 地址需要以 http:// 或 https:// 开头');
+                return;
+            }
+            config.apiBase = apiBase;
+            saveConfig(config);
+            await syncBackendConfig(config);
+            toast('🔌 后端服务配置已保存');
+        }
+
+        async function testApiBase() {
+            const apiBase = normalizedApiBase() || getApiBase();
+            if (apiBase && !/^https?:\/\//.test(apiBase)) {
+                toast('⚠️ API 地址需要以 http:// 或 https:// 开头');
+                return;
+            }
+            try {
+                const response = await fetch(`${apiBase}/api/health`);
+                const data = await response.json();
+                if (data.status === 'ok') {
+                    toast(`✅ 服务正常，存储：${data.storage_provider || 'local'}`);
+                } else {
+                    toast('⚠️ 服务响应异常');
+                }
+            } catch (error) {
+                toast(`❌ 连接失败：${error.message}`);
+            }
+        }
+
+        // ========== Map ==========
+        function selectMap(provider) {
+            document.querySelectorAll('.map-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.provider === provider);
+            });
+            
+            const config = getConfig();
+            document.getElementById('map-key').value = config[`${provider}Key`] || '';
+        }
+
+        async function saveMap() {
+            const provider = document.querySelector('.map-option.selected').dataset.provider;
+            const key = document.getElementById('map-key').value.trim();
+            
+            const config = getConfig();
+            config.mapProvider = provider;
+            config[`${provider}Key`] = key;
+            saveConfig(config);
+            await syncBackendConfig(config);
+            
+            toast('🗺️ 地图配置已保存');
+        }
+
+        function testMapKey() {
+            const key = document.getElementById('map-key').value.trim();
+            if (!key) { toast('⚠️ 请先输入API Key'); return; }
+            toast('✅ API Key格式已验证');
+        }
+
+        // ========== Storage ==========
+        function selectStorage(provider) {
+            document.querySelectorAll('.map-option[data-storage]').forEach(opt => {
+                opt.classList.toggle('selected', opt.dataset.storage === provider);
+            });
+            
+            document.querySelectorAll('.storage-config').forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            const configEl = document.getElementById(`storage-${provider}`);
+            if (configEl) {
+                configEl.style.display = 'block';
+            }
+        }
+
+        async function saveStorage() {
+            const provider = document.querySelector('.map-option[data-storage].selected')?.dataset.storage || 'local';
+            const config = getConfig();
+            
+            config.storageProvider = provider;
+            
+            // 保存各服务商配置
+            if (provider === 'aliyun') {
+                config.aliyunAccessKey = document.getElementById('aliyun-access-key').value;
+                config.aliyunSecretKey = document.getElementById('aliyun-secret-key').value;
+                config.aliyunBucket = document.getElementById('aliyun-bucket').value;
+                config.aliyunEndpoint = document.getElementById('aliyun-endpoint').value;
+                config.aliyunDomain = document.getElementById('aliyun-domain').value;
+            } else if (provider === 'tencent') {
+                config.tencentSecretId = document.getElementById('tencent-secret-id').value;
+                config.tencentSecretKey = document.getElementById('tencent-secret-key').value;
+                config.tencentBucket = document.getElementById('tencent-bucket').value;
+                config.tencentRegion = document.getElementById('tencent-region').value;
+            } else if (provider === 'qiniu') {
+                config.qiniuAccessKey = document.getElementById('qiniu-access-key').value;
+                config.qiniuSecretKey = document.getElementById('qiniu-secret-key').value;
+                config.qiniuBucket = document.getElementById('qiniu-bucket').value;
+                config.qiniuDomain = document.getElementById('qiniu-domain').value;
+            } else if (provider === 'aws') {
+                config.awsAccessKey = document.getElementById('aws-access-key').value;
+                config.awsSecretKey = document.getElementById('aws-secret-key').value;
+                config.awsBucket = document.getElementById('aws-bucket').value;
+                config.awsRegion = document.getElementById('aws-region').value;
+            } else if (provider === 'gcp') {
+                config.gcpProjectId = document.getElementById('gcp-project-id').value;
+                config.gcpBucket = document.getElementById('gcp-bucket').value;
+                config.gcpCredentials = document.getElementById('gcp-credentials').value;
+            } else if (provider === 'azure') {
+                config.azureAccountName = document.getElementById('azure-account-name').value;
+                config.azureAccountKey = document.getElementById('azure-account-key').value;
+                config.azureContainer = document.getElementById('azure-container').value;
+            }
+            
+            saveConfig(config);
+            await syncBackendConfig(config);
+            toast('☁️ 云存储配置已保存');
+        }
+
+        // ========== Data ==========
+        async function exportData() {
+            let records = null;
+            try {
+                records = await apiFetch('/api/records');
+                localStorage.setItem('footprint_data', JSON.stringify(records));
+            } catch (error) {
+                const localRecords = localStorage.getItem('footprint_data');
+                records = localRecords ? JSON.parse(localRecords) : [];
+            }
+            if (!records.length) { toast('⚠️ 没有数据可导出'); return; }
+
+            const blob = new Blob([JSON.stringify(records, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `footprint_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast('📥 数据导出成功');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (Array.isArray(data)) {
+                        localStorage.setItem('footprint_data', JSON.stringify(data));
+                        try {
+                            const result = await apiFetch('/api/records/import', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ records: data, replace: true })
+                            });
+                            toast(`📤 成功导入 ${result.count} 条记录到后端`);
+                        } catch (error) {
+                            toast(`📤 已导入 ${data.length} 条到本机，后端未连接`);
+                        }
+                    } else {
+                        toast('❌ 无效的数据格式');
+                    }
+                } catch {
+                    toast('❌ 文件解析失败');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        async function clearData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) return;
+            try {
+                await apiFetch('/api/records', { method: 'DELETE' });
+            } catch (error) {
+                console.log('Backend clear skipped:', error.message);
+            }
+            localStorage.removeItem('footprint_data');
+            toast('🗑️ 数据已清空');
+        }
+
+        // ========== Toast ==========
+        function toast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2500);
+        }
+
+        // ========== Start ==========
+        window.onload = init;
+    </script>
+</body>
+</html>

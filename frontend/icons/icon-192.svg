@@ -1,0 +1,10 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Footprint">
+  <defs>
+    <linearGradient id="g" x1="24" y1="24" x2="168" y2="168" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF2442"/>
+      <stop offset="1" stop-color="#3B82F6"/>
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" rx="36" fill="url(#g)"/>
+  <path fill="#fff" d="M96 30c-25 0-45 20-45 45 0 34 45 87 45 87s45-53 45-87c0-25-20-45-45-45Zm0 63a18 18 0 1 1 0-36 18 18 0 0 1 0 36Z"/>
+</svg>

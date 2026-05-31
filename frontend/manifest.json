@@ -1,0 +1,43 @@
+{
+    "name": "足迹 - 记录你的美好生活",
+    "short_name": "足迹",
+    "description": "记录你的美好生活，旅行足迹、美食打卡、情侣日记",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0F0F14",
+    "theme_color": "#0F0F14",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "zh-CN",
+    "categories": ["lifestyle", "photography", "travel"],
+    "icons": [
+        {
+            "src": "icons/icon-192.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "添加记录",
+            "short_name": "添加",
+            "description": "添加新的记录",
+            "url": "/?action=add",
+            "icons": [
+                {
+                    "src": "icons/shortcut-add.svg",
+                    "sizes": "96x96",
+                    "type": "image/svg+xml"
+                }
+            ]
+        }
+    ]
+}

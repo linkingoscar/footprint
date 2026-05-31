@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-mode="travel">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>足迹 - 记录你的美好生活</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="足迹">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="足迹">
+    <meta name="description" content="记录你的美好生活，旅行足迹、美食打卡、情侣日记">
+    <meta name="theme-color" content="#0F0F14">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- iOS Splash Screens -->
+    <link rel="apple-touch-startup-image" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDEyIiBoZWlnaHQ9Ijg5MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDEyIiBoZWlnaHQ9Ijg5MiIgZmlsbD0iIzBGMEYxNCIvPjx0ZXh0IHg9IjIwNiIgeT0iNDQ2IiBmb250LWZhbWlseT0iSW50ZXIiIGZvbnQtc2l6ZT0iNDgiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj7wn5S1PC90ZXh0Pjwvc3ZnPg==">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- tsParticles -->
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+    <style>
+        :root {
+            --font: 'Inter', -apple-system, sans-serif;
+            --radius: 20px;
+            --radius-sm: 14px;
+            --radius-full: 9999px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        [data-theme="dark"] {
+            --bg: #0F0F14;
+            --bg-elevated: rgba(255,255,255,0.08);
+            --text: #fff;
+            --text-sec: rgba(255,255,255,0.7);
+            --text-muted: rgba(255,255,255,0.4);
+            --border: rgba(255,255,255,0.1);
+            --glass: rgba(255,255,255,0.06);
+            --glass-border: rgba(255,255,255,0.12);
+        }
+        [data-theme="light"] {
+            --bg: #F5F5F7;
+            --bg-elevated: rgba(255,255,255,0.9);
+            --text: #1D1D1F;
+            --text-sec: rgba(0,0,0,0.6);
+            --text-muted: rgba(0,0,0,0.4);
+            --border: rgba(0,0,0,0.1);
+            --glass: rgba(255,255,255,0.7);
+            --glass-border: rgba(255,255,255,0.5);
+        }
+        [data-mode="travel"] { --primary: #3B82F6; --glow: rgba(59,130,246,0.3); --gradient: linear-gradient(135deg, #3B82F6, #06B6D4); --mode-bg: rgba(59,130,246,0.1); }
+        [data-mode="food"] { --primary: #F59E0B; --glow: rgba(245,158,11,0.3); --gradient: linear-gradient(135deg, #F59E0B, #EF4444); --mode-bg: rgba(245,158,11,0.1); }
+        [data-mode="love"] { --primary: #EC4899; --glow: rgba(236,72,153,0.3); --gradient: linear-gradient(135deg, #EC4899, #8B5CF6); --mode-bg: rgba(236,72,153,0.1); }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* iOS Safe Area Support */
+        body { 
+            font-family: var(--font); 
+            background: var(--bg); 
+            color: var(--text); 
+            min-height: 100vh; 
+            overflow-x: hidden;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+            -webkit-text-size-adjust: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* iOS specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        .glass { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); }
+
+        /* Dynamic BG */
+        .dynamic-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+        .bg-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.08; animation: blobFloat 20s ease-in-out infinite; }
+        .bg-blob-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; }
+        .bg-blob-2 { width: 350px; height: 350px; background: #06B6D4; bottom: -100px; right: -100px; animation-delay: -7s; }
+        @keyframes blobFloat { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,30px) scale(1.1)} }
+
+        .app { position: relative; z-index: 1; min-height: 100vh; }
+
+        /* Header */
+        .header { position: sticky; top: 0; z-index: 100; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); cursor: pointer; }
+        .logo-icon { width: 36px; height: 36px; background: var(--gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
+        .logo-text { font-size: 18px; font-weight: 700; }
+        .header-actions { display: flex; gap: 8px; }
+
+        /* Buttons */
+        .btn { padding: 10px 18px; min-height: 44px; border-radius: var(--radius-full); border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--transition); font-family: var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 6px; line-height: 1; }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--gradient); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--glow); }
+        .btn-ghost { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
+        .btn-ghost:hover { background: var(--glass); }
+        .btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 18px; }
+        .btn-sm { padding: 8px 14px; min-height: 36px; font-size: 13px; }
+        .btn-danger { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
+
+        /* Hero */
+        .hero { text-align: center; padding: 60px 24px 40px; position: relative; }
+        .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius-full); font-size: 13px; color: var(--text-sec); margin-bottom: 24px; }
+        .hero-dot { width: 6px; height: 6px; border-radius: 50%; background: #10B981; }
+        .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
+        .hero-gradient { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: 16px; color: var(--text-sec); margin-bottom: 32px; }
+        .hero-actions { display: flex; gap: 12px; justify-content: center; }
+        .mode-switcher { display: inline-flex; gap: 4px; align-items: center; margin: 26px auto 0; padding: 4px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .mode-pill { min-width: 112px; height: 42px; border: none; border-radius: 8px; background: transparent; color: var(--text-sec); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition); }
+        .mode-pill:hover { color: var(--text); background: var(--glass); }
+        .mode-pill.active { color: white; background: var(--gradient); box-shadow: 0 4px 14px var(--glow); }
+        .stats { display: flex; gap: 48px; justify-content: center; margin-top: 48px; }
+        .stat-num { font-size: 36px; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+
+        /* Main */
+        .main { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .section-title { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+        /* Features */
+        .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
+        .feature-card { background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 12px; cursor: pointer; transition: var(--transition); text-align: center; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .feature-card:hover { transform: translateY(-4px); border-color: var(--primary); background: var(--mode-bg); }
+        .feature-card.highlight { border-color: var(--primary); background: var(--mode-bg); }
+        .feature-card.highlight .feature-icon { font-size: 32px; }
+        .feature-card:active { transform: scale(0.96); }
+        .feature-icon { font-size: 28px; margin-bottom: 8px; line-height: 1; }
+        .feature-name { font-size: 12px; font-weight: 500; }
+
+        /* Photo Grid - Polaroid */
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        .photo-card { background: white; border-radius: 4px; overflow: hidden; cursor: pointer; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); padding: 12px 12px 16px; position: relative; }
+        [data-theme="dark"] .photo-card { background: rgba(30,30,40,0.95); }
+        .photo-card:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: 0 14px 28px rgba(0,0,0,0.25); }
+        .photo-card:nth-child(even):hover { transform: translateY(-8px) rotate(1deg); }
+        .photo-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 2px; display: block; }
+        .photo-card-body { padding: 12px 4px 4px; }
+        .photo-card-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+        .photo-card-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 10px; }
+        .photo-card-tag { position: absolute; top: 16px; right: 16px; padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; z-index: 2; }
+        .tag-travel { background: rgba(59,130,246,0.2); color: #60A5FA; }
+        .tag-food { background: rgba(245,158,11,0.2); color: #FBBF24; }
+        .tag-love { background: rgba(236,72,153,0.2); color: #F472B6; }
+
+        /* Empty */
+        .empty { text-align: center; padding: 60px 20px; }
+        .empty-icon { font-size: 72px; margin-bottom: 20px; line-height: 1; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        .empty h3 { font-size: 22px; margin-bottom: 12px; }
+        .empty p { color: var(--text-sec); margin-bottom: 24px; max-width: 300px; margin-left: auto; margin-right: auto; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid var(--glass-border); border-radius: var(--radius); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 100px rgba(0,0,0,0.5); animation: modalIn 0.3s ease; }
+        .modal-lg { max-width: 800px; }
+        @keyframes modalIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--glass); backdrop-filter: blur(20px); z-index: 10; }
+        .modal-title { font-size: 17px; font-weight: 600; }
+        .modal-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg-elevated); color: var(--text); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; position: sticky; bottom: 0; background: var(--glass); backdrop-filter: blur(20px); }
+
+        /* Form */
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 13px; font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 10px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); font-family: var(--font); }
+        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--glow); }
+        .form-textarea { resize: vertical; min-height: 80px; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        /* Upload Tabs */
+        .upload-tabs { display: flex; gap: 4px; background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 16px; }
+        .upload-tab { flex: 1; padding: 10px 16px; border: none; border-radius: 8px; background: transparent; color: var(--text-sec); font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition); font-family: var(--font); }
+        .upload-tab.active { background: var(--primary); color: white; }
+        .upload-tab-content { display: none; }
+        .upload-tab-content.active { display: block; }
+
+        /* Upload Zone */
+        .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 40px 20px; text-align: center; transition: var(--transition); cursor: pointer; }
+        .upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: var(--mode-bg); }
+        .upload-zone-icon { font-size: 48px; margin-bottom: 12px; line-height: 1; }
+        .upload-zone h4 { font-size: 15px; margin-bottom: 6px; }
+        .upload-zone p { font-size: 13px; color: var(--text-sec); margin-bottom: 16px; }
+        .upload-zone-actions { display: flex; gap: 10px; justify-content: center; }
+
+        /* URL Upload */
+        .url-upload-zone { padding: 16px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+        .url-provider-tag { padding: 4px 10px; background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius-full); font-size: 11px; cursor: pointer; transition: var(--transition); display: inline-block; }
+        .url-provider-tag:hover { border-color: var(--primary); background: var(--mode-bg); }
+
+        /* Preview */
+        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 16px; }
+        .preview-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 2px solid var(--border); }
+        .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-remove { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.7); color: white; border: none; cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; }
+        .preview-item:hover .preview-remove { display: flex; }
+        .preview-badge { position: absolute; bottom: 4px; left: 4px; padding: 1px 6px; background: rgba(0,0,0,0.7); color: white; border-radius: 4px; font-size: 10px; }
+
+        /* Progress */
+        .upload-progress { margin-top: 16px; display: none; }
+        .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--gradient); width: 0%; transition: width 0.3s; }
+        .progress-text { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+
+        /* Search */
+        .search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 4px; max-height: 180px; overflow-y: auto; display: none; z-index: 100; }
+        .search-results.active { display: block; }
+        .search-item { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--border); }
+        .search-item:hover { background: var(--bg-elevated); }
+        .search-item:last-child { border-bottom: none; }
+        .search-item small { color: var(--text-muted); }
+
+        /* Stats Card */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
+        .stat-card-icon { font-size: 24px; margin-bottom: 8px; line-height: 1; }
+        .stat-card-num { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .stat-card-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        /* List */
+        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-sm); margin-bottom: 8px; }
+        .list-icon { font-size: 20px; width: 24px; text-align: center; line-height: 1; }
+        .list-content { flex: 1; }
+        .list-title { font-size: 14px; font-weight: 500; }
+        .list-desc { font-size: 12px; color: var(--text-muted); }
+        .list-action { font-size: 18px; cursor: pointer; padding: 4px; }
+
+        /* Timeline */
+        .timeline-item { display: flex; gap: 16px; padding: 16px 0; border-left: 2px solid var(--border); margin-left: 12px; padding-left: 20px; position: relative; }
+        .timeline-item::before { content: ''; position: absolute; left: -7px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); }
+        .timeline-date { font-size: 12px; color: var(--text-muted); min-width: 60px; }
+        .timeline-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+        .timeline-desc { font-size: 13px; color: var(--text-sec); }
+        .timeline-photo-flow { column-count: 3; column-gap: 8px; margin-top: 10px; max-width: 420px; }
+        .timeline-photo-flow img { width: 100%; margin: 0 0 8px; break-inside: avoid; border-radius: 8px; object-fit: cover; display: block; background: var(--bg-elevated); }
+        .timeline-more { display: inline-flex; height: 36px; padding: 0 10px; align-items: center; justify-content: center; break-inside: avoid; border-radius: 8px; background: var(--bg-elevated); color: var(--text-muted); font-size: 12px; }
+
+        /* Desktop/Mobile */
+        .desktop-only { display: flex !important; }
+        .mobile-only { display: none !important; }
+
+        /* Toast */
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-full); font-size: 14px; z-index: 2000; transition: var(--transition); }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .desktop-only { display: none !important; }
+            .mobile-only { display: flex !important; }
+            .features { grid-template-columns: repeat(3, 1fr); }
+            .photo-grid { grid-template-columns: repeat(2, 1fr); }
+            .hero h1 { font-size: 32px; }
+            .mode-switcher { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 420px); }
+            .mode-pill { min-width: 0; width: 100%; }
+            .timeline-photo-flow { column-count: 2; max-width: 100%; }
+            .stats { gap: 24px; }
+            .stat-num { font-size: 28px; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .features { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="dynamic-bg">
+        <div class="bg-blob bg-blob-1"></div>
+        <div class="bg-blob bg-blob-2"></div>
+    </div>
+    <div id="particles-bg" style="position:fixed;inset:0;z-index:0;pointer-events:none"></div>
+
+    <div class="app">
+        <header class="header glass">
+            <div class="logo" onclick="location.reload()">
+                <div class="logo-icon" id="logo-icon">✈️</div>
+                <div class="logo-text">足迹</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-icon btn-ghost" onclick="toggleLang()" id="lang-btn" title="切换语言">🌐</button>
+                <button class="btn btn-icon btn-ghost" onclick="toggleTheme()" id="theme-btn">🌙</button>
+                <button class="btn btn-icon btn-ghost" onclick="openModal('guide')">📖</button>
+                <button class="btn btn-icon btn-ghost" onclick="location.href='settings.html'">⚙️</button>
+                <button class="btn btn-primary" onclick="openModal('add')" id="btn-add">+ 添加</button>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="hero-badge"><span class="hero-dot"></span><span id="hero-badge">记录旅行的每一刻</span></div>
+            <h1 id="hero-title">用<span class="hero-gradient">足迹</span>记录<br>你的旅行</h1>
+            <p id="hero-desc">记录每一次旅行，探索世界的美好</p>
+            <div class="hero-actions">
+                <button class="btn btn-primary" id="hero-start-btn" onclick="openModal('add')">开始记录</button>
+                <button class="btn btn-ghost" id="hero-view-btn" onclick="document.getElementById('records-section').scrollIntoView({behavior:'smooth'})">查看记录</button>
+            </div>
+            <div class="mode-switcher" id="mode-switcher" aria-label="记录模式">
+                <button class="mode-pill" data-mode-option="travel" onclick="switchMode('travel')"><span>✈️</span><span>旅行</span></button>
+                <button class="mode-pill" data-mode-option="food" onclick="switchMode('food')"><span>🍜</span><span>美食</span></button>
+                <button class="mode-pill" data-mode-option="love" onclick="switchMode('love')"><span>💕</span><span>情侣</span></button>
+            </div>
+            <div class="stats">
+                <div><div class="stat-num" id="stat-records">0</div><div class="stat-label" id="stat-l1">✈️ 旅行</div></div>
+                <div><div class="stat-num" id="stat-places">0</div><div class="stat-label" id="stat-l2">📍 地点</div></div>
+                <div><div class="stat-num" id="stat-photos">0</div><div class="stat-label" id="stat-l3">📸 照片</div></div>
+            </div>
+        </section>
+
+        <main class="main">
+            <div class="section-header">
+                <div class="section-title" id="features-title">✨ 功能</div>
+            </div>
+            <div class="features" id="features"></div>
+
+            <div id="records-section">
+                <div class="section-header">
+                    <div class="section-title" id="records-title">📸 我的记录</div>
+                </div>
+                <div class="photo-grid" id="photo-grid"></div>
+                <div class="empty" id="empty" style="display:none">
+                    <div class="empty-icon" id="empty-icon">📷</div>
+                    <h3 id="empty-title">开始你的记录之旅</h3>
+                    <p id="empty-desc">记录生活中的美好瞬间，让回忆永不褪色</p>
+                    <button class="btn btn-primary" onclick="openModal('add')">添加第一条记录</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal-overlay" id="modal-add">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-add-title">添加记录</div>
+                <button class="modal-close" onclick="closeModal('add')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="form-label">📷 添加照片</div>
+                    <div class="upload-tabs">
+                        <button class="upload-tab active" data-tab="local" onclick="switchUploadTab('local')">📁 本地上传</button>
+                        <button class="upload-tab" data-tab="url" onclick="switchUploadTab('url')">🔗 链接添加</button>
+                    </div>
+                    <div class="upload-tab-content active" id="tab-local">
+                        <div class="upload-zone" id="upload-zone">
+                            <input type="file" id="file-input" multiple accept="image/*" style="display:none">
+                            <input type="file" id="folder-input" webkitdirectory style="display:none">
+                            <input type="file" id="gallery-input" multiple accept="image/*" style="display:none">
+                            <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
+                            <div class="upload-zone-icon">📷</div>
+                            <h4>拖拽图片或点击上传</h4>
+                            <p>支持 JPG、PNG、GIF、WebP 格式</p>
+                            <div class="upload-zone-actions desktop-only">
+                                <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('file-input').click()">📁 选择文件</button>
+                                <button class="btn btn-ghost" onclick="event.stopPropagation();document.getElementById('folder-input').click()">📂 选择文件夹</button>
+                            </div>
+                            <div class="upload-zone-actions mobile-only">
+                                <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('gallery-input').click()">🖼️ 相册</button>
+                                <button class="btn btn-ghost" onclick="event.stopPropagation();document.getElementById('camera-input').click()">📸 拍照</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="upload-tab-content" id="tab-url">
+                        <div class="url-upload-zone">
+                            <div style="margin-bottom:12px">
+                                <div class="form-label" style="margin-bottom:8px">🔗 输入图片链接</div>
+                                <div style="display:flex;gap:8px">
+                                    <input type="text" class="form-input" id="url-input" placeholder="粘贴图片链接" onkeypress="if(event.key==='Enter')addImagesByUrl()">
+                                    <button class="btn btn-primary" onclick="addImagesByUrl()">添加</button>
+                                </div>
+                            </div>
+                            <div style="margin-bottom:12px">
+                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">支持的图床：</div>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://i.imgur.com/xxxxx.jpg'">Imgur</span>
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://s2.sm.ms/xxxxx.jpg'">SM.MS</span>
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://raw.githubusercontent.com/...'">GitHub</span>
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://xxx.qiniucdn.com/xxx.jpg'">七牛云</span>
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://xxx.oss-cn-hangzhou.aliyuncs.com/xxx.jpg'">阿里云OSS</span>
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://xxx.cos.ap-guangzhou.myqcloud.com/xxx.jpg'">腾讯云COS</span>
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://res.cloudinary.com/xxx/image/upload/xxx.jpg'">Cloudinary</span>
+                                </div>
+                            </div>
+                            <div style="padding:12px;background:var(--glass);border-radius:var(--radius-sm)">
+                                <div style="font-size:13px;font-weight:500;margin-bottom:8px">📋 批量导入</div>
+                                <textarea class="form-textarea" id="batch-url-input" placeholder="每行一个图片链接" style="min-height:60px;font-size:12px"></textarea>
+                                <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="addBatchUrls()">批量添加</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="upload-progress" id="upload-progress">
+                        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+                        <div class="progress-text" id="progress-text"></div>
+                    </div>
+                    <div class="preview-grid" id="preview-grid"></div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label" id="label-title">✏️ 标题</div>
+                    <input type="text" class="form-input" id="input-title" placeholder="起个名字">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">📝 描述</div>
+                    <textarea class="form-textarea" id="input-desc" placeholder="写下你的感受..."></textarea>
+                </div>
+                <div class="form-group" style="position:relative">
+                    <div class="form-label" id="label-location">📍 地点</div>
+                    <input type="text" class="form-input" id="input-location" placeholder="搜索地点" oninput="debounceSearch()">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="form-label">📅 日期</div>
+                        <input type="date" class="form-input" id="input-date">
+                    </div>
+                    <div class="form-group" id="group-rating" style="display:none">
+                        <div class="form-label">⭐ 评分</div>
+                        <select class="form-select" id="input-rating">
+                            <option value="5">⭐⭐⭐⭐⭐ 5分</option>
+                            <option value="4">⭐⭐⭐⭐ 4分</option>
+                            <option value="3">⭐⭐⭐ 3分</option>
+                            <option value="2">⭐⭐ 2分</option>
+                            <option value="1">⭐ 1分</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="group-price" style="display:none">
+                        <div class="form-label">💰 价格</div>
+                        <input type="number" class="form-input" id="input-price" placeholder="元">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('add')">取消</button>
+                <button class="btn btn-primary" onclick="saveRecord()">💾 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Modal -->
+    <div class="modal-overlay" id="modal-feature">
+        <div class="modal modal-lg">
+            <div class="modal-header">
+                <div class="modal-title" id="feature-modal-title"></div>
+                <button class="modal-close" onclick="closeModal('feature')">✕</button>
+            </div>
+            <div class="modal-body" id="feature-modal-body"></div>
+        </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div class="modal-overlay" id="modal-guide">
+        <div class="modal" style="max-width:420px">
+            <div class="modal-header">
+                <div class="modal-title">📖 使用指南</div>
+                <button class="modal-close" onclick="closeModal('guide')">✕</button>
+            </div>
+            <div class="modal-body" style="text-align:center;padding:30px">
+                <div style="font-size:48px;margin-bottom:16px;line-height:1" id="guide-icon">📍</div>
+                <h3 id="guide-title">欢迎使用足迹</h3>
+                <p style="color:var(--text-sec);margin:12px 0 24px" id="guide-desc">记录你的美好生活</p>
+                <div style="display:flex;justify-content:center;gap:6px;margin-bottom:20px" id="guide-dots"></div>
+                <div style="display:flex;justify-content:space-between">
+                    <button class="btn btn-ghost btn-sm" id="guide-prev" onclick="prevGuide()" disabled>上一步</button>
+                    <button class="btn btn-primary btn-sm" id="guide-next" onclick="nextGuide()">下一步</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== i18n Internationalization ==========
+        const i18n = {
+            zh: {
+                // Header
+                add: '+ 添加',
+                guide: '使用指南',
+                settings: '设置',
+                
+                // Hero
+                badge: '记录旅行的每一刻',
+                title: '用<span class="hero-gradient">足迹</span>记录<br>你的旅行',
+                subtitle: '记录每一次旅行，探索世界的美好',
+                startBtn: '开始记录',
+                viewBtn: '查看记录',
+                stat1: '旅行',
+                stat2: '地点',
+                stat3: '照片',
+                
+                // Features
+                featuresTitle: '✨ 功能',
+                recordsTitle: '📸 我的记录',
+                
+                // Empty
+                emptyTitle: '开始你的记录之旅',
+                emptyDesc: '记录生活中的美好瞬间，让回忆永不褪色',
+                emptyBtn: '添加第一条记录',
+                
+                // Modal - Add
+                addTitle: '添加记录',
+                uploadTitle: '📷 添加照片',
+                localUpload: '📁 本地上传',
+                urlUpload: '🔗 链接添加',
+                dragDrop: '拖拽图片或点击上传',
+                fileSupport: '支持 JPG、PNG、GIF、WebP 格式',
+                selectFile: '📁 选择文件',
+                selectFolder: '📂 选择文件夹',
+                album: '🖼️ 相册',
+                camera: '📸 拍照',
+                urlPlaceholder: '粘贴图片链接',
+                batchPlaceholder: '每行一个图片链接',
+                batchAdd: '批量添加',
+                titlePlaceholder: '起个名字',
+                descPlaceholder: '写下你的感受...',
+                locationPlaceholder: '搜索地点',
+                dateLabel: '📅 日期',
+                cancel: '取消',
+                save: '💾 保存',
+                
+                // Modal - Guide
+                guideTitle: '使用指南',
+                guideWelcome: '欢迎使用足迹',
+                guideWelcomeDesc: '记录你的美好生活',
+                guideUpload: '拖拽上传',
+                guideUploadDesc: '支持批量、文件夹、URL链接上传',
+                guideMap: '地图视图',
+                guideMapDesc: '在地图上查看足迹',
+                prevBtn: '上一步',
+                nextBtn: '下一步',
+                guideStartBtn: '开始使用',
+                
+                // Features - Travel
+                exif: 'EXIF定位',
+                footprintMap: '足迹地图',
+                trackReplay: '轨迹回放',
+                timeline: '时间线',
+                stats: '统计报告',
+                album: '旅行相册',
+                badges: '成就徽章',
+                weather: '天气',
+                plan: '行程规划',
+                cost: '费用',
+                diary: '日记',
+                checkin: '打卡',
+                
+                // Features - Food
+                restaurant: '餐厅打卡',
+                rating: '美食评分',
+                foodAlbum: '美食相册',
+                tags: '分类标签',
+                foodMap: '美食地图',
+                wishlist: '推荐清单',
+                price: '价格记录',
+                taste: '口味偏好',
+                foodDiary: '美食日记',
+                ingredients: '食材追踪',
+                
+                // Features - Love
+                coupleDiary: '情侣日记',
+                anniversary: '纪念日',
+                coupleAlbum: '情侣相册',
+                loveNotes: '爱情笔记',
+                loveWishlist: '愿望清单',
+                loveStats: '恋爱统计',
+                datePlan: '约会计划',
+                tasks: '情侣任务',
+                loveMap: '爱情地图',
+                daysTogether: '在一起',
+                
+                // Toast
+                saveSuccess: '✅ 保存成功',
+                deleteSuccess: '已删除',
+                uploadSuccess: '✅ 图片已添加',
+                batchSuccess: '✅ 已添加 {count} 张图片',
+                enterTitle: '请输入标题',
+                enterPhotos: '请上传照片',
+                enterUrl: '请输入图片链接',
+                enterValidUrl: '请输入有效的链接',
+                noValidLinks: '未找到有效链接',
+                
+                // Months
+                months: ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月']
+            },
+            en: {
+                // Header
+                add: '+ Add',
+                guide: 'Guide',
+                settings: 'Settings',
+                
+                // Hero
+                badge: 'Record every moment of travel',
+                title: 'Record your journey with<br><span class="hero-gradient">Footprint</span>',
+                subtitle: 'Record every trip, explore the beauty of the world',
+                startBtn: 'Start Recording',
+                viewBtn: 'View Records',
+                stat1: 'Trips',
+                stat2: 'Places',
+                stat3: 'Photos',
+                
+                // Features
+                featuresTitle: '✨ Features',
+                recordsTitle: '📸 My Records',
+                
+                // Empty
+                emptyTitle: 'Start Your Journey',
+                emptyDesc: 'Record beautiful moments in life, keep memories alive',
+                emptyBtn: 'Add First Record',
+                
+                // Modal - Add
+                addTitle: 'Add Record',
+                uploadTitle: '📷 Upload Photos',
+                localUpload: '📁 Local Upload',
+                urlUpload: '🔗 URL Link',
+                dragDrop: 'Drag images or click to upload',
+                fileSupport: 'Support JPG, PNG, GIF, WebP formats',
+                selectFile: '📁 Select Files',
+                selectFolder: '📂 Select Folder',
+                album: '🖼️ Album',
+                camera: '📸 Camera',
+                urlPlaceholder: 'Paste image URL',
+                batchPlaceholder: 'One image URL per line',
+                batchAdd: 'Batch Add',
+                titlePlaceholder: 'Give it a name',
+                descPlaceholder: 'Write your feelings...',
+                locationPlaceholder: 'Search location',
+                dateLabel: '📅 Date',
+                cancel: 'Cancel',
+                save: '💾 Save',
+                
+                // Modal - Guide
+                guideTitle: 'User Guide',
+                guideWelcome: 'Welcome to Footprint',
+                guideWelcomeDesc: 'Record your beautiful life',
+                guideUpload: 'Drag & Drop',
+                guideUploadDesc: 'Support batch, folder, URL upload',
+                guideMap: 'Map View',
+                guideMapDesc: 'View footprints on the map',
+                prevBtn: 'Previous',
+                nextBtn: 'Next',
+                guideStartBtn: 'Get Started',
+                
+                // Features - Travel
+                exif: 'EXIF Locate',
+                footprintMap: 'Footprint Map',
+                trackReplay: 'Track Replay',
+                timeline: 'Timeline',
+                stats: 'Statistics',
+                album: 'Photo Album',
+                badges: 'Badges',
+                weather: 'Weather',
+                plan: 'Itinerary',
+                cost: 'Expenses',
+                diary: 'Diary',
+                checkin: 'Check-in',
+                
+                // Features - Food
+                restaurant: 'Restaurant',
+                rating: 'Rating',
+                foodAlbum: 'Food Album',
+                tags: 'Tags',
+                foodMap: 'Food Map',
+                wishlist: 'Wishlist',
+                price: 'Price',
+                taste: 'Taste',
+                foodDiary: 'Food Diary',
+                ingredients: 'Ingredients',
+                
+                // Features - Love
+                coupleDiary: 'Couple Diary',
+                anniversary: 'Anniversary',
+                coupleAlbum: 'Couple Album',
+                loveNotes: 'Love Notes',
+                loveWishlist: 'Wishlist',
+                loveStats: 'Love Stats',
+                datePlan: 'Date Plan',
+                tasks: 'Couple Tasks',
+                loveMap: 'Love Map',
+                daysTogether: 'Together',
+                
+                // Toast
+                saveSuccess: '✅ Saved successfully',
+                deleteSuccess: 'Deleted',
+                uploadSuccess: '✅ Image added',
+                batchSuccess: '✅ Added {count} images',
+                enterTitle: 'Please enter a title',
+                enterPhotos: 'Please upload photos',
+                enterUrl: 'Please enter image URL',
+                enterValidUrl: 'Please enter a valid URL',
+                noValidLinks: 'No valid links found',
+                
+                // Months
+                months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+            }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'zh';
+
+        function t(key, params = {}) {
+            let text = i18n[currentLang]?.[key] || i18n.zh[key] || key;
+            Object.keys(params).forEach(k => {
+                text = text.replace(`{${k}}`, params[k]);
+            });
+            return text;
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            localStorage.setItem('lang', currentLang);
+            applyLang();
+            render();
+            toast(currentLang === 'zh' ? '🌐 已切换到中文' : '🌐 Switched to English');
+        }
+
+        function applyLang() {
+            document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+            document.getElementById('btn-add').textContent = t('add');
+            document.getElementById('hero-start-btn').textContent = t('startBtn');
+            document.getElementById('hero-view-btn').textContent = t('viewBtn');
+            applyMode();
+        }
+
+        function updateModeNames() {
+            const m = getModeText();
+            document.getElementById('stat-l1').textContent = m.stat1;
+            document.getElementById('stat-l2').textContent = m.stat2;
+            document.getElementById('stat-l3').textContent = m.stat3;
+        }
+
+        function updateModeSwitcher() {
+            const labels = {
+                travel: currentLang === 'zh' ? '旅行' : 'Travel',
+                food: currentLang === 'zh' ? '美食' : 'Food',
+                love: currentLang === 'zh' ? '情侣' : 'Love'
+            };
+            document.querySelectorAll('[data-mode-option]').forEach(button => {
+                const mode = button.dataset.modeOption;
+                button.classList.toggle('active', mode === state.mode);
+                const label = button.querySelector('span:last-child');
+                if (label) label.textContent = labels[mode] || mode;
+            });
+        }
+
+        // ========== Config ==========
+        const MODE_TEXT = {
+            zh: {
+                travel: { badge:'记录旅行的每一刻', title:'用<span class="hero-gradient">足迹</span>记录<br>你的旅行', desc:'记录每一次旅行，探索世界的美好', recordsTitle:'📸 我的旅行', emptyIcon:'✈️', emptyTitle:'还没有旅行记录', emptyDesc:'点击添加开始记录你的旅行', modalTitle:'添加旅行记录', labelTitle:'✏️ 旅行标题', titlePlaceholder:'给这次旅行起个名字', labelLocation:'📍 旅行地点', locationPlaceholder:'搜索旅行地点', stat1:'✈️ 旅行', stat2:'📍 地点', stat3:'📸 照片', featuresTitle:'✨ 旅行功能' },
+                food: { badge:'发现美食的每一刻', title:'用<span class="hero-gradient">味蕾</span>记录<br>你的美食', desc:'发现美食，留下味蕾记忆', recordsTitle:'🍽️ 我的美食', emptyIcon:'🍜', emptyTitle:'还没有美食记录', emptyDesc:'点击添加开始记录美食', modalTitle:'添加美食记录', labelTitle:'✏️ 美食名称', titlePlaceholder:'给这道美食起个名字', labelLocation:'📍 餐厅地址', locationPlaceholder:'搜索餐厅地址', stat1:'🍜 美食', stat2:'🍽️ 餐厅', stat3:'📸 照片', featuresTitle:'✨ 美食功能' },
+                love: { badge:'记录甜蜜的每一刻', title:'用<span class="hero-gradient">爱</span>记录<br>你们的故事', desc:'记录甜蜜时光，珍藏美好回忆', recordsTitle:'💕 我们的回忆', emptyIcon:'💕', emptyTitle:'还没有甜蜜记录', emptyDesc:'点击添加开始记录故事', modalTitle:'添加甜蜜记录', labelTitle:'✏️ 回忆标题', titlePlaceholder:'给这段回忆起个名字', labelLocation:'📍 约会地点', locationPlaceholder:'搜索约会地点', stat1:'💕 回忆', stat2:'📍 地点', stat3:'📸 照片', featuresTitle:'✨ 情侣功能' }
+            },
+            en: {
+                travel: { badge:'Record every trip', title:'Record your travels with<br><span class="hero-gradient">Footprint</span>', desc:'Capture every journey and keep the route behind each photo.', recordsTitle:'📸 My Trips', emptyIcon:'✈️', emptyTitle:'No trips yet', emptyDesc:'Add your first travel record to start the map.', modalTitle:'Add Travel Record', labelTitle:'✏️ Trip title', titlePlaceholder:'Name this trip', labelLocation:'📍 Destination', locationPlaceholder:'Search destination', stat1:'✈️ Trips', stat2:'📍 Places', stat3:'📸 Photos', featuresTitle:'✨ Travel Tools' },
+                food: { badge:'Capture every good meal', title:'Record your food finds with<br><span class="hero-gradient">Taste</span>', desc:'Track restaurants, ratings, prices, tags and food memories.', recordsTitle:'🍽️ My Food', emptyIcon:'🍜', emptyTitle:'No food records yet', emptyDesc:'Add your first dish or restaurant.', modalTitle:'Add Food Record', labelTitle:'✏️ Dish or restaurant', titlePlaceholder:'Name this food record', labelLocation:'📍 Restaurant address', locationPlaceholder:'Search restaurant address', stat1:'🍜 Foods', stat2:'🍽️ Restaurants', stat3:'📸 Photos', featuresTitle:'✨ Food Tools' },
+                love: { badge:'Keep every shared moment', title:'Record your story with<br><span class="hero-gradient">Love</span>', desc:'Save dates, anniversaries, notes and shared places.', recordsTitle:'💕 Our Memories', emptyIcon:'💕', emptyTitle:'No memories yet', emptyDesc:'Add your first shared memory.', modalTitle:'Add Memory', labelTitle:'✏️ Memory title', titlePlaceholder:'Name this memory', labelLocation:'📍 Date location', locationPlaceholder:'Search date location', stat1:'💕 Memories', stat2:'📍 Places', stat3:'📸 Photos', featuresTitle:'✨ Couple Tools' }
+            }
+        };
+
+        const FEATURE_TEXT = {
+            en: {
+                travel: { exif:'EXIF Locate', map:'Footprint Map', replay:'Track Replay', timeline:'Timeline', stats:'Statistics', album:'Travel Album', badges:'Badges', weather:'Weather', plan:'Itinerary', cost:'Expenses', diary:'Diary', checkin:'Check-in' },
+                food: { exif:'EXIF Locate', map:'Food Map', timeline:'Timeline', checkin:'Restaurant Check-in', rating:'Food Rating', album:'Food Album', tags:'Category Tags', wishlist:'Recommendation List', cost:'Price Records', taste:'Taste Profile', diary:'Food Diary', ingredients:'Ingredients' },
+                love: { exif:'EXIF Locate', map:'Love Map', replay:'Track Replay', timeline:'Timeline', diary:'Couple Diary', album:'Couple Album', notes:'Love Notes', wishlist:'Wishlist', stats:'Love Stats', date:'Date Plan', tasks:'Couple Tasks', days:'Together Days' }
+            }
+        };
+
+        function getModeText(mode = state.mode) {
+            return MODE_TEXT[currentLang]?.[mode] || MODE_TEXT.zh[mode] || MODE_TEXT.zh.travel;
+        }
+
+        function featureLabel(feature) {
+            return FEATURE_TEXT[currentLang]?.[state.mode]?.[feature.action] || feature.name;
+        }
+
+        const MODES = {
+            travel: { icon:'✈️', badge:'记录旅行的每一刻', title:'用<span class="hero-gradient">足迹</span>记录<br>你的旅行', desc:'记录每一次旅行，探索世界的美好', recordsTitle:'📸 我的旅行', emptyIcon:'✈️', emptyTitle:'还没有旅行记录', emptyDesc:'点击添加开始记录你的旅行', modalTitle:'添加旅行记录', labelTitle:'✏️ 旅行标题', titlePlaceholder:'给这次旅行起个名字', labelLocation:'📍 旅行地点', locationPlaceholder:'搜索旅行地点', stat1:'✈️ 旅行', stat2:'📍 地点', stat3:'📸 照片', featuresTitle:'✨ 旅行功能',
+                features:[ 
+                    {icon:'📍',name:'EXIF定位',action:'exif',highlight:true}, 
+                    {icon:'🗺️',name:'足迹地图',action:'map',highlight:true}, 
+                    {icon:'🛤️',name:'轨迹回放',action:'replay',highlight:true}, 
+                    {icon:'📅',name:'时间线',action:'timeline',highlight:true}, 
+                    {icon:'📊',name:'统计报告',action:'stats'}, 
+                    {icon:'📸',name:'旅行相册',action:'album'}, 
+                    {icon:'🏆',name:'成就徽章',action:'badges'}, 
+                    {icon:'🌤️',name:'天气',action:'weather'}, 
+                    {icon:'📝',name:'行程规划',action:'plan'}, 
+                    {icon:'💰',name:'费用',action:'cost'}, 
+                    {icon:'📖',name:'日记',action:'diary'}, 
+                    {icon:'📍',name:'打卡',action:'checkin'},
+                    {icon:'🏙️',name:'城市点亮',action:'cities',highlight:true},
+                    {icon:'📦',name:'数据导出',action:'export'},
+                    {icon:'✨',name:'AI故事',action:'ai-story'},
+                    {icon:'🖼️',name:'分享海报',action:'share-summary'},
+                    {icon:'💰',name:'费用追踪',action:'expense'},
+                    {icon:'🏃',name:'运动追踪',action:'exercise'},
+                    {icon:'🌍',name:'3D地球',action:'globe'}
+                ] },
+            food: { icon:'🍜', badge:'发现美食的每一刻', title:'用<span class="hero-gradient">味蕾</span>记录<br>你的美食', desc:'发现美食，留下味蕾记忆', recordsTitle:'🍽️ 我的美食', emptyIcon:'🍜', emptyTitle:'还没有美食记录', emptyDesc:'点击添加开始记录美食', modalTitle:'添加美食记录', labelTitle:'✏️ 美食名称', titlePlaceholder:'给这道美食起个名字', labelLocation:'📍 餐厅地址', locationPlaceholder:'搜索餐厅地址', stat1:'🍜 美食', stat2:'🍽️ 餐厅', stat3:'📸 照片', featuresTitle:'✨ 美食功能', showRating:true, showPrice:true,
+                features:[ 
+                    {icon:'📍',name:'EXIF定位',action:'exif',highlight:true}, 
+                    {icon:'🗺️',name:'美食地图',action:'map',highlight:true}, 
+                    {icon:'📅',name:'时间线',action:'timeline',highlight:true}, 
+                    {icon:'🍽️',name:'餐厅打卡',action:'checkin'}, 
+                    {icon:'⭐',name:'美食评分',action:'rating'}, 
+                    {icon:'📸',name:'美食相册',action:'album'}, 
+                    {icon:'🏷️',name:'分类标签',action:'tags'}, 
+                    {icon:'❤️',name:'推荐清单',action:'wishlist'}, 
+                    {icon:'💰',name:'价格记录',action:'cost'}, 
+                    {icon:'👅',name:'口味偏好',action:'taste'}, 
+                    {icon:'📖',name:'美食日记',action:'diary'}, 
+                    {icon:'🥬',name:'食材追踪',action:'ingredients'}
+                ] },
+            love: { icon:'💕', badge:'记录甜蜜的每一刻', title:'用<span class="hero-gradient">爱</span>记录<br>你们的故事', desc:'记录甜蜜时光，珍藏美好回忆', recordsTitle:'💕 我们的回忆', emptyIcon:'💕', emptyTitle:'还没有甜蜜记录', emptyDesc:'点击添加开始记录故事', modalTitle:'添加甜蜜记录', labelTitle:'✏️ 回忆标题', titlePlaceholder:'给这段回忆起个名字', labelLocation:'📍 约会地点', locationPlaceholder:'搜索约会地点', stat1:'💕 回忆', stat2:'📍 地点', stat3:'📸 照片', featuresTitle:'✨ 情侣功能',
+                features:[ 
+                    {icon:'📍',name:'EXIF定位',action:'exif',highlight:true}, 
+                    {icon:'🗺️',name:'爱情地图',action:'map',highlight:true}, 
+                    {icon:'🛤️',name:'轨迹回放',action:'replay',highlight:true}, 
+                    {icon:'📅',name:'时间线',action:'timeline',highlight:true}, 
+                    {icon:'💕',name:'情侣日记',action:'diary'}, 
+                    {icon:'📸',name:'情侣相册',action:'album'}, 
+                    {icon:'💌',name:'爱情笔记',action:'notes'}, 
+                    {icon:'🎯',name:'愿望清单',action:'wishlist'}, 
+                    {icon:'📊',name:'恋爱统计',action:'stats'}, 
+                    {icon:'💑',name:'约会计划',action:'date'}, 
+                    {icon:'✅',name:'情侣任务',action:'tasks'}, 
+                    {icon:'⏰',name:'在一起',action:'days'}
+                ] }
+        };
+
+        const GUIDE = [
+            { icon:'📍', titleKey:'guideWelcome', descKey:'guideWelcomeDesc', title:'欢迎使用足迹', desc:'记录你的美好生活' },
+            { icon:'📷', titleKey:'guideUpload', descKey:'guideUploadDesc', title:'拖拽上传', desc:'支持批量、文件夹、URL链接上传' },
+            { icon:'🗺️', titleKey:'guideMap', descKey:'guideMapDesc', title:'地图视图', desc:'在地图上查看足迹' }
+        ];
+
+        let state = {
+            records: JSON.parse(localStorage.getItem('footprint_data') || '[]'),
+            mode: (JSON.parse(localStorage.getItem('footprint_config') || '{}')).mode || 'travel',
+            images: [],
+            imageMeta: [],
+            apiAvailable: false,
+            guideStep: 0
+        };
+
+        // ========== Init ==========
+        async function init() {
+            loadTheme();
+            applyMode();
+            applyLang();
+            initDragDrop();
+            await loadRecords();
+            render();
+            initParticles();
+            applyModeSwitcherVisibility();
+        }
+
+        // 根据配置决定是否显示模式切换器
+        function applyModeSwitcherVisibility() {
+            const config = getConfig();
+            const switcher = document.getElementById('mode-switcher');
+            if (!switcher) return;
+            // 如果配置了 lockMode，则隐藏切换器
+            if (config.lockMode) {
+                switcher.style.display = 'none';
+            } else {
+                switcher.style.display = '';
+            }
+        }
+        function getConfig() { try { return JSON.parse(localStorage.getItem('footprint_config') || '{}'); } catch { return {}; } }
+        function getApiBase() {
+            const config = getConfig();
+            if (config.apiBase) return config.apiBase.replace(/\/$/, '');
+            return location.protocol === 'file:' ? 'http://localhost:5000' : '';
+        }
+        function apiUrl(path) { return `${getApiBase()}${path}`; }
+        function resolveAssetUrl(url) {
+            if (!url || /^(https?:|data:|blob:)/.test(url)) return url;
+            const base = getApiBase();
+            return base ? `${base}${url}` : url;
+        }
+        async function apiFetch(path, options = {}) {
+            const response = await fetch(apiUrl(path), options);
+            let data = null;
+            try { data = await response.json(); } catch { data = null; }
+            if (!response.ok) {
+                throw new Error(data?.error || `HTTP ${response.status}`);
+            }
+            state.apiAvailable = true;
+            return data;
+        }
+        async function loadRecords() {
+            try {
+                const records = await apiFetch('/api/records');
+                if (Array.isArray(records)) {
+                    state.records = records;
+                    localStorage.setItem('footprint_data', JSON.stringify(records));
+                }
+            } catch (error) {
+                state.apiAvailable = false;
+                console.log('API records unavailable, using localStorage:', error.message);
+            }
+        }
+        function persistLocalRecords() {
+            localStorage.setItem('footprint_data', JSON.stringify(state.records));
+        }
+        function hasCoordinates(item) {
+            return item && item.latitude !== null && item.latitude !== undefined && item.longitude !== null && item.longitude !== undefined;
+        }
+        function firstLocatedImageMeta() {
+            return state.imageMeta.find(hasCoordinates);
+        }
+        function syncLocationFromImageMeta(meta) {
+            if (hasCoordinates(meta)) {
+                window._lat = meta.latitude;
+                window._lng = meta.longitude;
+                if (!document.getElementById('input-location').value.trim()) {
+                    document.getElementById('input-location').value = `GPS ${Number(meta.latitude).toFixed(6)}, ${Number(meta.longitude).toFixed(6)}`;
+                }
+            }
+            if (meta?.date_taken) {
+                const dateInput = document.getElementById('input-date');
+                const today = new Date().toISOString().split('T')[0];
+                if (!dateInput.value || dateInput.value === today) {
+                    dateInput.value = meta.date_taken;
+                }
+            }
+        }
+
+        // ========== Theme ==========
+        function loadTheme() {
+            const t = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+            document.getElementById('theme-btn').textContent = t === 'dark' ? '🌙' : '☀️';
+        }
+        function toggleTheme() {
+            const c = document.documentElement.getAttribute('data-theme');
+            const n = c === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', n);
+            localStorage.setItem('theme', n);
+            document.getElementById('theme-btn').textContent = n === 'dark' ? '🌙' : '☀️';
+            toast(n === 'dark' ? '🌙 深色模式' : '☀️ 浅色模式');
+        }
+
+        // ========== Mode ==========
+        function applyMode() {
+            const m = MODES[state.mode];
+            const text = getModeText();
+            document.documentElement.setAttribute('data-mode', state.mode);
+            document.getElementById('logo-icon').textContent = m.icon;
+            document.getElementById('hero-badge').textContent = text.badge;
+            document.getElementById('hero-title').innerHTML = text.title;
+            document.getElementById('hero-desc').textContent = text.desc;
+            document.getElementById('records-title').textContent = text.recordsTitle;
+            document.getElementById('empty-icon').textContent = text.emptyIcon;
+            document.getElementById('empty-title').textContent = text.emptyTitle;
+            document.getElementById('empty-desc').textContent = text.emptyDesc;
+            document.getElementById('modal-add-title').textContent = text.modalTitle;
+            document.getElementById('label-title').textContent = text.labelTitle;
+            document.getElementById('input-title').placeholder = text.titlePlaceholder;
+            document.getElementById('label-location').textContent = text.labelLocation;
+            document.getElementById('input-location').placeholder = text.locationPlaceholder;
+            document.getElementById('stat-l1').textContent = text.stat1;
+            document.getElementById('stat-l2').textContent = text.stat2;
+            document.getElementById('stat-l3').textContent = text.stat3;
+            document.getElementById('features-title').textContent = text.featuresTitle;
+            document.getElementById('group-rating').style.display = m.showRating ? 'block' : 'none';
+            document.getElementById('group-price').style.display = m.showPrice ? 'block' : 'none';
+            updateModeSwitcher();
+        }
+
+        function switchMode(mode) {
+            if (!MODES[mode] || state.mode === mode) return;
+            state.mode = mode;
+            const config = getConfig();
+            config.mode = mode;
+            localStorage.setItem('footprint_config', JSON.stringify(config));
+            applyLang();
+            render();
+            initParticles();
+        }
+
+        // ========== Particles ==========
+        function initParticles() {
+            const colors = { travel:['#3B82F6','#06B6D4'], food:['#F59E0B','#EF4444'], love:['#EC4899','#8B5CF6'] };
+            try {
+                tsParticles.load("particles-bg", { fullScreen:false, fpsLimit:60, particles:{ number:{value:30}, color:{value:colors[state.mode]}, opacity:{value:0.12}, size:{value:3}, line_linked:{enable:true,distance:150,opacity:0.06}, move:{enable:true,speed:0.8} }, interactivity:{events:{onhover:{enable:true,mode:"grab"}}} });
+            } catch(e) { console.log('Particles init failed:', e); }
+        }
+
+        // ========== Render ==========
+        function render() {
+            const m = MODES[state.mode];
+            const filtered = state.records.filter(r => r.mode === state.mode);
+            document.getElementById('stat-records').textContent = filtered.length;
+            document.getElementById('stat-places').textContent = new Set(filtered.filter(r => r.location).map(r => r.location)).size;
+            document.getElementById('stat-photos').textContent = filtered.reduce((s,r) => s + (r.images?.length||0), 0);
+
+            document.getElementById('features').innerHTML = m.features.map(f => `
+                <div class="feature-card ${f.highlight ? 'highlight' : ''}" onclick="handleFeature('${f.action}')">
+                    <div class="feature-icon">${f.icon}</div>
+                    <div class="feature-name">${featureLabel(f)}</div>
+                </div>`).join('');
+
+            const grid = document.getElementById('photo-grid');
+            const empty = document.getElementById('empty');
+            if (filtered.length === 0) { grid.style.display = 'none'; empty.style.display = 'block'; }
+            else {
+                grid.style.display = 'grid'; empty.style.display = 'none';
+                grid.innerHTML = filtered.map((r,i) => `
+                    <div class="photo-card" onclick="viewRecord('${r.id}')" style="animation:modalIn 0.4s ease ${i*0.05}s backwards">
+                        <span class="photo-card-tag tag-${r.mode}">${getModeName(r.mode)}</span>
+                        <img src="${r.images[0]||''}" alt="${r.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
+                        <div class="photo-card-body">
+                            <div class="photo-card-title">${r.title}</div>
+                            <div class="photo-card-meta">
+                                ${r.location ? `<span>📍 ${r.location}</span>` : ''}
+                                <span>📅 ${r.date||''}</span>
+                                ${r.rating ? `<span>⭐ ${r.rating}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>`).join('');
+            }
+        }
+
+        // ========== Upload ==========
+        function initDragDrop() {
+            const zone = document.getElementById('upload-zone');
+            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+            zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')); if (files.length) processFiles(files); });
+            document.getElementById('file-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('folder-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('gallery-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('camera-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+        }
+
+        async function processFiles(files) {
+            const progress = document.getElementById('upload-progress');
+            const fill = document.getElementById('progress-fill');
+            const text = document.getElementById('progress-text');
+            progress.style.display = 'block';
+            let loaded = 0;
+            const imageFiles = files.filter(file => file.type.startsWith('image/'));
+            if (!imageFiles.length) {
+                text.textContent = '没有可上传的图片';
+                setTimeout(() => progress.style.display = 'none', 1000);
+                return;
+            }
+            const maxBytes = (getConfig().uploadSize || 10) * 1024 * 1024;
+            for (const file of imageFiles) {
+                if (file.size > maxBytes) {
+                    loaded++;
+                    text.textContent = `${file.name} 超过大小限制`;
+                    continue;
+                }
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const result = await apiFetch('/api/upload', { method: 'POST', body: formData });
+                    state.images.push(resolveAssetUrl(result.url));
+                    state.imageMeta.push({ ...result, display_url: resolveAssetUrl(result.url) });
+                    syncLocationFromImageMeta(result);
+                } catch (error) {
+                    const dataUrl = await readFileAsDataURL(file);
+                    const localMeta = await extractLocalImageMetadata(file);
+                    state.images.push(dataUrl);
+                    state.imageMeta.push({ original_name: file.name, local: true, ...localMeta });
+                    syncLocationFromImageMeta(localMeta);
+                    state.apiAvailable = false;
+                    console.log('Upload API unavailable, kept image in browser:', error.message);
+                } finally {
+                    loaded++;
+                    fill.style.width = `${(loaded/imageFiles.length*100)}%`;
+                    text.textContent = `已上传 ${loaded}/${imageFiles.length}`;
+                    renderPreview();
+                }
+            }
+            setTimeout(() => progress.style.display = 'none', 1000);
+        }
+
+        function readFileAsDataURL(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function readFileAsArrayBuffer(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = () => reject(reader.error);
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        async function extractLocalImageMetadata(file) {
+            if (!/^image\/jpe?g$/i.test(file.type || '') && !/\.jpe?g$/i.test(file.name || '')) return {};
+            try {
+                const buffer = await readFileAsArrayBuffer(file);
+                return parseJpegExif(buffer);
+            } catch (error) {
+                console.log('Local EXIF parse skipped:', error.message);
+                return {};
+            }
+        }
+
+        function parseJpegExif(buffer) {
+            const view = new DataView(buffer);
+            if (view.byteLength < 4 || view.getUint16(0, false) !== 0xFFD8) return {};
+
+            let offset = 2;
+            while (offset + 4 < view.byteLength) {
+                if (view.getUint8(offset) !== 0xFF) break;
+                const marker = view.getUint8(offset + 1);
+                const length = view.getUint16(offset + 2, false);
+                if (length < 2) break;
+                const segmentStart = offset + 4;
+                if (segmentStart + length - 2 > view.byteLength) break;
+
+                if (marker === 0xE1 && length >= 8 && readExifString(view, segmentStart, 6) === 'Exif') {
+                    return parseTiffExif(view, segmentStart + 6);
+                }
+
+                offset += 2 + length;
+            }
+            return {};
+        }
+
+        function parseTiffExif(view, tiffStart) {
+            if (tiffStart + 8 > view.byteLength) return {};
+            const byteOrder = view.getUint16(tiffStart, false);
+            const littleEndian = byteOrder === 0x4949;
+            if (!littleEndian && byteOrder !== 0x4D4D) return {};
+            if (view.getUint16(tiffStart + 2, littleEndian) !== 0x002A) return {};
+
+            const firstIfdOffset = view.getUint32(tiffStart + 4, littleEndian);
+            const ifd0 = readExifIfd(view, tiffStart, firstIfdOffset, littleEndian);
+            const exifIfd = ifd0[0x8769] ? readExifIfd(view, tiffStart, ifd0[0x8769], littleEndian) : {};
+            const gpsIfd = ifd0[0x8825] ? readExifIfd(view, tiffStart, ifd0[0x8825], littleEndian) : {};
+
+            const meta = {};
+            const latitude = gpsDmsToDecimal(gpsIfd[0x0002], gpsIfd[0x0001]);
+            const longitude = gpsDmsToDecimal(gpsIfd[0x0004], gpsIfd[0x0003]);
+            if (latitude !== null && longitude !== null) {
+                meta.latitude = latitude;
+                meta.longitude = longitude;
+                meta.exif = { latitude, longitude, source: 'client-exif' };
+            }
+
+            const dateTaken = normalizeExifDate(exifIfd[0x9003] || exifIfd[0x9004] || ifd0[0x0132]);
+            if (dateTaken) meta.date_taken = dateTaken;
+            return meta;
+        }
+
+        function readExifIfd(view, tiffStart, ifdOffset, littleEndian) {
+            const tags = {};
+            const start = tiffStart + ifdOffset;
+            if (!ifdOffset || start + 2 > view.byteLength) return tags;
+
+            const count = view.getUint16(start, littleEndian);
+            for (let i = 0; i < count; i++) {
+                const entry = start + 2 + i * 12;
+                if (entry + 12 > view.byteLength) break;
+                const tag = view.getUint16(entry, littleEndian);
+                tags[tag] = readExifTagValue(view, tiffStart, entry, littleEndian);
+            }
+            return tags;
+        }
+
+        function readExifTagValue(view, tiffStart, entry, littleEndian) {
+            const type = view.getUint16(entry + 2, littleEndian);
+            const count = view.getUint32(entry + 4, littleEndian);
+            const unitSize = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8 }[type] || 1;
+            const valueSize = unitSize * count;
+            const valueOffset = valueSize <= 4 ? entry + 8 : tiffStart + view.getUint32(entry + 8, littleEndian);
+            if (valueOffset < 0 || valueOffset + valueSize > view.byteLength) return null;
+
+            if (type === 2) return readExifString(view, valueOffset, count);
+            if (type === 3) {
+                const values = Array.from({ length: count }, (_, i) => view.getUint16(valueOffset + i * 2, littleEndian));
+                return count === 1 ? values[0] : values;
+            }
+            if (type === 4) {
+                const values = Array.from({ length: count }, (_, i) => view.getUint32(valueOffset + i * 4, littleEndian));
+                return count === 1 ? values[0] : values;
+            }
+            if (type === 5 || type === 10) {
+                const signed = type === 10;
+                const values = Array.from({ length: count }, (_, i) => {
+                    const base = valueOffset + i * 8;
+                    const numerator = signed ? view.getInt32(base, littleEndian) : view.getUint32(base, littleEndian);
+                    const denominator = signed ? view.getInt32(base + 4, littleEndian) : view.getUint32(base + 4, littleEndian);
+                    return denominator ? numerator / denominator : 0;
+                });
+                return count === 1 ? values[0] : values;
+            }
+            if (type === 9) {
+                const values = Array.from({ length: count }, (_, i) => view.getInt32(valueOffset + i * 4, littleEndian));
+                return count === 1 ? values[0] : values;
+            }
+            return null;
+        }
+
+        function readExifString(view, start, length) {
+            let text = '';
+            for (let i = 0; i < length && start + i < view.byteLength; i++) {
+                const code = view.getUint8(start + i);
+                if (code === 0) break;
+                text += String.fromCharCode(code);
+            }
+            return text.trim();
+        }
+
+        function gpsDmsToDecimal(values, ref) {
+            if (!Array.isArray(values) || values.length < 3) return null;
+            const decimal = values[0] + values[1] / 60 + values[2] / 3600;
+            const direction = String(ref || '').toUpperCase();
+            return direction === 'S' || direction === 'W' ? -decimal : decimal;
+        }
+
+        function normalizeExifDate(value) {
+            const match = String(value || '').match(/^(\d{4}):(\d{2}):(\d{2})/);
+            return match ? `${match[1]}-${match[2]}-${match[3]}` : null;
+        }
+
+        function renderPreview() {
+            document.getElementById('preview-grid').innerHTML = state.images.map((img,i) => `
+                <div class="preview-item">
+                    <img src="${img}">
+                    <button class="preview-remove" onclick="removeImage(${i})">✕</button>
+                    ${i===0 ? '<span class="preview-badge">封面</span>' : ''}
+                </div>`).join('');
+        }
+
+        function removeImage(i) { state.images.splice(i,1); state.imageMeta.splice(i,1); renderPreview(); }
+
+        // ========== Upload Tabs ==========
+        function switchUploadTab(tab) {
+            document.querySelectorAll('.upload-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.upload-tab[data-tab="${tab}"]`).classList.add('active');
+            document.querySelectorAll('.upload-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+
+        // ========== URL Upload ==========
+        async function addImagesByUrl() {
+            const input = document.getElementById('url-input');
+            const url = input.value.trim();
+            if (!url) { toast('请输入图片链接'); return; }
+            if (!url.startsWith('http://') && !url.startsWith('https://')) { toast('请输入有效的链接（以http://或https://开头）'); return; }
+            try {
+                const result = await apiFetch('/api/validate-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                if (result.valid === false) { toast(result.error || '图片链接不可用'); return; }
+            } catch (error) {
+                console.log('URL validation skipped:', error.message);
+            }
+            state.images.push(url);
+            state.imageMeta.push({ url, source: 'url' });
+            renderPreview();
+            input.value = '';
+            toast('✅ 图片已添加');
+        }
+
+        function addBatchUrls() {
+            const input = document.getElementById('batch-url-input');
+            const text = input.value.trim();
+            if (!text) { toast('请输入图片链接'); return; }
+            const urls = text.split('\n').map(u => u.trim()).filter(u => u && (u.startsWith('http://') || u.startsWith('https://')));
+            if (urls.length === 0) { toast('未找到有效链接'); return; }
+            urls.forEach(url => state.images.push(url));
+            urls.forEach(url => state.imageMeta.push({ url, source: 'url' }));
+            renderPreview();
+            input.value = '';
+            toast(`✅ 已添加 ${urls.length} 张图片`);
+        }
+
+        // ========== Search ==========
+        let searchTimeout;
+        function debounceSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(searchLocation, 500); }
+        async function searchLocation() {
+            const query = document.getElementById('input-location').value.trim();
+            if (!query) return;
+            const el = document.getElementById('search-results');
+            const provider = getConfig().mapProvider || 'amap';
+            if (provider === 'amap' && typeof AMap !== 'undefined') {
+                new AMap.Geocoder({city:'全国'}).getLocation(query, (status, result) => {
+                    if (status === 'complete' && result.geocodes.length) {
+                        el.classList.add('active');
+                        el.innerHTML = result.geocodes.map((item,i) => `<div class="search-item" onclick="selectLocation(${i})">${item.formattedAddress}<br><small>${item.province} ${item.city} ${item.district}</small></div>`).join('');
+                        window._results = result.geocodes;
+                    } else { el.classList.remove('active'); }
+                });
+                return;
+            }
+
+            try {
+                const result = await apiFetch(`/api/search-poi?keywords=${encodeURIComponent(query)}`);
+                const pois = result.pois || [];
+                if (result.success && pois.length) {
+                    el.classList.add('active');
+                    el.innerHTML = pois.map((item,i) => `<div class="search-item" onclick="selectLocation(${i})">${item.name}<br><small>${item.address || ''}</small></div>`).join('');
+                    window._results = pois;
+                } else {
+                    el.classList.remove('active');
+                }
+            } catch (error) {
+                el.classList.remove('active');
+            }
+        }
+        function selectLocation(i) {
+            const r = window._results[i];
+            document.getElementById('input-location').value = r.formattedAddress || [r.name, r.address].filter(Boolean).join(' - ');
+            document.getElementById('search-results').classList.remove('active');
+            window._lat = r.location?.lat ?? r.latitude ?? null;
+            window._lng = r.location?.lng ?? r.longitude ?? null;
+        }
+
+        // ========== Save ==========
+        async function saveRecord() {
+            const title = document.getElementById('input-title').value.trim();
+            if (!title) { toast('请输入标题'); return; }
+            if (!state.images.length) { toast('请上传照片'); return; }
+            const imageGps = firstLocatedImageMeta();
+            const existingRecord = state.editingId ? state.records.find(r => r.id === state.editingId) : null;
+            const record = {
+                id: state.editingId || generateId(),
+                mode: state.mode,
+                title,
+                description: document.getElementById('input-desc').value.trim(),
+                location: document.getElementById('input-location').value.trim(),
+                latitude: window._lat ?? imageGps?.latitude ?? null,
+                longitude: window._lng ?? imageGps?.longitude ?? null,
+                date: document.getElementById('input-date').value,
+                images: [...state.images],
+                metadata: { images: [...state.imageMeta] },
+                createdAt: existingRecord?.createdAt || new Date().toISOString()
+            };
+            if (state.mode === 'food') { record.rating = parseInt(document.getElementById('input-rating').value); record.price = parseFloat(document.getElementById('input-price').value) || null; }
+            try {
+                const saved = state.editingId
+                    ? await apiFetch(`/api/records/${state.editingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) })
+                    : await apiFetch('/api/records', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) });
+                const idx = state.records.findIndex(r => r.id === saved.id);
+                if (idx >= 0) state.records.splice(idx, 1, saved);
+                else state.records.unshift(saved);
+            } catch (error) {
+                state.apiAvailable = false;
+                const idx = state.records.findIndex(r => r.id === record.id);
+                if (idx >= 0) state.records.splice(idx, 1, record);
+                else state.records.unshift(record);
+                toast('后端不可用，已保存到本机浏览器');
+            }
+            persistLocalRecords();
+            render(); closeModal('add'); toast('✅ 保存成功');
+            window._lat = null; window._lng = null;
+        }
+
+        function viewRecord(id) {
+            const r = state.records.find(r => r.id === id); if (!r) return;
+            showFeatureModal(r.title, `
+                <div style="margin-bottom:16px"><img src="${r.images[0]||''}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px"></div>
+                ${r.description?`<p style="margin-bottom:12px;color:var(--text-sec)">${r.description}</p>`:''}
+                <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-muted);margin-bottom:18px">
+                    ${r.location?`<span>📍 ${r.location}</span>`:''}
+                    ${r.date?`<span>📅 ${r.date}</span>`:''}
+                    ${r.rating?`<span>⭐ ${r.rating}分</span>`:''}
+                    ${r.price?`<span>💰 ¥${r.price}</span>`:''}
+                </div>
+                <div style="display:flex;gap:10px;justify-content:flex-end">
+                    <button class="btn btn-ghost btn-sm" onclick="closeModal('feature');openEditModal('${r.id}')">编辑</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')">删除</button>
+                </div>
+            `);
+        }
+
+        async function deleteRecord(id) {
+            const record = state.records.find(r => r.id === id);
+            if (!record || !confirm(`确定删除${record.title}吗？`)) return;
+            try {
+                await apiFetch(`/api/records/${id}`, { method: 'DELETE' });
+            } catch (error) {
+                state.apiAvailable = false;
+                console.log('Delete API unavailable, deleting locally:', error.message);
+            }
+            state.records = state.records.filter(r => r.id !== id);
+            persistLocalRecords();
+            closeModal('feature');
+            render();
+            toast('已删除');
+        }
+
+        // ========== Modal ==========
+        function openModal(type) {
+            document.getElementById(`modal-${type}`).classList.add('active');
+            if (type === 'add' && !state.editingId) document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+            if (type === 'guide') { state.guideStep = 0; updateGuide(); }
+        }
+        function closeModal(type) {
+            document.getElementById(`modal-${type}`).classList.remove('active');
+            if (type === 'add') {
+                document.getElementById('input-title').value = '';
+                document.getElementById('input-desc').value = '';
+                document.getElementById('input-location').value = '';
+                document.getElementById('input-price').value = '';
+                document.getElementById('preview-grid').innerHTML = '';
+                state.images = [];
+                state.imageMeta = [];
+                state.editingId = null;
+                window._lat = null;
+                window._lng = null;
+            }
+        }
+
+        // ========== Guide ==========
+        function nextGuide() { if (state.guideStep >= 2) { closeModal('guide'); return; } state.guideStep++; updateGuide(); }
+        function prevGuide() { if (state.guideStep <= 0) return; state.guideStep--; updateGuide(); }
+        function updateGuide() {
+            const s = GUIDE[state.guideStep];
+            document.getElementById('guide-icon').textContent = s.icon;
+            document.getElementById('guide-title').textContent = t(s.titleKey) || s.title;
+            document.getElementById('guide-desc').textContent = t(s.descKey) || s.desc;
+            document.getElementById('guide-prev').disabled = state.guideStep === 0;
+            document.getElementById('guide-prev').textContent = t('prevBtn');
+            document.getElementById('guide-next').textContent = state.guideStep >= 2 ? t('guideStartBtn') : t('nextBtn');
+            document.getElementById('guide-dots').innerHTML = GUIDE.map((_,i) => `<span style="width:${i===state.guideStep?24:8}px;height:8px;border-radius:4px;background:${i===state.guideStep?'var(--primary)':'var(--border)'};transition:all 0.3s"></span>`).join('');
+        }
+
+        // ========== Features ==========
+        function handleFeature(action) {
+            const filtered = state.records.filter(r => r.mode === state.mode);
+            const totalPhotos = filtered.reduce((s,r) => s + (r.images?.length||0), 0);
+            const located = filtered.filter(hasCoordinates);
+            const locationSet = new Set(filtered.filter(r => r.location).map(r => r.location));
+            const locationCount = locationSet.size;
+
+            switch(action) {
+                // ========== 核心功能 ==========
+                case 'exif':
+                    const exifStats = {
+                        total: filtered.length,
+                        located: located.length,
+                        unlocated: filtered.length - located.length
+                    };
+                    showFeatureModal('📍 EXIF智能定位', `
+                        <div style="margin-bottom:20px">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">📷</div>
+                                    <div class="stat-card-num">${exifStats.total}</div>
+                                    <div class="stat-card-label">总记录</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">✅</div>
+                                    <div class="stat-card-num">${exifStats.located}</div>
+                                    <div class="stat-card-label">已定位</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">⚠️</div>
+                                    <div class="stat-card-num">${exifStats.unlocated}</div>
+                                    <div class="stat-card-label">待定位</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding:16px;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:16px">
+                            <h4 style="margin-bottom:8px">📸 EXIF自动提取</h4>
+                            <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px">
+                                上传带有GPS信息的照片，系统会自动提取坐标并标记到地图上
+                            </p>
+                            <div style="display:flex;flex-direction:column;gap:8px">
+                                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                                    <span style="color:var(--primary)">✓</span> 支持JPG/PNG/HEIC格式
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                                    <span style="color:var(--primary)">✓</span> 自动提取GPS经纬度
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                                    <span style="color:var(--primary)">✓</span> 自动提取拍摄时间
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                                    <span style="color:var(--primary)">✓</span> 无GPS照片可手动定位
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding:16px;background:var(--mode-bg);border-radius:var(--radius-sm)">
+                            <h4 style="margin-bottom:8px">📍 待定位照片</h4>
+                            ${filtered.filter(r => !r.latitude || !r.longitude).slice(0, 5).map(r => `
+                                <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+                                    <span style="font-size:16px">📷</span>
+                                    <div style="flex:1">
+                                        <div style="font-size:13px;font-weight:500">${r.title}</div>
+                                        <div style="font-size:11px;color:var(--text-muted)">${r.date || '未知日期'}</div>
+                                    </div>
+                                    <button class="btn btn-sm btn-ghost" onclick="closeModal('feature');openEditModal('${r.id}')">定位</button>
+                                </div>
+                            `).join('') || '<p style="text-align:center;color:var(--text-muted);padding:20px">所有照片都已定位！</p>'}
+                        </div>
+                    `);
+                    break;
+
+                case 'map':
+                    showFeatureModal('🗺️ 足迹地图', `
+                        <div style="margin-bottom:12px;display:flex;justify-content:space-between;gap:12px;align-items:center">
+                            <div>
+                                <div style="font-size:14px;font-weight:600">${located.length} 个已定位地点</div>
+                                <div style="font-size:12px;color:var(--text-muted)">点击地图标记或下方列表查看记录</div>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" onclick="loadMapAPI();setTimeout(()=>initFootprintMap(),300)">刷新地图</button>
+                        </div>
+                        <div id="footprint-map" style="height:360px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-elevated);margin-bottom:14px"></div>
+                        <div>
+                            ${located.map(r => `<div class="list-item" onclick="viewRecord('${r.id}')"><div class="list-icon">📍</div><div class="list-content"><div class="list-title">${r.title}</div><div class="list-desc">${r.location || `GPS ${r.latitude}, ${r.longitude}`} · ${r.date || ''}</div></div></div>`).join('') || '<p style="text-align:center;color:var(--text-muted);padding:24px">暂无已定位记录，请上传带 GPS 的照片或搜索地点后保存。</p>'}
+                        </div>
+                    `);
+                    setTimeout(() => initFootprintMap(), 100);
+                    break;
+
+                case 'replay':
+                    if (located.length < 2) {
+                        toast('需要至少2个有位置的记录才能回放');
+                        break;
+                    }
+                    
+                    // 按时间排序
+                    const sorted = [...located].sort((a, b) => new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt));
+                    
+                    showFeatureModal('🛤️ 轨迹回放', `
+                        <div style="margin-bottom:16px">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                                <div>
+                                    <div style="font-size:14px;font-weight:600">旅行轨迹</div>
+                                    <div style="font-size:12px;color:var(--text-muted)">${sorted.length} 个地点</div>
+                                </div>
+                            </div>
+                            <div id="replay-controls" style="margin-bottom:12px"></div>
+                            <div id="replay-map" style="height:300px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-elevated)"></div>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom:8px">📍 途经地点</h4>
+                            ${sorted.map((r, i) => `
+                                <div data-replay-row="${i}" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+                                    <div data-replay-dot="${i}" style="width:24px;height:24px;border-radius:50%;background:var(--gradient);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600">${i+1}</div>
+                                    <div style="flex:1">
+                                        <div style="font-size:13px;font-weight:500">${r.title}</div>
+                                        <div style="font-size:11px;color:var(--text-muted)">${r.location || ''} · ${r.date || ''}</div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `);
+                    
+                    // 初始化增强回放
+                    setTimeout(() => {
+                        initReplayMap(sorted);
+                        if (typeof ReplayEnhanced !== 'undefined') {
+                            ReplayEnhanced.init(sorted);
+                            ReplayEnhanced.renderControls();
+                        }
+                    }, 100);
+                    break;
+
+                case 'timeline':
+                    // 按时间分组
+                    const grouped = {};
+                    filtered.forEach(r => {
+                        const date = r.date || r.createdAt?.split('T')[0] || '未知日期';
+                        const month = date.substring(0, 7);
+                        if (!grouped[month]) grouped[month] = [];
+                        grouped[month].push(r);
+                    });
+                    
+                    const months = Object.keys(grouped).sort().reverse();
+                    
+                    showFeatureModal('📅 时间线', `
+                        <div>
+                            ${months.map(month => `
+                                <div style="margin-bottom:24px">
+                                    <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--primary)">${formatMonth(month)}</div>
+                                    ${grouped[month].map(r => `
+                                        <div class="timeline-item">
+                                            <div class="timeline-date">${r.date ? new Date(r.date).getDate() + '日' : ''}</div>
+                                            <div>
+                                                <div class="timeline-title">${r.title}</div>
+                                                <div class="timeline-desc">${r.location || ''}</div>
+                                                ${r.images?.length ? `<div class="timeline-photo-flow">${r.images.slice(0,8).map((img,j)=>`<img src="${img}" style="aspect-ratio:${j % 3 === 0 ? '4/5' : (j % 3 === 1 ? '1/1' : '5/4')}">`).join('')}${r.images.length>8?`<div class="timeline-more">+${r.images.length-8} 张</div>`:''}</div>` : ''}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `).join('') || '<p style="text-align:center;color:var(--text-muted)">暂无记录</p>'}
+                        </div>
+                    `);
+                    break;
+
+                case 'stats':
+                    // 计算统计
+                    const cities = new Set();
+                    const provinces = new Set();
+                    filtered.forEach(r => {
+                        if (r.location) {
+                            const parts = r.location.split(/[省市区县]/);
+                            if (parts[0]) cities.add(parts[0]);
+                        }
+                    });
+                    
+                    // 计算月度数据
+                    const monthData = {};
+                    filtered.forEach(r => {
+                        if (r.date) {
+                            const m = r.date.substring(0, 7);
+                            monthData[m] = (monthData[m] || 0) + 1;
+                        }
+                    });
+                    const recentMonths = Object.keys(monthData).sort().reverse().slice(0, 6);
+                    
+                    showFeatureModal('📊 统计报告', `
+                        <div style="margin-bottom:24px">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">${MODES[state.mode].icon}</div>
+                                    <div class="stat-card-num">${filtered.length}</div>
+                                    <div class="stat-card-label">总记录</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">📍</div>
+                                    <div class="stat-card-num">${locationCount}</div>
+                                    <div class="stat-card-label">地点数</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">📸</div>
+                                    <div class="stat-card-num">${totalPhotos}</div>
+                                    <div class="stat-card-label">照片数</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-card-icon">✅</div>
+                                    <div class="stat-card-num">${located.length}</div>
+                                    <div class="stat-card-label">已定位</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${recentMonths.length > 0 ? `
+                        <div style="margin-bottom:24px">
+                            <h4 style="margin-bottom:12px">📈 月度趋势</h4>
+                            <div style="display:flex;align-items:flex-end;gap:8px;height:100px;padding:0 4px">
+                                ${recentMonths.reverse().map(m => {
+                                    const max = Math.max(...Object.values(monthData));
+                                    return `
+                                        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+                                            <div style="font-size:11px;color:var(--text-muted)">${monthData[m]}</div>
+                                            <div style="width:100%;background:var(--gradient);border-radius:4px 4px 0 0;height:${(monthData[m]/max*80)}px;min-height:4px"></div>
+                                            <div style="font-size:10px;color:var(--text-muted)">${m.substring(5)}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <div>
+                            <h4 style="margin-bottom:12px">📍 去过的地方</h4>
+                            <div style="display:flex;flex-wrap:wrap;gap:8px">
+                                ${[...locationSet].slice(0, 20).map(loc => `
+                                    <span style="padding:6px 12px;background:var(--mode-bg);border-radius:var(--radius-full);font-size:13px">${loc}</span>
+                                `).join('') || '<p style="color:var(--text-muted)">暂无地点数据</p>'}
+                            </div>
+                        </div>
+                    `);
+                    break;
+
+                // ========== 其他功能 ==========
+                case 'badges':
+                    const badges = [];
+                    if (filtered.length >= 1) badges.push({icon:'🌟',name:'初次记录',desc:'完成第一条记录'});
+                    if (filtered.length >= 10) badges.push({icon:'🔟',name:'十全十美',desc:'记录10条'});
+                    if (filtered.length >= 50) badges.push({icon:'🏅',name:'资深玩家',desc:'记录50条'});
+                    if (locationCount >= 5) badges.push({icon:'🗺️',name:'旅行达人',desc:'去过5个地方'});
+                    if (totalPhotos >= 50) badges.push({icon:'📸',name:'摄影师',desc:'上传50张照片'});
+                    if (located.length >= 10) badges.push({icon:'📍',name:'定位达人',desc:'10条已定位'});
+                    showFeatureModal('🏆 成就徽章', `
+                        <div style="margin-bottom:16px;text-align:center">
+                            <div style="font-size:48px;margin-bottom:8px">🏆</div>
+                            <div style="font-size:24px;font-weight:700;color:var(--primary)">${badges.length}/6</div>
+                            <div style="font-size:13px;color:var(--text-muted)">已解锁成就</div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+                            ${badges.map(b=>`<div class="list-item"><div class="list-icon">${b.icon}</div><div class="list-content"><div class="list-title">${b.name}</div><div class="list-desc">${b.desc}</div></div></div>`).join('')}
+                        </div>
+                    `);
+                    break;
+                case 'weather':
+                    showFeatureModal('🌤️ 天气查询', `
+                        <div style="margin-bottom:16px">
+                            <div class="form-label">📍 查询城市</div>
+                            <div style="display:flex;gap:8px">
+                                <input type="text" class="form-input" id="weather-city" value="${filtered.find(r=>r.location)?.location||'北京'}" placeholder="输入城市">
+                                <button class="btn btn-primary" onclick="queryWeather()">查询</button>
+                            </div>
+                        </div>
+                        <div id="weather-result" style="text-align:center;padding:20px">
+                            <div style="font-size:48px;margin-bottom:12px">🌤️</div>
+                            <p style="color:var(--text-sec)">点击查询获取天气</p>
+                        </div>
+                    `);
+                    break;
+                case 'album':
+                    showFeatureModal('📸 相册', `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${filtered.filter(r=>r.images?.length).flatMap(r=>r.images.map(img=>`<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">`)).join('')||'<p style="text-align:center;color:var(--text-muted);grid-column:3">暂无照片</p>'}</div>`);
+                    break;
+                case 'plan':
+                    const plans = JSON.parse(localStorage.getItem('travel_plans')||'[]');
+                    showFeatureModal('📝 行程规划', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="plan-input" placeholder="添加行程..."><button class="btn btn-primary" onclick="addPlan()">添加</button></div><div>${plans.map((p,i)=>`<div class="list-item"><div class="list-icon">📌</div><div class="list-content"><div class="list-title">${p.title}</div><div class="list-desc">${p.date||''}</div></div><div class="list-action" onclick="removePlan(${i})">✕</div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无行程</p>'}</div>`);
+                    break;
+                case 'cost':
+                    const costs = filtered.filter(r=>r.price);
+                    showFeatureModal('💰 费用记录', `<div>${costs.map(r=>`<div class="list-item"><div class="list-icon">💰</div><div class="list-content"><div class="list-title">${r.title}</div><div class="list-desc">${r.date||''}</div></div><div style="font-weight:600;color:var(--primary)">¥${r.price}</div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无费用</p>'}${costs.length?`<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);text-align:right;font-weight:600">总计: ¥${costs.reduce((s,r)=>s+r.price,0)}</div>`:''}</div>`);
+                    break;
+                case 'diary':
+                    showFeatureModal('📖 日记', `<div>${filtered.filter(r=>r.description).map(r=>`<div class="list-item" style="flex-direction:column;align-items:flex-start"><div style="display:flex;justify-content:space-between;width:100%;margin-bottom:8px"><div class="list-title">${r.title}</div><div style="font-size:12px;color:var(--text-muted)">${r.date||''}</div></div><div style="font-size:13px;color:var(--text-sec)">${r.description}</div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无日记</p>'}</div>`);
+                    break;
+                case 'checkin':
+                    showFeatureModal('📍 打卡', `<div>${filtered.filter(r=>r.location).map(r=>`<div class="list-item"><div class="list-icon">📍</div><div class="list-content"><div class="list-title">${r.location}</div><div class="list-desc">${r.date||''} · ${r.title}</div></div><div style="color:var(--primary)">✓</div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无打卡</p>'}</div>`);
+                    break;
+                case 'rating':
+                    showFeatureModal('⭐ 评分', `<div>${filtered.filter(r=>r.rating).sort((a,b)=>b.rating-a.rating).map(r=>`<div class="list-item"><div class="list-icon">🍜</div><div class="list-content"><div class="list-title">${r.title}</div><div class="list-desc">${r.location||''}</div></div><div style="color:#F59E0B">${'⭐'.repeat(r.rating)}</div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无评分</p>'}</div>`);
+                    break;
+                case 'tags':
+                    const tags = {}; filtered.forEach(r=>{ if(r.location) tags[r.location]=(tags[r.location]||0)+1; });
+                    showFeatureModal('🏷️ 分类标签', `<div style="display:flex;flex-wrap:wrap;gap:8px">${Object.entries(tags).map(([t,c])=>`<span style="padding:8px 16px;background:var(--mode-bg);border-radius:var(--radius-full);font-size:14px">${t} (${c})</span>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无标签</p>'}</div>`);
+                    break;
+                case 'wishlist':
+                    const wishes = JSON.parse(localStorage.getItem('wishes')||'[]');
+                    showFeatureModal('❤️ 愿望清单', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="wish-input" placeholder="添加愿望..."><button class="btn btn-primary" onclick="addWish()">添加</button></div><div>${wishes.map((w,i)=>`<div class="list-item"><div class="list-icon">${w.done?'✅':'⭕'}</div><div class="list-content" style="${w.done?'text-decoration:line-through;opacity:0.6':''}"><div class="list-title">${w.title}</div><div class="list-desc">${w.date||''}</div></div><div style="display:flex;gap:8px"><div class="list-action" onclick="toggleWish(${i})">✓</div><div class="list-action" onclick="removeWish(${i})">✕</div></div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无愿望</p>'}</div>`);
+                    break;
+                case 'taste':
+                    const tasteData = {}; filtered.forEach(r=>{ if(r.location){const loc=r.location.split('区')[0].split('市')[0]; tasteData[loc]=(tasteData[loc]||0)+1;} });
+                    const tasteSorted = Object.entries(tasteData).sort((a,b)=>b[1]-a[1]).slice(0,8);
+                    const maxC = tasteSorted.length?tasteSorted[0][1]:1;
+                    showFeatureModal('👅 口味偏好', `<div><h4 style="margin-bottom:12px">📊 常去地点</h4>${tasteSorted.map(([n,c])=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px"><span>${n}</span><span style="color:var(--text-muted)">${c}次</span></div><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--gradient);width:${(c/maxC*100)}%;border-radius:3px"></div></div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无数据</p>'}</div>`);
+                    break;
+                case 'ingredients':
+                    const ingredients = JSON.parse(localStorage.getItem('ingredients')||'[]');
+                    showFeatureModal('🥬 食材追踪', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="ingredient-input" placeholder="添加食材..."><button class="btn btn-primary" onclick="addIngredient()">添加</button></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${ingredients.map((ing,i)=>`<span style="padding:8px 14px;background:var(--mode-bg);border-radius:var(--radius-full);font-size:13px;display:flex;align-items:center;gap:6px">${ing}<span onclick="removeIngredient(${i})" style="cursor:pointer;opacity:0.6">✕</span></span>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无食材</p>'}</div><div style="padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm)"><div style="font-size:13px;font-weight:500;margin-bottom:8px">💡 常用食材</div><div style="display:flex;flex-wrap:wrap;gap:6px">${['番茄','鸡蛋','牛肉','鸡肉','土豆','青椒','洋葱','大蒜'].map(item=>`<span onclick="quickAddIngredient('${item}')" style="padding:4px 10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-full);font-size:12px;cursor:pointer">${item}</span>`).join('')}</div></div>`);
+                    break;
+                case 'anniversary':
+                    const anniversaries = JSON.parse(localStorage.getItem('anniversaries')||'[]');
+                    showFeatureModal('📅 纪念日', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="anniversary-name" placeholder="名称"><input type="date" class="form-input" id="anniversary-date" style="width:160px"><button class="btn btn-primary" onclick="addAnniversary()">添加</button></div><div>${anniversaries.map((a,i)=>{const diff=Math.floor((new Date()-new Date(a.date))/(1000*60*60*24));const future=diff<0;return`<div class="list-item"><div class="list-icon">📅</div><div class="list-content"><div class="list-title">${a.name}</div><div class="list-desc">${a.date}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:700;color:var(--primary)">${Math.abs(diff)}</div><div style="font-size:11px;color:var(--text-muted)">${future?'天后':'天前'}</div></div><div class="list-action" onclick="removeAnniversary(${i})">✕</div></div>`}).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无纪念日</p>'}</div>`);
+                    break;
+                case 'notes':
+                    const notes = JSON.parse(localStorage.getItem('love_notes')||'[]');
+                    showFeatureModal('💌 爱情笔记', `<div style="margin-bottom:16px"><textarea class="form-textarea" id="love-note-input" placeholder="写下心里话..." style="min-height:80px"></textarea><button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="addLoveNote()">💌 保存</button></div><div>${notes.map((n,i)=>`<div style="padding:16px;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:10px;border-left:3px solid var(--primary)"><div style="font-size:13px;color:var(--text-sec);margin-bottom:8px;white-space:pre-wrap">${n.content}</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:11px;color:var(--text-muted)">${n.date}</div><div onclick="removeLoveNote(${i})" style="cursor:pointer;font-size:12px;color:var(--text-muted)">删除</div></div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无笔记</p>'}</div>`);
+                    break;
+                case 'date':
+                    const dp = JSON.parse(localStorage.getItem('date_plans')||'[]');
+                    showFeatureModal('💑 约会计划', `<div style="margin-bottom:16px"><div class="form-group"><input type="text" class="form-input" id="date-plan-title" placeholder="约会主题"></div><div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" class="form-input" id="date-plan-date"><input type="text" class="form-input" id="date-plan-location" placeholder="地点"></div><textarea class="form-textarea" id="date-plan-desc" placeholder="安排..." style="min-height:60px"></textarea><button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="addDatePlan()">添加计划</button></div><div>${dp.map((p,i)=>`<div style="padding:16px;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div style="font-weight:600">${p.title}</div><div onclick="removeDatePlan(${i})" style="cursor:pointer;font-size:12px;color:var(--text-muted)">删除</div></div><div style="font-size:13px;color:var(--text-muted)">📅 ${p.date||'未定'} 📍 ${p.location||'未定'}</div>${p.desc?`<div style="font-size:13px;color:var(--text-sec);margin-top:4px">${p.desc}</div>`:''}</div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无计划</p>'}</div>`);
+                    break;
+                case 'tasks':
+                    const ct = JSON.parse(localStorage.getItem('couple_tasks')||'[]');
+                    showFeatureModal('✅ 情侣任务', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="couple-task-input" placeholder="添加任务..."><button class="btn btn-primary" onclick="addCoupleTask()">添加</button></div><div style="margin-bottom:16px;padding:12px;background:var(--mode-bg);border-radius:var(--radius-sm);text-align:center;font-size:13px">完成进度: <strong>${ct.filter(t=>t.done).length}/${ct.length}</strong></div><div>${ct.map((t,i)=>`<div class="list-item" onclick="toggleCoupleTask(${i})" style="cursor:pointer"><div class="list-icon">${t.done?'✅':'⬜'}</div><div class="list-content" style="${t.done?'text-decoration:line-through;opacity:0.6':''}"><div class="list-title">${t.title}</div><div class="list-desc">${t.date||''}</div></div><div class="list-action" onclick="event.stopPropagation();removeCoupleTask(${i})">✕</div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无任务</p>'}</div><div style="margin-top:16px;padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm)"><div style="font-size:13px;font-weight:500;margin-bottom:8px">💡 任务建议</div><div style="display:flex;flex-wrap:wrap;gap:6px">${['一起看电影','一起做饭','一起旅行','一起运动','一起读书','一起散步'].map(t=>`<span onclick="quickAddTask('${t}')" style="padding:4px 10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-full);font-size:12px;cursor:pointer">${t}</span>`).join('')}</div></div>`);
+                    break;
+                case 'days':
+                    const first = filtered.length ? new Date(filtered[filtered.length-1].createdAt) : new Date();
+                    const days = Math.floor((new Date()-first)/(1000*60*60*24));
+                    const hrs = Math.floor((new Date()-first)/(1000*60*60))%24;
+                    const mins = Math.floor((new Date()-first)/(1000*60))%60;
+                    showFeatureModal('💕 在一起的时光', `<div style="text-align:center;padding:20px"><div style="font-size:24px;color:var(--text-sec);margin-bottom:8px">我们已经在一起</div><div style="display:flex;justify-content:center;align-items:baseline;gap:8px;margin-bottom:24px"><div style="font-size:80px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1">${days}</div><div style="font-size:24px;color:var(--text-sec)">天</div></div><div style="display:flex;justify-content:center;gap:24px"><div><div style="font-size:28px;font-weight:700;color:var(--primary)">${hrs}</div><div style="font-size:12px;color:var(--text-muted)">小时</div></div><div style="font-size:28px;color:var(--border)">:</div><div><div style="font-size:28px;font-weight:700;color:var(--primary)">${mins}</div><div style="font-size:12px;color:var(--text-muted)">分钟</div></div></div><div style="margin-top:24px;font-size:13px;color:var(--text-muted)">📅 ${first.toLocaleDateString('zh-CN')} 开始</div></div>`);
+                    break;
+
+                // ========== 新功能模块 ==========
+                case 'cities':
+                    showFeatureModal('🏙️ 城市点亮', '<div id="modal-body-cities">加载中...</div>');
+                    CityModule.load(function() { CityModule.render(); });
+                    break;
+
+                case 'export':
+                    showFeatureModal('📦 数据导出', '<div id="modal-body-export"></div>');
+                    ExportModule.render();
+                    break;
+
+                case 'ai-story':
+                    showFeatureModal('✨ AI 旅行故事', '<div id="modal-body-ai"></div>');
+                    AIModule.render();
+                    break;
+
+                case 'share-summary':
+                    ShareModule.generateSummary();
+                    break;
+
+                case 'expense':
+                    showFeatureModal('💰 费用追踪', '<div id="modal-body-expenses">加载中...</div>');
+                    ExpenseModule.load(function() { ExpenseModule.render(); });
+                    break;
+
+                case 'exercise':
+                    showFeatureModal('🏃 运动追踪', '<div id="modal-body-exercise"></div>');
+                    ExerciseModule.render();
+                    break;
+
+                case 'globe':
+                    showFeatureModal('🌍 3D 地球', '<div id="modal-body-globe"></div>');
+                    GlobeModule.render();
+                    break;
+
+                case 'share-poster':
+                    if (filtered.length > 0) {
+                        ShareModule.generateRecordPoster(filtered[0].id);
+                    } else {
+                        toast('暂无记录');
+                    }
+                    break;
+            }
+        }
+
+        function showFeatureModal(title, content) {
+            document.getElementById('feature-modal-title').textContent = title;
+            document.getElementById('feature-modal-body').innerHTML = content;
+            openModal('feature');
+        }
+
+        function getLocatedRecords() {
+            return state.records.filter(r => r.mode === state.mode && hasCoordinates(r));
+        }
+
+        function initFootprintMap() {
+            const el = document.getElementById('footprint-map');
+            if (!el) return;
+            const located = getLocatedRecords();
+            if (!located.length) {
+                el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);padding:20px;text-align:center">暂无坐标数据。上传带 GPS 的照片，或在保存记录前搜索并选择地点。</div>';
+                return;
+            }
+            const provider = getConfig().mapProvider || 'amap';
+
+            if (provider === 'baidu' && typeof BMap !== 'undefined') {
+                const map = new BMap.Map('footprint-map');
+                const points = located.map(r => new BMap.Point(r.longitude, r.latitude));
+                map.centerAndZoom(points[0], 5);
+                map.enableScrollWheelZoom(true);
+                points.forEach((point, i) => {
+                    const marker = new BMap.Marker(point);
+                    marker.addEventListener('click', () => viewRecord(located[i].id));
+                    map.addOverlay(marker);
+                });
+                if (points.length > 1) map.setViewport(points);
+                return;
+            }
+
+            if (provider === 'tencent' && typeof TMap !== 'undefined') {
+                const center = new TMap.LatLng(located[0].latitude, located[0].longitude);
+                const map = new TMap.Map(el, { center, zoom: 5 });
+                new TMap.MultiMarker({
+                    map,
+                    geometries: located.map((r, i) => ({
+                        id: r.id,
+                        position: new TMap.LatLng(r.latitude, r.longitude),
+                        properties: { title: r.title, index: i + 1 }
+                    }))
+                }).on('click', event => viewRecord(event.geometry.id));
+                return;
+            }
+
+            if (provider === 'bing' && window.Microsoft?.Maps) {
+                const map = new Microsoft.Maps.Map(el, {
+                    center: new Microsoft.Maps.Location(located[0].latitude, located[0].longitude),
+                    zoom: 5
+                });
+                const pins = located.map(r => {
+                    const pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(r.latitude, r.longitude), { title: r.title });
+                    Microsoft.Maps.Events.addHandler(pin, 'click', () => viewRecord(r.id));
+                    map.entities.push(pin);
+                    return pin;
+                });
+                if (pins.length > 1) {
+                    const bounds = Microsoft.Maps.LocationRect.fromLocations(pins.map(pin => pin.getLocation()));
+                    map.setView({ bounds });
+                }
+                return;
+            }
+
+            if (typeof AMap !== 'undefined') {
+                const map = new AMap.Map('footprint-map', {
+                    zoom: 5,
+                    center: [located[0].longitude, located[0].latitude],
+                    mapStyle: 'amap://styles/normal'
+                });
+                const markers = located.map((r, i) => {
+                    const marker = new AMap.Marker({
+                        position: new AMap.LngLat(r.longitude, r.latitude),
+                        title: r.title,
+                        content: `<div style="background:var(--primary);color:white;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)">${i + 1}</div>`,
+                        anchor: 'center'
+                    });
+                    marker.on('click', () => viewRecord(r.id));
+                    marker.setMap(map);
+                    return marker;
+                });
+                if (markers.length > 1) map.setFitView(markers);
+                return;
+            }
+
+            el.innerHTML = `<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);padding:20px;text-align:center">地图 SDK 未加载。请在设置中保存地图 API Key；当前仍会展示已定位记录列表。</div>`;
+        }
+
+        // ========== Replay Functions ==========
+        function initReplayMap(sorted) {
+            const el = document.getElementById('replay-map');
+            if (!el || !sorted?.length) return;
+
+            window._replayProvider = null;
+            window._replayRecords = sorted;
+            window._replayMap = null;
+            window._replayMarkers = [];
+            window._replayPath = [];
+            window._replayBaidu = null;
+            window._replayTencent = null;
+            window._replayBing = null;
+
+            const provider = getConfig().mapProvider || 'amap';
+
+            if (provider === 'baidu' && typeof BMap !== 'undefined') {
+                const map = new BMap.Map('replay-map');
+                const points = sorted.map(r => new BMap.Point(r.longitude, r.latitude));
+                map.centerAndZoom(points[0], 8);
+                map.enableScrollWheelZoom(true);
+                const markers = points.map((point, i) => {
+                    const marker = new BMap.Marker(point);
+                    map.addOverlay(marker);
+                    return marker;
+                });
+                const line = new BMap.Polyline(points, {
+                    strokeColor: '#3B82F6',
+                    strokeWeight: 3,
+                    strokeOpacity: 0.8
+                });
+                map.addOverlay(line);
+                if (points.length > 1) map.setViewport(points);
+                window._replayProvider = 'baidu';
+                window._replayBaidu = { map, points, markers };
+                return;
+            }
+
+            if (provider === 'tencent' && typeof TMap !== 'undefined') {
+                const center = new TMap.LatLng(sorted[0].latitude, sorted[0].longitude);
+                const map = new TMap.Map(el, { center, zoom: 8 });
+                const geometries = sorted.map((r, i) => ({
+                    id: r.id || String(i),
+                    position: new TMap.LatLng(r.latitude, r.longitude),
+                    properties: { title: r.title, index: i + 1 }
+                }));
+                const markers = new TMap.MultiMarker({ map, geometries });
+                let line = null;
+                if (TMap.MultiPolyline) {
+                    line = new TMap.MultiPolyline({
+                        map,
+                        geometries: [{
+                            id: 'full-route',
+                            paths: sorted.map(r => new TMap.LatLng(r.latitude, r.longitude))
+                        }],
+                        styles: {
+                            route: new TMap.PolylineStyle({
+                                color: '#3B82F6',
+                                width: 4,
+                                borderWidth: 0
+                            })
+                        }
+                    });
+                }
+                window._replayProvider = 'tencent';
+                window._replayTencent = { map, markers, line, points: sorted.map(r => new TMap.LatLng(r.latitude, r.longitude)) };
+                return;
+            }
+
+            if (provider === 'bing' && window.Microsoft?.Maps) {
+                const map = new Microsoft.Maps.Map(el, {
+                    center: new Microsoft.Maps.Location(sorted[0].latitude, sorted[0].longitude),
+                    zoom: 8
+                });
+                const locations = sorted.map(r => new Microsoft.Maps.Location(r.latitude, r.longitude));
+                const pins = sorted.map((r, i) => {
+                    const pin = new Microsoft.Maps.Pushpin(locations[i], { title: String(i + 1), subTitle: r.title });
+                    map.entities.push(pin);
+                    return pin;
+                });
+                const route = new Microsoft.Maps.Polyline(locations, { strokeColor: '#3B82F6', strokeThickness: 3 });
+                map.entities.push(route);
+                if (locations.length > 1) map.setView({ bounds: Microsoft.Maps.LocationRect.fromLocations(locations) });
+                window._replayProvider = 'bing';
+                window._replayBing = { map, locations, pins };
+                return;
+            }
+
+            if (typeof AMap !== 'undefined') {
+                const map = new AMap.Map('replay-map', {
+                    zoom: 10,
+                    center: [sorted[0].longitude, sorted[0].latitude],
+                    mapStyle: 'amap://styles/normal'
+                });
+
+                const markers = sorted.map((r, i) => new AMap.Marker({
+                    position: new AMap.LngLat(r.longitude, r.latitude),
+                    content: replayMarkerHtml(i, false),
+                    anchor: 'center'
+                }));
+
+                markers.forEach(m => m.setMap(map));
+                const path = sorted.map(r => new AMap.LngLat(r.longitude, r.latitude));
+                const polyline = new AMap.Polyline({
+                    path,
+                    strokeColor: '#3B82F6',
+                    strokeWeight: 3,
+                    strokeOpacity: 0.8,
+                    lineJoin: 'round'
+                });
+                polyline.setMap(map);
+                map.setFitView(markers);
+
+                window._replayProvider = 'amap';
+                window._replayMap = map;
+                window._replayMarkers = markers;
+                window._replayPath = path;
+                return;
+            }
+
+            renderReplayFallback(sorted, '地图 SDK 未加载。请在设置中保存地图 API Key；当前可使用列表回放。');
+        }
+
+        function replayMarkerHtml(index, active) {
+            if (active) {
+                return `<div style="background:var(--primary);padding:6px;border-radius:50%;box-shadow:0 2px 12px var(--glow);width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white">${index + 1}</div>`;
+            }
+            return `<div style="background:white;padding:4px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--primary)">${index + 1}</div>`;
+        }
+
+        function renderReplayFallback(sorted, message) {
+            const el = document.getElementById('replay-map');
+            if (!el) return;
+            el.innerHTML = `
+                <div style="height:100%;display:flex;flex-direction:column;padding:16px;gap:12px;overflow:auto">
+                    <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${message}</div>
+                    <div style="display:flex;flex-direction:column;gap:10px">
+                        ${sorted.map((r, i) => `
+                            <div id="replay-step-${i}" style="display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:flex-start">
+                                <div style="display:flex;flex-direction:column;align-items:center">
+                                    <div data-replay-dot="${i}" style="width:28px;height:28px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--primary)">${i + 1}</div>
+                                    ${i < sorted.length - 1 ? '<div data-replay-line="' + i + '" style="width:2px;height:24px;background:var(--border);margin-top:4px"></div>' : ''}
+                                </div>
+                                <div>
+                                    <div style="font-size:13px;font-weight:600;color:var(--text)">${r.title || '未命名记录'}</div>
+                                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${r.location || `GPS ${r.latitude}, ${r.longitude}`} · ${r.date || ''}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateReplayProgress(index) {
+            const records = window._replayRecords || [];
+            records.forEach((_, i) => {
+                const dots = document.querySelectorAll(`[data-replay-dot="${i}"]`);
+                const rows = document.querySelectorAll(`[data-replay-row="${i}"]`);
+                const line = document.querySelector(`[data-replay-line="${i}"]`);
+                dots.forEach(dot => {
+                    dot.style.background = i <= index ? 'var(--primary)' : 'var(--bg)';
+                    dot.style.color = i <= index ? 'white' : 'var(--primary)';
+                    dot.style.borderColor = i <= index ? 'var(--primary)' : 'var(--border)';
+                    dot.style.boxShadow = i === index ? '0 2px 12px var(--glow)' : 'none';
+                    dot.style.transform = i === index ? 'scale(1.12)' : 'scale(1)';
+                });
+                rows.forEach(row => {
+                    row.style.background = i === index ? 'var(--mode-bg)' : 'transparent';
+                    row.style.borderRadius = i === index ? '8px' : '0';
+                    row.style.paddingLeft = i === index ? '8px' : '0';
+                    row.style.paddingRight = i === index ? '8px' : '0';
+                });
+                if (line) line.style.background = i < index ? 'var(--primary)' : 'var(--border)';
+            });
+        }
+
+        function startReplay() {
+            const provider = window._replayProvider;
+            const records = window._replayRecords || [];
+            if (records.length < 2) return;
+
+            let animatedLine = null;
+            if (provider === 'amap' && window._replayMap) {
+                animatedLine = new AMap.Polyline({
+                    strokeColor: '#FF2442',
+                    strokeWeight: 4,
+                    strokeOpacity: 1,
+                    lineJoin: 'round'
+                });
+                animatedLine.setMap(window._replayMap);
+            }
+
+            if (provider === 'baidu' && window._replayBaidu) {
+                animatedLine = new BMap.Polyline([], {
+                    strokeColor: '#FF2442',
+                    strokeWeight: 4,
+                    strokeOpacity: 1
+                });
+                window._replayBaidu.map.addOverlay(animatedLine);
+            }
+
+            if (provider === 'bing' && window._replayBing) {
+                animatedLine = new Microsoft.Maps.Polyline([], { strokeColor: '#FF2442', strokeThickness: 4 });
+                window._replayBing.map.entities.push(animatedLine);
+            }
+
+            let index = 0;
+            const animate = () => {
+                if (index >= records.length) {
+                    toast('🛤️ 轨迹回放完成');
+                    return;
+                }
+
+                updateReplayProgress(index);
+
+                if (provider === 'amap' && window._replayMap) {
+                    const path = window._replayPath;
+                    animatedLine.setPath(path.slice(0, index + 1));
+                    window._replayMap.setCenter(path[index]);
+                    window._replayMarkers.forEach((m, i) => m.setContent(replayMarkerHtml(i, i === index)));
+                } else if (provider === 'baidu' && window._replayBaidu) {
+                    const { map, points } = window._replayBaidu;
+                    animatedLine.setPath(points.slice(0, index + 1));
+                    map.panTo(points[index]);
+                } else if (provider === 'tencent' && window._replayTencent) {
+                    const { map, points } = window._replayTencent;
+                    map.setCenter(points[index]);
+                } else if (provider === 'bing' && window._replayBing) {
+                    const { map, locations } = window._replayBing;
+                    animatedLine.setLocations(locations.slice(0, index + 1));
+                    map.setView({ center: locations[index] });
+                }
+
+                index++;
+                setTimeout(animate, 800);
+            };
+
+            animate();
+        }
+
+        // ========== Utility Functions ==========
+        function formatMonth(monthStr) {
+            const [year, month] = monthStr.split('-');
+            const months = ['一月', '二月', '三月', '四月', '五月', '六月', '七月', '八月', '九月', '十月', '十一月', '十二月'];
+            return `${year}年 ${months[parseInt(month) - 1]}`;
+        }
+
+        function openEditModal(id) {
+            const record = state.records.find(r => r.id === id);
+            if (!record) return;
+            
+            // 填充编辑表单
+            document.getElementById('input-title').value = record.title;
+            document.getElementById('input-desc').value = record.description || '';
+            document.getElementById('input-location').value = record.location || '';
+            document.getElementById('input-date').value = record.date || '';
+            if (record.rating) document.getElementById('input-rating').value = String(record.rating);
+            if (record.price) document.getElementById('input-price').value = record.price;
+            window._lat = record.latitude ?? null;
+            window._lng = record.longitude ?? null;
+            
+            // 设置图片
+            state.images = [...(record.images || [])];
+            state.imageMeta = [...(record.metadata?.images || [])];
+            renderPreview();
+            
+            // 设置模式
+            state.mode = record.mode;
+            applyMode();
+            render();
+            
+            // 标记为编辑状态
+            state.editingId = id;
+
+            // 打开模态框
+            openModal('add');
+        }
+
+        // ========== Feature Helpers ==========
+        function confirmDelete(cb, name) { if (confirm(`确定删除${name}吗？`)) { cb(); toast('已删除'); } }
+        function addPlan() { const input=document.getElementById('plan-input'); const t=input.value.trim(); if(!t){toast('请输入行程');return;} const plans=JSON.parse(localStorage.getItem('travel_plans')||'[]'); plans.push({title:t,date:new Date().toLocaleDateString()}); localStorage.setItem('travel_plans',JSON.stringify(plans)); input.value=''; handleFeature('plan'); toast('✅ 已添加'); }
+        function removePlan(i) { confirmDelete(()=>{ const p=JSON.parse(localStorage.getItem('travel_plans')||'[]'); p.splice(i,1); localStorage.setItem('travel_plans',JSON.stringify(p)); handleFeature('plan'); },'行程'); }
+        function addWish() { const input=document.getElementById('wish-input'); const t=input.value.trim(); if(!t){toast('请输入愿望');return;} const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('wishes',JSON.stringify(w)); input.value=''; handleFeature('wishlist'); toast('❤️ 已添加'); }
+        function toggleWish(i) { const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w[i].done=!w[i].done; localStorage.setItem('wishes',JSON.stringify(w)); handleFeature('wishlist'); }
+        function removeWish(i) { confirmDelete(()=>{ const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w.splice(i,1); localStorage.setItem('wishes',JSON.stringify(w)); handleFeature('wishlist'); },'愿望'); }
+        function addIngredient() { const input=document.getElementById('ingredient-input'); const n=input.value.trim(); if(!n){toast('请输入食材');return;} const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); if(ing.includes(n)){toast('已存在');return;} ing.push(n); localStorage.setItem('ingredients',JSON.stringify(ing)); input.value=''; handleFeature('ingredients'); toast('🥬 已添加'); }
+        function quickAddIngredient(n) { const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); if(ing.includes(n)){toast('已存在');return;} ing.push(n); localStorage.setItem('ingredients',JSON.stringify(ing)); handleFeature('ingredients'); toast('🥬 已添加'); }
+        function removeIngredient(i) { confirmDelete(()=>{ const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); ing.splice(i,1); localStorage.setItem('ingredients',JSON.stringify(ing)); handleFeature('ingredients'); },'食材'); }
+        function addAnniversary() { const name=document.getElementById('anniversary-name').value.trim(); const date=document.getElementById('anniversary-date').value; if(!name||!date){toast('请填写完整');return;} const a=JSON.parse(localStorage.getItem('anniversaries')||'[]'); a.push({name,date}); localStorage.setItem('anniversaries',JSON.stringify(a)); document.getElementById('anniversary-name').value=''; document.getElementById('anniversary-date').value=''; handleFeature('anniversary'); toast('📅 已添加'); }
+        function removeAnniversary(i) { confirmDelete(()=>{ const a=JSON.parse(localStorage.getItem('anniversaries')||'[]'); a.splice(i,1); localStorage.setItem('anniversaries',JSON.stringify(a)); handleFeature('anniversary'); },'纪念日'); }
+        function addLoveNote() { const input=document.getElementById('love-note-input'); const c=input.value.trim(); if(!c){toast('请输入内容');return;} const n=JSON.parse(localStorage.getItem('love_notes')||'[]'); n.unshift({content:c,date:new Date().toLocaleString()}); localStorage.setItem('love_notes',JSON.stringify(n)); input.value=''; handleFeature('notes'); toast('💌 已保存'); }
+        function removeLoveNote(i) { confirmDelete(()=>{ const n=JSON.parse(localStorage.getItem('love_notes')||'[]'); n.splice(i,1); localStorage.setItem('love_notes',JSON.stringify(n)); handleFeature('notes'); },'笔记'); }
+        function addDatePlan() { const title=document.getElementById('date-plan-title').value.trim(); const date=document.getElementById('date-plan-date').value; const loc=document.getElementById('date-plan-location').value.trim(); const desc=document.getElementById('date-plan-desc').value.trim(); if(!title){toast('请输入主题');return;} const p=JSON.parse(localStorage.getItem('date_plans')||'[]'); p.unshift({title,date,location:loc,desc}); localStorage.setItem('date_plans',JSON.stringify(p)); document.getElementById('date-plan-title').value=''; document.getElementById('date-plan-date').value=''; document.getElementById('date-plan-location').value=''; document.getElementById('date-plan-desc').value=''; handleFeature('date'); toast('💑 已添加'); }
+        function removeDatePlan(i) { confirmDelete(()=>{ const p=JSON.parse(localStorage.getItem('date_plans')||'[]'); p.splice(i,1); localStorage.setItem('date_plans',JSON.stringify(p)); handleFeature('date'); },'计划'); }
+        function addCoupleTask() { const input=document.getElementById('couple-task-input'); const t=input.value.trim(); if(!t){toast('请输入任务');return;} const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('couple_tasks',JSON.stringify(ct)); input.value=''; handleFeature('tasks'); toast('✅ 已添加'); }
+        function quickAddTask(t) { const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('couple_tasks',JSON.stringify(ct)); handleFeature('tasks'); toast('✅ 已添加'); }
+        function toggleCoupleTask(i) { const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct[i].done=!ct[i].done; localStorage.setItem('couple_tasks',JSON.stringify(ct)); handleFeature('tasks'); }
+        function removeCoupleTask(i) { confirmDelete(()=>{ const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.splice(i,1); localStorage.setItem('couple_tasks',JSON.stringify(ct)); handleFeature('tasks'); },'任务'); }
+        async function queryWeather() { const city=document.getElementById('weather-city').value.trim(); if(!city){toast('请输入城市');return;} const el=document.getElementById('weather-result'); el.innerHTML='<div style="padding:20px">查询中...</div>'; try { const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`); const data=await res.json(); const c=data.current_condition[0]; el.innerHTML=`<div style="margin-bottom:20px"><div style="font-size:64px;margin-bottom:8px">🌤️</div><div style="font-size:36px;font-weight:700;color:var(--primary)">${c.temp_C}°C</div><div style="font-size:14px;color:var(--text-sec)">${c.lang_zh?.[0]?.value||c.weatherDesc?.[0]?.value||''}</div></div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"><div class="stat-card"><div style="font-size:20px">🌡️</div><div style="font-size:14px;margin-top:4px">体感</div><div style="font-size:16px;font-weight:600">${c.FeelsLikeC}°C</div></div><div class="stat-card"><div style="font-size:20px">💧</div><div style="font-size:14px;margin-top:4px">湿度</div><div style="font-size:16px;font-weight:600">${c.humidity}%</div></div><div class="stat-card"><div style="font-size:20px">💨</div><div style="font-size:14px;margin-top:4px">风速</div><div style="font-size:16px;font-weight:600">${c.windspeedKmph}km/h</div></div><div class="stat-card"><div style="font-size:20px">👁️</div><div style="font-size:14px;margin-top:4px">能见度</div><div style="font-size:16px;font-weight:600">${c.visibility}km</div></div></div>`; } catch(e) { el.innerHTML=`<div style="padding:20px;color:#EF4444">查询失败: ${e.message}</div>`; } }
+
+        // ========== Utils ==========
+        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+        function getModeName(mode) { return {travel:'旅行',food:'美食',love:'情侣'}[mode]||mode; }
+        function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
+
+        // ========== Map API ==========
+        function loadMapAPI() {
+            const config = getConfig();
+            const provider = config.mapProvider || 'amap';
+            const key = config[`${provider}Key`];
+            if (!key) return;
+            if (window._mapProviderLoaded === provider) return;
+            const s = document.createElement('script');
+            if (provider === 'baidu') {
+                s.src = `https://api.map.baidu.com/api?v=3.0&ak=${key}`;
+            } else if (provider === 'tencent') {
+                s.src = `https://map.qq.com/api/gljs?v=1.exp&key=${key}`;
+            } else if (provider === 'bing') {
+                s.src = `https://www.bing.com/api/maps/mapcontrol?key=${key}`;
+            } else {
+                s.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.Geocoder`;
+            }
+            window._mapProviderLoaded = provider;
+            document.head.appendChild(s);
+        }
+
+        // ========== Start ==========
+        // ========== Service Worker Registration ==========
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('SW registration failed:', error);
+                    });
+            });
+        }
+
+        // ========== Start ==========
+        window.onload = async () => { await init(); loadMapAPI(); };
+    </script>
+    <script src="features.js"></script>
+</body>
+</html>

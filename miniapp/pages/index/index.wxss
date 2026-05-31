@@ -1,0 +1,31 @@
+.page { min-height: 100vh; }
+.page-travel { --primary: #3B82F6; }
+.page-food { --primary: #F59E0B; }
+.page-love { --primary: #EC4899; }
+.hero-row { display: flex; justify-content: space-between; gap: 24rpx; align-items: flex-start; }
+.eyebrow { color: var(--primary); font-size: 24rpx; margin-bottom: 8rpx; }
+.title { font-size: 44rpx; font-weight: 800; margin-bottom: 8rpx; }
+.subtitle { font-size: 26rpx; color: var(--text-sec); }
+.compact { min-width: 160rpx; padding-left: 20rpx; padding-right: 20rpx; }
+.stats-row { display: flex; justify-content: space-around; margin-top: 28rpx; }
+.stat { display: flex; flex-direction: column; align-items: center; }
+.stat-num { color: var(--primary); font-size: 40rpx; font-weight: 800; }
+.stat-label { color: var(--text-muted); font-size: 22rpx; }
+.mode-tabs { display: flex; gap: 16rpx; margin-bottom: 24rpx; }
+.mode-tab { flex: 1; padding: 18rpx 10rpx; border-radius: 999rpx; background: var(--bg-white); color: var(--text-sec); display: flex; align-items: center; justify-content: center; gap: 8rpx; font-size: 26rpx; }
+.mode-tab.active { background: var(--primary); color: white; }
+.form-card { display: flex; flex-direction: column; gap: 18rpx; }
+.textarea { min-height: 120rpx; }
+.image-preview { display: flex; gap: 12rpx; flex-wrap: wrap; }
+.preview-img { width: 150rpx; height: 150rpx; border-radius: 12rpx; }
+.form-actions { display: flex; gap: 16rpx; }
+.form-actions .btn { flex: 1; }
+.section-title { font-size: 32rpx; font-weight: 700; margin: 28rpx 0 18rpx; }
+.empty { text-align: center; padding: 56rpx 24rpx; }
+.empty-icon { font-size: 72rpx; margin-bottom: 12rpx; }
+.empty-title { font-size: 32rpx; font-weight: 700; margin-bottom: 8rpx; }
+.record-card { overflow: hidden; }
+.record-cover { width: 100%; height: 320rpx; border-radius: 16rpx; margin-bottom: 18rpx; }
+.record-title { font-size: 32rpx; font-weight: 700; }
+.record-meta { font-size: 24rpx; color: var(--text-muted); margin-top: 8rpx; }
+.record-desc { font-size: 26rpx; color: var(--text-sec); margin-top: 12rpx; }

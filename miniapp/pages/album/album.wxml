@@ -1,0 +1,19 @@
+<view class="container">
+    <view class="album-header">
+        <view>
+            <view class="title">相册</view>
+            <view class="text-muted">{{images.length}} 张照片</view>
+        </view>
+    </view>
+    <view wx:if="{{images.length === 0}}" class="card empty">
+        <view class="empty-icon">📸</view>
+        <view class="empty-title">暂无照片</view>
+        <view class="text-muted">添加记录后照片会出现在这里</view>
+    </view>
+    <view class="album-grid">
+        <view wx:for="{{images}}" wx:key="id" class="album-item">
+            <image src="{{item.url}}" mode="aspectFill" class="album-img" data-url="{{item.url}}" bindtap="preview" />
+            <view class="album-caption">{{item.title}}</view>
+        </view>
+    </view>
+</view>

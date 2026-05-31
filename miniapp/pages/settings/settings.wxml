@@ -1,0 +1,26 @@
+<view class="container">
+    <view class="title">设置</view>
+    <view class="card">
+        <view class="card-title">记录模式</view>
+        <view class="mode-row">
+            <button wx:for="{{modes}}" wx:key="key" class="btn {{mode === item.key ? 'btn-primary' : 'btn-ghost'}}" data-mode="{{item.key}}" bindtap="selectMode">{{item.icon}} {{item.name}}</button>
+        </view>
+    </view>
+    <view class="card">
+        <view class="card-title">主题</view>
+        <view class="mode-row">
+            <button class="btn {{theme === 'dark' ? 'btn-primary' : 'btn-ghost'}}" data-theme="dark" bindtap="selectTheme">深色</button>
+            <button class="btn {{theme === 'light' ? 'btn-primary' : 'btn-ghost'}}" data-theme="light" bindtap="selectTheme">浅色</button>
+        </view>
+    </view>
+    <view class="card">
+        <view class="card-title">数据</view>
+        <view class="data-row">
+            <view>
+                <view class="data-num">{{total}}</view>
+                <view class="text-muted">本机记录</view>
+            </view>
+            <button class="btn btn-ghost danger" bindtap="clearData">清空数据</button>
+        </view>
+    </view>
+</view>

@@ -1,0 +1,192 @@
+/* app.wxss - 全局样式 */
+
+/* 主题变量 */
+page {
+    --primary: #FF2442;
+    --primary-light: #FF6B81;
+    --bg: #F5F5F7;
+    --bg-white: #FFFFFF;
+    --bg-elevated: rgba(0, 0, 0, 0.04);
+    --text: #1D1D1F;
+    --text-sec: rgba(0, 0, 0, 0.6);
+    --text-muted: rgba(0, 0, 0, 0.4);
+    --border: rgba(0, 0, 0, 0.1);
+    --radius: 16rpx;
+    --radius-sm: 12rpx;
+    --radius-full: 9999rpx;
+    
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+/* 暗色主题 */
+page[data-theme="dark"] {
+    --bg: #0F0F14;
+    --bg-white: #1A1A24;
+    --bg-elevated: rgba(255, 255, 255, 0.08);
+    --text: #FFFFFF;
+    --text-sec: rgba(255, 255, 255, 0.7);
+    --text-muted: rgba(255, 255, 255, 0.4);
+    --border: rgba(255, 255, 255, 0.1);
+}
+
+/* 旅行模式 */
+page[data-mode="travel"] {
+    --primary: #3B82F6;
+    --gradient: linear-gradient(135deg, #3B82F6, #06B6D4);
+}
+
+/* 美食模式 */
+page[data-mode="food"] {
+    --primary: #F59E0B;
+    --gradient: linear-gradient(135deg, #F59E0B, #EF4444);
+}
+
+/* 情侣模式 */
+page[data-mode="love"] {
+    --primary: #EC4899;
+    --gradient: linear-gradient(135deg, #EC4899, #8B5CF6);
+}
+
+/* 通用容器 */
+.container {
+    padding: 24rpx;
+}
+
+/* 卡片 */
+.card {
+    background: var(--bg-white);
+    border-radius: var(--radius);
+    padding: 24rpx;
+    margin-bottom: 24rpx;
+    border: 1rpx solid var(--border);
+}
+
+/* 按钮 */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12rpx;
+    padding: 20rpx 32rpx;
+    border-radius: var(--radius-full);
+    font-size: 28rpx;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--gradient);
+    color: white;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--text);
+    border: 2rpx solid var(--border);
+}
+
+/* 输入框 */
+.input {
+    width: 100%;
+    padding: 20rpx 24rpx;
+    background: var(--bg-elevated);
+    border: 2rpx solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 28rpx;
+    color: var(--text);
+}
+
+.input:focus {
+    border-color: var(--primary);
+}
+
+/* 标签 */
+.tag {
+    display: inline-flex;
+    padding: 8rpx 16rpx;
+    border-radius: var(--radius-full);
+    font-size: 24rpx;
+    font-weight: 500;
+}
+
+.tag-travel {
+    background: rgba(59, 130, 246, 0.15);
+    color: #60A5FA;
+}
+
+.tag-food {
+    background: rgba(245, 158, 11, 0.15);
+    color: #FBBF24;
+}
+
+.tag-love {
+    background: rgba(236, 72, 153, 0.15);
+    color: #F472B6;
+}
+
+/* 网格 */
+.grid {
+    display: grid;
+    gap: 24rpx;
+}
+
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+/* 弹性布局 */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-8 { gap: 8rpx; }
+.gap-12 { gap: 12rpx; }
+.gap-16 { gap: 16rpx; }
+.gap-24 { gap: 24rpx; }
+
+/* 间距 */
+.mt-8 { margin-top: 8rpx; }
+.mt-16 { margin-top: 16rpx; }
+.mt-24 { margin-top: 24rpx; }
+.mb-8 { margin-bottom: 8rpx; }
+.mb-16 { margin-bottom: 16rpx; }
+.mb-24 { margin-bottom: 24rpx; }
+.p-16 { padding: 16rpx; }
+.p-24 { padding: 24rpx; }
+
+/* 文字 */
+.text-sm { font-size: 24rpx; }
+.text-base { font-size: 28rpx; }
+.text-lg { font-size: 32rpx; }
+.text-xl { font-size: 36rpx; }
+.text-2xl { font-size: 48rpx; }
+.font-medium { font-weight: 500; }
+.font-bold { font-weight: 700; }
+.text-sec { color: var(--text-sec); }
+.text-muted { color: var(--text-muted); }
+.text-center { text-align: center; }
+
+/* 圆角 */
+.rounded { border-radius: var(--radius); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* 阴影 */
+.shadow {
+    box-shadow: 0 4rpx 24rpx rgba(0, 0, 0, 0.08);
+}
+
+/* 隐藏 */
+.hidden { display: none; }
+
+/* 安全区域 */
+.safe-top {
+    padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+}

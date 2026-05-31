@@ -1,0 +1,50 @@
+<view class="container page page-{{mode}}">
+    <view class="hero card">
+        <view class="hero-row">
+            <view>
+                <view class="eyebrow">{{modeIcon}} {{modeTitle}}</view>
+                <view class="title">记录你的美好生活</view>
+                <view class="subtitle">旅行、美食、情侣足迹都在这里</view>
+            </view>
+            <button class="btn btn-primary compact" bindtap="chooseImages">添加照片</button>
+        </view>
+        <view class="stats-row">
+            <view class="stat"><text class="stat-num">{{stats.records}}</text><text class="stat-label">记录</text></view>
+            <view class="stat"><text class="stat-num">{{stats.places}}</text><text class="stat-label">地点</text></view>
+            <view class="stat"><text class="stat-num">{{stats.photos}}</text><text class="stat-label">照片</text></view>
+        </view>
+    </view>
+
+    <view class="mode-tabs">
+        <view wx:for="{{modes}}" wx:key="key" class="mode-tab {{mode === item.key ? 'active' : ''}}" data-mode="{{item.key}}" bindtap="selectMode">
+            <text>{{item.icon}}</text>
+            <text>{{item.name}}</text>
+        </view>
+    </view>
+
+    <view class="card form-card">
+        <input class="input" placeholder="标题" value="{{form.title}}" data-field="title" bindinput="updateForm" />
+        <input class="input" placeholder="地点" value="{{form.location}}" data-field="location" bindinput="updateForm" />
+        <textarea class="input textarea" placeholder="写下感受..." value="{{form.description}}" data-field="description" bindinput="updateForm"></textarea>
+        <view class="image-preview" wx:if="{{images.length}}">
+            <image wx:for="{{images}}" wx:key="*this" src="{{item}}" mode="aspectFill" class="preview-img" />
+        </view>
+        <view class="form-actions">
+            <button class="btn btn-ghost" bindtap="chooseLocation">定位</button>
+            <button class="btn btn-primary" bindtap="saveRecord">保存记录</button>
+        </view>
+    </view>
+
+    <view class="section-title">最近记录</view>
+    <view wx:if="{{records.length === 0}}" class="empty card">
+        <view class="empty-icon">{{modeIcon}}</view>
+        <view class="empty-title">还没有记录</view>
+        <view class="text-muted">添加照片开始记录足迹</view>
+    </view>
+    <view wx:for="{{records}}" wx:key="id" class="record-card card">
+        <image wx:if="{{item.cover}}" src="{{item.cover}}" mode="aspectFill" class="record-cover" />
+        <view class="record-title">{{item.title}}</view>
+        <view class="record-meta">{{item.location}} {{item.date}}</view>
+        <view class="record-desc" wx:if="{{item.description}}">{{item.description}}</view>
+    </view>
+</view>
