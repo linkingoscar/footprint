@@ -1,4 +1,6 @@
 // app.js - 小程序入口文件
+const api = require('./utils/api.js');
+
 App({
     globalData: {
         userInfo: null,
@@ -7,7 +9,10 @@ App({
             mode: 'travel', // travel, food, love
             theme: 'dark',
             lang: 'zh'
-        }
+        },
+        apiAvailable: false,
+        token: api.getToken(),
+        user: null
     },
 
     onLaunch() {
@@ -24,6 +29,9 @@ App({
 
         // 检查登录状态
         this.checkLogin();
+
+        // 检查 API 可用性并同步数据
+        this.checkApi();
     },
 
     // 检查登录状态
@@ -41,22 +49,81 @@ App({
         });
     },
 
-    // 保存记录
+    // 检查后端 API 可用性
+    checkApi() {
+        api.healthCheck()
+            .then(res => {
+                this.globalData.apiAvailable = true;
+                console.log('API connected:', res);
+                // 如果有 token，尝试从 API 同步数据
+                if (this.globalData.token) {
+                    this.syncFromApi();
+                }
+            })
+            .catch(() => {
+                this.globalData.apiAvailable = false;
+                console.log('API not available, using local storage');
+            });
+    },
+
+    // 从 API 同步记录到本地缓存
+    syncFromApi() {
+        api.getRecords()
+            .then(records => {
+                if (Array.isArray(records)) {
+                    this.globalData.records = records;
+                    wx.setStorageSync('records', records);
+                    console.log('Synced records from API:', records.length);
+                }
+            })
+            .catch(e => {
+                console.log('Sync from API failed:', e);
+            });
+    },
+
+    // 保存记录（API 优先，本地 fallback）
     saveRecord(record) {
-        record.id = this.generateId();
-        record.createdAt = new Date().toISOString();
+        record.id = record.id || this.generateId();
+        record.createdAt = record.createdAt || new Date().toISOString();
+
+        // 始终先写本地缓存
         this.globalData.records.unshift(record);
         wx.setStorageSync('records', this.globalData.records);
+
+        // 尝试同步到 API
+        if (this.globalData.apiAvailable && this.globalData.token) {
+            api.createRecord(record)
+                .then(result => {
+                    console.log('Record saved to API:', result);
+                    // 如果 API 返回了 id，更新本地记录
+                    if (result && result.id) {
+                        record.id = result.id;
+                        wx.setStorageSync('records', this.globalData.records);
+                    }
+                })
+                .catch(e => {
+                    console.log('API save failed, record saved locally:', e);
+                });
+        }
+
         return record;
     },
 
-    // 删除记录
+    // 删除记录（API 优先，本地 fallback）
     deleteRecord(id) {
+        // 始终先更新本地缓存
         this.globalData.records = this.globalData.records.filter(r => r.id !== id);
         wx.setStorageSync('records', this.globalData.records);
+
+        // 尝试从 API 删除
+        if (this.globalData.apiAvailable && this.globalData.token) {
+            api.deleteRecord(id)
+                .then(() => console.log('Record deleted from API:', id))
+                .catch(e => console.log('API delete failed, removed locally:', e));
+        }
     },
 
-    // 获取记录
+    // 获取记录（从本地缓存读取，保持同步接口）
     getRecords(mode = 'all') {
         if (mode === 'all') {
             return this.globalData.records;

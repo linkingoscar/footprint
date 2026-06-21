@@ -6,6 +6,8 @@
 
 import os
 import json
+import threading
+import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
@@ -42,6 +44,32 @@ class RecordStore:
         raise NotImplementedError
 
     def delete(self, record_id: str) -> Optional[Dict[str, Any]]:
+        raise NotImplementedError
+
+    # ---- Expenses ----
+    def list_expenses(self, record_id: str = None) -> list:
+        raise NotImplementedError
+
+    def create_expense(self, expense: dict) -> dict:
+        raise NotImplementedError
+
+    def update_expense(self, expense_id: str, expense: dict) -> Optional[dict]:
+        raise NotImplementedError
+
+    def delete_expense(self, expense_id: str) -> Optional[dict]:
+        raise NotImplementedError
+
+    def get_expense_stats(self) -> dict:
+        raise NotImplementedError
+
+    # ---- Users ----
+    def create_user(self, user_id: str, username: str, password_hash: str) -> dict:
+        raise NotImplementedError
+
+    def get_user_by_username(self, username: str) -> Optional[dict]:
+        raise NotImplementedError
+
+    def get_user_by_id(self, user_id: str) -> Optional[dict]:
         raise NotImplementedError
 
 
@@ -96,13 +124,14 @@ class JsonRecordStore(RecordStore):
 
 
 class SQLiteRecordStore(RecordStore):
-    """SQLite 记录存储，payload 保存完整记录，索引用于常见过滤。"""
+    """SQLite 记录存储，归一化模式，支持用户和费用管理。"""
 
     def __init__(self, db_path: str, metadata_file: str = None):
         import sqlite3
         self.sqlite3 = sqlite3
         self.db_path = db_path
         self.metadata_file = metadata_file
+        self._local = threading.local()
         db_dir = os.path.dirname(os.path.abspath(db_path))
         if db_dir:
             os.makedirs(db_dir, exist_ok=True)
@@ -110,28 +139,155 @@ class SQLiteRecordStore(RecordStore):
         self._migrate_json_once()
 
     def _connect(self):
-        conn = self.sqlite3.connect(self.db_path)
-        conn.row_factory = self.sqlite3.Row
-        return conn
+        """Get or create a connection for the current thread."""
+        if not hasattr(self._local, 'conn') or self._local.conn is None:
+            conn = self.sqlite3.connect(self.db_path)
+            conn.row_factory = self.sqlite3.Row
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA foreign_keys=ON")
+            self._local.conn = conn
+        return self._local.conn
 
+    def close(self):
+        """Close the current thread's connection."""
+        if hasattr(self._local, 'conn') and self._local.conn:
+            self._local.conn.close()
+            self._local.conn = None
+
+    # ---- Migration from old payload schema ----
+    def _migrate_from_payload(self):
+        """Migrate from old payload-based schema to normalized schema."""
+        if not os.path.exists(self.db_path):
+            return
+        conn = None
+        try:
+            conn = self.sqlite3.connect(self.db_path, isolation_level=None)
+            conn.row_factory = self.sqlite3.Row
+            columns = [row[1] for row in conn.execute("PRAGMA table_info(records)").fetchall()]
+            if 'payload' not in columns:
+                conn.close()
+                return
+            rows = conn.execute("SELECT id, payload FROM records").fetchall()
+            if not rows:
+                conn.execute("DROP TABLE IF EXISTS records")
+                conn.close()
+                return
+            records_data = []
+            for row in rows:
+                payload = json.loads(row[1])
+                records_data.append((
+                    row[0],
+                    payload.get('mode', 'travel'),
+                    payload.get('title', ''),
+                    payload.get('description', ''),
+                    payload.get('location'),
+                    payload.get('latitude'),
+                    payload.get('longitude'),
+                    payload.get('date'),
+                    payload.get('rating'),
+                    payload.get('price'),
+                    json.dumps(payload.get('tags', []), ensure_ascii=False),
+                    json.dumps(payload.get('metadata', {}), ensure_ascii=False),
+                    json.dumps(payload.get('images', []), ensure_ascii=False),
+                    payload.get('createdAt') or payload.get('created_at') or datetime.now().isoformat(),
+                    payload.get('updatedAt') or payload.get('updated_at')
+                ))
+            conn.execute("BEGIN TRANSACTION")
+            conn.execute("DROP TABLE records")
+            conn.execute("""
+                CREATE TABLE records (
+                    id TEXT PRIMARY KEY,
+                    mode TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT DEFAULT '',
+                    location TEXT,
+                    latitude REAL,
+                    longitude REAL,
+                    date TEXT,
+                    rating INTEGER,
+                    price REAL,
+                    tags TEXT DEFAULT '[]',
+                    metadata TEXT DEFAULT '{}',
+                    images TEXT DEFAULT '[]',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT
+                )
+            """)
+            conn.executemany("""
+                INSERT INTO records (id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, records_data)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_records_mode ON records(mode)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_records_date ON records(date)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_records_location ON records(latitude, longitude)")
+            conn.commit()
+        except Exception:
+            if conn:
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+        finally:
+            if conn:
+                conn.close()
+
+    # ---- Table initialization ----
     def _init_tables(self):
+        self._migrate_from_payload()
         with self._connect() as conn:
             conn.executescript("""
-            CREATE TABLE IF NOT EXISTS records (
-                id TEXT PRIMARY KEY,
-                mode TEXT NOT NULL,
-                title TEXT NOT NULL,
-                location TEXT,
-                latitude REAL,
-                longitude REAL,
-                date TEXT,
-                payload TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                updated_at TEXT
-            );
-            CREATE INDEX IF NOT EXISTS idx_records_mode ON records(mode);
-            CREATE INDEX IF NOT EXISTS idx_records_date ON records(date);
-            CREATE INDEX IF NOT EXISTS idx_records_location ON records(latitude, longitude);
+                CREATE TABLE IF NOT EXISTS records (
+                    id TEXT PRIMARY KEY,
+                    mode TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    description TEXT DEFAULT '',
+                    location TEXT,
+                    latitude REAL,
+                    longitude REAL,
+                    date TEXT,
+                    rating INTEGER,
+                    price REAL,
+                    tags TEXT DEFAULT '[]',
+                    metadata TEXT DEFAULT '{}',
+                    images TEXT DEFAULT '[]',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT
+                );
+                CREATE INDEX IF NOT EXISTS idx_records_mode ON records(mode);
+                CREATE INDEX IF NOT EXISTS idx_records_date ON records(date);
+                CREATE INDEX IF NOT EXISTS idx_records_location ON records(latitude, longitude);
+            """)
+        self._init_users_table()
+        self._init_expenses_table()
+
+    def _init_users_table(self):
+        """Create users table for authentication."""
+        with self._connect() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+            """)
+
+    def _init_expenses_table(self):
+        """Create expenses table."""
+        with self._connect() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS expenses (
+                    id TEXT PRIMARY KEY,
+                    record_id TEXT,
+                    mode TEXT DEFAULT 'travel',
+                    category TEXT DEFAULT '其他',
+                    amount REAL NOT NULL,
+                    currency TEXT DEFAULT 'CNY',
+                    description TEXT DEFAULT '',
+                    date TEXT,
+                    created_at TEXT NOT NULL,
+                    FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE SET NULL
+                )
             """)
 
     def _migrate_json_once(self):
@@ -150,49 +306,81 @@ class SQLiteRecordStore(RecordStore):
             if record.get('id'):
                 self.create(record)
 
+    # ---- Record helpers ----
     def _row_to_record(self, row) -> Dict[str, Any]:
-        return json.loads(row['payload'])
+        return {
+            'id': row['id'],
+            'mode': row['mode'],
+            'title': row['title'],
+            'description': row['description'] or '',
+            'location': row['location'],
+            'latitude': row['latitude'],
+            'longitude': row['longitude'],
+            'date': row['date'],
+            'rating': row['rating'],
+            'price': row['price'],
+            'tags': json.loads(row['tags']) if row['tags'] else [],
+            'metadata': json.loads(row['metadata']) if row['metadata'] else {},
+            'images': json.loads(row['images']) if row['images'] else [],
+            'createdAt': row['created_at'],
+            'updatedAt': row['updated_at'],
+        }
 
     def _upsert(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        payload = json.dumps(record, ensure_ascii=False)
+        tags = record.get('tags', [])
+        metadata = record.get('metadata', {})
+        images = record.get('images', [])
+        created_at = record.get('createdAt') or record.get('created_at') or datetime.now().isoformat()
+        updated_at = record.get('updatedAt') or record.get('updated_at') or datetime.now().isoformat()
         with self._connect() as conn:
             conn.execute("""
-                INSERT INTO records (id, mode, title, location, latitude, longitude, date, payload, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO records (id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     mode=excluded.mode,
                     title=excluded.title,
+                    description=excluded.description,
                     location=excluded.location,
                     latitude=excluded.latitude,
                     longitude=excluded.longitude,
                     date=excluded.date,
-                    payload=excluded.payload,
+                    rating=excluded.rating,
+                    price=excluded.price,
+                    tags=excluded.tags,
+                    metadata=excluded.metadata,
+                    images=excluded.images,
                     updated_at=excluded.updated_at
             """, (
                 record['id'],
-                record.get('mode'),
-                record.get('title'),
+                record.get('mode', 'travel'),
+                record.get('title', ''),
+                record.get('description', ''),
                 record.get('location'),
                 record.get('latitude'),
                 record.get('longitude'),
                 record.get('date'),
-                payload,
-                record.get('createdAt') or datetime.now().isoformat(),
-                record.get('updatedAt')
+                record.get('rating'),
+                record.get('price'),
+                json.dumps(tags, ensure_ascii=False),
+                json.dumps(metadata, ensure_ascii=False),
+                json.dumps(images, ensure_ascii=False),
+                created_at,
+                updated_at
             ))
         return record
 
+    # ---- CRUD ----
     def list(self, mode: str = None) -> List[Dict[str, Any]]:
         with self._connect() as conn:
             if mode:
-                rows = conn.execute("SELECT payload FROM records WHERE mode = ? ORDER BY date DESC, created_at DESC", (mode,)).fetchall()
+                rows = conn.execute("SELECT * FROM records WHERE mode = ? ORDER BY date DESC, created_at DESC", (mode,)).fetchall()
             else:
-                rows = conn.execute("SELECT payload FROM records ORDER BY date DESC, created_at DESC").fetchall()
+                rows = conn.execute("SELECT * FROM records ORDER BY date DESC, created_at DESC").fetchall()
         return [self._row_to_record(row) for row in rows]
 
     def get(self, record_id: str) -> Optional[Dict[str, Any]]:
         with self._connect() as conn:
-            row = conn.execute("SELECT payload FROM records WHERE id = ?", (record_id,)).fetchone()
+            row = conn.execute("SELECT * FROM records WHERE id = ?", (record_id,)).fetchone()
         return self._row_to_record(row) if row else None
 
     def create(self, record: Dict[str, Any]) -> Dict[str, Any]:
@@ -211,9 +399,112 @@ class SQLiteRecordStore(RecordStore):
             conn.execute("DELETE FROM records WHERE id = ?", (record_id,))
         return record
 
+    # ---- Expenses ----
+    def list_expenses(self, record_id: str = None) -> list:
+        with self._connect() as conn:
+            if record_id:
+                rows = conn.execute(
+                    "SELECT * FROM expenses WHERE record_id = ? ORDER BY date DESC, created_at DESC",
+                    (record_id,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM expenses ORDER BY date DESC, created_at DESC"
+                ).fetchall()
+        return [dict(row) for row in rows]
+
+    def create_expense(self, expense: dict) -> dict:
+        expense.setdefault('id', str(uuid.uuid4()))
+        expense.setdefault('created_at', datetime.now().isoformat())
+        with self._connect() as conn:
+            conn.execute("""
+                INSERT INTO expenses (id, record_id, mode, category, amount, currency, description, date, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                expense['id'],
+                expense.get('record_id'),
+                expense.get('mode', 'travel'),
+                expense.get('category', '其他'),
+                expense['amount'],
+                expense.get('currency', 'CNY'),
+                expense.get('description', ''),
+                expense.get('date'),
+                expense['created_at']
+            ))
+        return expense
+
+    def update_expense(self, expense_id: str, expense: dict) -> Optional[dict]:
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM expenses WHERE id = ?", (expense_id,)).fetchone()
+            if not row:
+                return None
+            conn.execute("""
+                UPDATE expenses SET record_id=?, mode=?, category=?, amount=?, currency=?, description=?, date=?
+                WHERE id=?
+            """, (
+                expense.get('record_id'),
+                expense.get('mode', 'travel'),
+                expense.get('category', '其他'),
+                expense['amount'],
+                expense.get('currency', 'CNY'),
+                expense.get('description', ''),
+                expense.get('date'),
+                expense_id
+            ))
+        return self._get_expense_by_id(expense_id)
+
+    def delete_expense(self, expense_id: str) -> Optional[dict]:
+        expense = self._get_expense_by_id(expense_id)
+        if not expense:
+            return None
+        with self._connect() as conn:
+            conn.execute("DELETE FROM expenses WHERE id = ?", (expense_id,))
+        return expense
+
+    def _get_expense_by_id(self, expense_id: str) -> Optional[dict]:
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM expenses WHERE id = ?", (expense_id,)).fetchone()
+        return dict(row) if row else None
+
+    def get_expense_stats(self) -> dict:
+        with self._connect() as conn:
+            total = conn.execute("SELECT COUNT(*), COALESCE(SUM(amount), 0) FROM expenses").fetchone()
+            by_category = conn.execute(
+                "SELECT category, COUNT(*), COALESCE(SUM(amount), 0) FROM expenses GROUP BY category ORDER BY SUM(amount) DESC"
+            ).fetchall()
+            by_mode = conn.execute(
+                "SELECT mode, COUNT(*), COALESCE(SUM(amount), 0) FROM expenses GROUP BY mode ORDER BY SUM(amount) DESC"
+            ).fetchall()
+        return {
+            'total_count': total[0],
+            'total_amount': total[1],
+            'by_category': [{'category': row[0], 'count': row[1], 'amount': row[2]} for row in by_category],
+            'by_mode': [{'mode': row[0], 'count': row[1], 'amount': row[2]} for row in by_mode],
+        }
+
+    # ---- Users ----
+    def create_user(self, user_id: str, username: str, password_hash: str) -> dict:
+        created_at = datetime.now().isoformat()
+        with self._connect() as conn:
+            conn.execute("""
+                INSERT INTO users (id, username, password_hash, created_at)
+                VALUES (?, ?, ?, ?)
+            """, (user_id, username, password_hash, created_at))
+        return {'id': user_id, 'username': username, 'password_hash': password_hash, 'created_at': created_at}
+
+    def get_user_by_username(self, username: str) -> Optional[dict]:
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        return dict(row) if row else None
+
+    def get_user_by_id(self, user_id: str) -> Optional[dict]:
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+        return dict(row) if row else None
+
 
 class PostgresRecordStore(RecordStore):
-    """PostgreSQL 记录存储。"""
+    """PostgreSQL 记录存储，归一化模式，支持用户和费用管理。"""
 
     def __init__(self, config: Dict[str, Any]):
         self.config = config
@@ -229,7 +520,89 @@ class PostgresRecordStore(RecordStore):
             password=self.config['password']
         )
 
+    # ---- Migration from old payload schema ----
+    def _migrate_from_payload(self):
+        """Migrate from old payload-based schema to normalized schema."""
+        conn = None
+        try:
+            conn = self._connect()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = %s AND column_name = %s",
+                    ('records', 'payload')
+                )
+                if not cursor.fetchone():
+                    conn.close()
+                    return
+                cursor.execute("SELECT id, payload FROM records")
+                rows = cursor.fetchall()
+                if not rows:
+                    cursor.execute("DROP TABLE IF EXISTS records")
+                    conn.commit()
+                    conn.close()
+                    return
+                from psycopg2.extras import Json
+                records_data = []
+                for row in rows:
+                    payload = row[1] if isinstance(row[1], dict) else json.loads(row[1])
+                    records_data.append((
+                        row[0],
+                        payload.get('mode', 'travel'),
+                        payload.get('title', ''),
+                        payload.get('description', ''),
+                        payload.get('location'),
+                        payload.get('latitude'),
+                        payload.get('longitude'),
+                        payload.get('date'),
+                        payload.get('rating'),
+                        payload.get('price'),
+                        Json(payload.get('tags', [])),
+                        Json(payload.get('metadata', {})),
+                        Json(payload.get('images', [])),
+                        payload.get('createdAt') or payload.get('created_at') or datetime.now().isoformat(),
+                        payload.get('updatedAt') or payload.get('updated_at')
+                    ))
+                cursor.execute("DROP TABLE records")
+                cursor.execute("""
+                    CREATE TABLE records (
+                        id TEXT PRIMARY KEY,
+                        mode TEXT NOT NULL,
+                        title TEXT NOT NULL,
+                        description TEXT DEFAULT '',
+                        location TEXT,
+                        latitude DOUBLE PRECISION,
+                        longitude DOUBLE PRECISION,
+                        date DATE,
+                        rating INTEGER,
+                        price REAL,
+                        tags JSONB DEFAULT '[]',
+                        metadata JSONB DEFAULT '{}',
+                        images JSONB DEFAULT '[]',
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP
+                    )
+                """)
+                cursor.executemany("""
+                    INSERT INTO records (id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, records_data)
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_records_mode ON records(mode)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_records_date ON records(date)")
+                cursor.execute("CREATE INDEX IF NOT EXISTS idx_records_location ON records(latitude, longitude)")
+                conn.commit()
+        except Exception:
+            if conn:
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+        finally:
+            if conn:
+                conn.close()
+
+    # ---- Table initialization ----
     def _init_tables(self):
+        self._migrate_from_payload()
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
@@ -237,11 +610,16 @@ class PostgresRecordStore(RecordStore):
                         id TEXT PRIMARY KEY,
                         mode TEXT NOT NULL,
                         title TEXT NOT NULL,
+                        description TEXT DEFAULT '',
                         location TEXT,
                         latitude DOUBLE PRECISION,
                         longitude DOUBLE PRECISION,
                         date DATE,
-                        payload JSONB NOT NULL,
+                        rating INTEGER,
+                        price REAL,
+                        tags JSONB DEFAULT '[]',
+                        metadata JSONB DEFAULT '{}',
+                        images JSONB DEFAULT '[]',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP
                     );
@@ -250,56 +628,135 @@ class PostgresRecordStore(RecordStore):
                     CREATE INDEX IF NOT EXISTS idx_records_location ON records(latitude, longitude);
                 """)
             conn.commit()
+        self._init_users_table()
+        self._init_expenses_table()
 
-    def _row_to_record(self, row) -> Dict[str, Any]:
-        payload = row[0]
-        return payload if isinstance(payload, dict) else json.loads(payload)
-
-    def _upsert(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        from psycopg2.extras import Json
+    def _init_users_table(self):
+        """Create users table for authentication."""
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    INSERT INTO records (id, mode, title, location, latitude, longitude, date, payload, created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    CREATE TABLE IF NOT EXISTS users (
+                        id TEXT PRIMARY KEY,
+                        username TEXT UNIQUE NOT NULL,
+                        password_hash TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """)
+            conn.commit()
+
+    def _init_expenses_table(self):
+        """Create expenses table."""
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS expenses (
+                        id TEXT PRIMARY KEY,
+                        record_id TEXT,
+                        mode TEXT DEFAULT 'travel',
+                        category TEXT DEFAULT '其他',
+                        amount REAL NOT NULL,
+                        currency TEXT DEFAULT 'CNY',
+                        description TEXT DEFAULT '',
+                        date DATE,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (record_id) REFERENCES records(id) ON DELETE SET NULL
+                    )
+                """)
+            conn.commit()
+
+    # ---- Record helpers ----
+    def _row_to_record(self, row) -> Dict[str, Any]:
+        tags = row[10]
+        metadata = row[11]
+        images = row[12]
+        return {
+            'id': row[0],
+            'mode': row[1],
+            'title': row[2],
+            'description': row[3] or '',
+            'location': row[4],
+            'latitude': row[5],
+            'longitude': row[6],
+            'date': str(row[7]) if row[7] else None,
+            'rating': row[8],
+            'price': row[9],
+            'tags': tags if isinstance(tags, list) else json.loads(tags),
+            'metadata': metadata if isinstance(metadata, dict) else json.loads(metadata),
+            'images': images if isinstance(images, list) else json.loads(images),
+            'createdAt': row[13].isoformat() if hasattr(row[13], 'isoformat') else str(row[13]),
+            'updatedAt': row[14].isoformat() if row[14] and hasattr(row[14], 'isoformat') else str(row[14]) if row[14] else None,
+        }
+
+    def _upsert(self, record: Dict[str, Any]) -> Dict[str, Any]:
+        from psycopg2.extras import Json
+        tags = record.get('tags', [])
+        metadata = record.get('metadata', {})
+        images = record.get('images', [])
+        created_at = record.get('createdAt') or record.get('created_at') or datetime.now().isoformat()
+        updated_at = record.get('updatedAt') or record.get('updated_at') or datetime.now().isoformat()
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO records (id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, created_at, updated_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT(id) DO UPDATE SET
                         mode=EXCLUDED.mode,
                         title=EXCLUDED.title,
+                        description=EXCLUDED.description,
                         location=EXCLUDED.location,
                         latitude=EXCLUDED.latitude,
                         longitude=EXCLUDED.longitude,
                         date=EXCLUDED.date,
-                        payload=EXCLUDED.payload,
+                        rating=EXCLUDED.rating,
+                        price=EXCLUDED.price,
+                        tags=EXCLUDED.tags,
+                        metadata=EXCLUDED.metadata,
+                        images=EXCLUDED.images,
                         updated_at=EXCLUDED.updated_at
                 """, (
                     record['id'],
-                    record.get('mode'),
-                    record.get('title'),
+                    record.get('mode', 'travel'),
+                    record.get('title', ''),
+                    record.get('description', ''),
                     record.get('location'),
                     record.get('latitude'),
                     record.get('longitude'),
                     record.get('date'),
-                    Json(record),
-                    record.get('createdAt') or datetime.now().isoformat(),
-                    record.get('updatedAt')
+                    record.get('rating'),
+                    record.get('price'),
+                    Json(tags),
+                    Json(metadata),
+                    Json(images),
+                    created_at,
+                    updated_at
                 ))
             conn.commit()
         return record
 
+    # ---- CRUD ----
     def list(self, mode: str = None) -> List[Dict[str, Any]]:
         with self._connect() as conn:
             with conn.cursor() as cursor:
                 if mode:
-                    cursor.execute("SELECT payload FROM records WHERE mode = %s ORDER BY date DESC, created_at DESC", (mode,))
+                    cursor.execute(
+                        "SELECT id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, created_at, updated_at FROM records WHERE mode = %s ORDER BY date DESC, created_at DESC",
+                        (mode,)
+                    )
                 else:
-                    cursor.execute("SELECT payload FROM records ORDER BY date DESC, created_at DESC")
+                    cursor.execute(
+                        "SELECT id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, created_at, updated_at FROM records ORDER BY date DESC, created_at DESC"
+                    )
                 rows = cursor.fetchall()
         return [self._row_to_record(row) for row in rows]
 
     def get(self, record_id: str) -> Optional[Dict[str, Any]]:
         with self._connect() as conn:
             with conn.cursor() as cursor:
-                cursor.execute("SELECT payload FROM records WHERE id = %s", (record_id,))
+                cursor.execute(
+                    "SELECT id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, created_at, updated_at FROM records WHERE id = %s",
+                    (record_id,)
+                )
                 row = cursor.fetchone()
         return self._row_to_record(row) if row else None
 
@@ -320,6 +777,128 @@ class PostgresRecordStore(RecordStore):
                 cursor.execute("DELETE FROM records WHERE id = %s", (record_id,))
             conn.commit()
         return record
+
+    # ---- Expenses ----
+    def list_expenses(self, record_id: str = None) -> list:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                if record_id:
+                    cursor.execute("SELECT * FROM expenses WHERE record_id = %s ORDER BY date DESC, created_at DESC", (record_id,))
+                else:
+                    cursor.execute("SELECT * FROM expenses ORDER BY date DESC, created_at DESC")
+                rows = cursor.fetchall()
+        return [{'id': r[0], 'record_id': r[1], 'mode': r[2], 'category': r[3], 'amount': float(r[4]), 'currency': r[5], 'description': r[6], 'date': str(r[7]) if r[7] else None, 'created_at': r[8].isoformat() if hasattr(r[8], 'isoformat') else str(r[8])} for r in rows]
+
+    def create_expense(self, expense: dict) -> dict:
+        expense.setdefault('id', str(uuid.uuid4()))
+        expense.setdefault('created_at', datetime.now().isoformat())
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO expenses (id, record_id, mode, category, amount, currency, description, date, created_at)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    expense['id'],
+                    expense.get('record_id'),
+                    expense.get('mode', 'travel'),
+                    expense.get('category', '其他'),
+                    expense['amount'],
+                    expense.get('currency', 'CNY'),
+                    expense.get('description', ''),
+                    expense.get('date'),
+                    expense['created_at']
+                ))
+            conn.commit()
+        return expense
+
+    def update_expense(self, expense_id: str, expense: dict) -> Optional[dict]:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM expenses WHERE id = %s", (expense_id,))
+                if not cursor.fetchone():
+                    return None
+                cursor.execute("""
+                    UPDATE expenses SET record_id=%s, mode=%s, category=%s, amount=%s, currency=%s, description=%s, date=%s
+                    WHERE id=%s
+                """, (
+                    expense.get('record_id'),
+                    expense.get('mode', 'travel'),
+                    expense.get('category', '其他'),
+                    expense['amount'],
+                    expense.get('currency', 'CNY'),
+                    expense.get('description', ''),
+                    expense.get('date'),
+                    expense_id
+                ))
+            conn.commit()
+        return self._get_expense_by_id(expense_id)
+
+    def delete_expense(self, expense_id: str) -> Optional[dict]:
+        expense = self._get_expense_by_id(expense_id)
+        if not expense:
+            return None
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM expenses WHERE id = %s", (expense_id,))
+            conn.commit()
+        return expense
+
+    def _get_expense_by_id(self, expense_id: str) -> Optional[dict]:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM expenses WHERE id = %s", (expense_id,))
+                row = cursor.fetchone()
+        if not row:
+            return None
+        return {'id': row[0], 'record_id': row[1], 'mode': row[2], 'category': row[3], 'amount': float(row[4]), 'currency': row[5], 'description': row[6], 'date': str(row[7]) if row[7] else None, 'created_at': row[8].isoformat() if hasattr(row[8], 'isoformat') else str(row[8])}
+
+    def get_expense_stats(self) -> dict:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT COUNT(*), COALESCE(SUM(amount), 0) FROM expenses")
+                total = cursor.fetchone()
+                cursor.execute("SELECT category, COUNT(*), COALESCE(SUM(amount), 0) FROM expenses GROUP BY category ORDER BY SUM(amount) DESC")
+                by_category = cursor.fetchall()
+                cursor.execute("SELECT mode, COUNT(*), COALESCE(SUM(amount), 0) FROM expenses GROUP BY mode ORDER BY SUM(amount) DESC")
+                by_mode = cursor.fetchall()
+        return {
+            'total_count': total[0],
+            'total_amount': float(total[1]),
+            'by_category': [{'category': r[0], 'count': r[1], 'amount': float(r[2])} for r in by_category],
+            'by_mode': [{'mode': r[0], 'count': r[1], 'amount': float(r[2])} for r in by_mode],
+        }
+
+    # ---- Users ----
+    def create_user(self, user_id: str, username: str, password_hash: str) -> dict:
+        created_at = datetime.now().isoformat()
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "INSERT INTO users (id, username, password_hash, created_at) VALUES (%s, %s, %s, %s)",
+                    (user_id, username, password_hash, created_at)
+                )
+            conn.commit()
+        return {'id': user_id, 'username': username, 'password_hash': password_hash, 'created_at': created_at}
+
+    def get_user_by_username(self, username: str) -> Optional[dict]:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+                row = cursor.fetchone()
+        if not row:
+            return None
+        return {'id': row[0], 'username': row[1], 'password_hash': row[2], 'created_at': row[3].isoformat() if hasattr(row[3], 'isoformat') else str(row[3])}
+
+    def get_user_by_id(self, user_id: str) -> Optional[dict]:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+                row = cursor.fetchone()
+        if not row:
+            return None
+        return {'id': row[0], 'username': row[1], 'password_hash': row[2], 'created_at': row[3].isoformat() if hasattr(row[3], 'isoformat') else str(row[3])}
+
+
 
 
 def create_record_store(metadata_file: str = None) -> RecordStore:

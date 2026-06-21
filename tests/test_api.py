@@ -24,10 +24,28 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(app_module, 'METADATA_FILE', str(tmp_path / 'records.json'))
     monkeypatch.setattr(app_module, 'UPLOAD_FOLDER', str(tmp_path / 'uploads'))
     monkeypatch.setattr(database_module, 'RUNTIME_CONFIG_FILE', str(tmp_path / 'runtime_config.json'))
-    monkeypatch.setenv('DB_TYPE', 'json')
+    monkeypatch.setenv('DB_TYPE', 'sqlite')
+    monkeypatch.setenv('DB_NAME', str(tmp_path / 'test.db'))
     os.makedirs(app_module.UPLOAD_FOLDER, exist_ok=True)
     with app.test_client() as client:
         yield client
+
+@pytest.fixture
+def auth_header(client):
+    """注册测试用户并返回认证头"""
+    client.post(
+        '/api/auth/register',
+        data=json.dumps({'username': 'testuser', 'password': 'testpass123'}),
+        content_type='application/json'
+    )
+    resp = client.post(
+        '/api/auth/login',
+        data=json.dumps({'username': 'testuser', 'password': 'testpass123'}),
+        content_type='application/json'
+    )
+    token = json.loads(resp.data)['token']
+    return {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+
 
 @pytest.fixture
 def sample_record():
@@ -204,8 +222,8 @@ class TestUploadAPI:
 class TestConfigAPI:
     """运行时配置测试"""
 
-    def test_save_runtime_config(self, client):
-        """测试保存设置页同步配置"""
+    def test_save_runtime_config(self, client, auth_header):
+        """测试保存设置页同步配置（需要认证）"""
         response = client.post(
             '/api/config',
             data=json.dumps({
@@ -214,13 +232,23 @@ class TestConfigAPI:
                 'storageProvider': 'local',
                 'unknownKey': 'ignored'
             }),
-            content_type='application/json'
+            content_type='application/json',
+            headers=auth_header
         )
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data['message'] == '配置已保存'
         assert data['config']['amapKey'] == '***'
         assert 'unknownKey' not in data['config']
+
+    def test_save_runtime_config_no_auth(self, client):
+        """测试未认证时保存配置应返回401"""
+        response = client.post(
+            '/api/config',
+            data=json.dumps({'mapProvider': 'amap'}),
+            content_type='application/json'
+        )
+        assert response.status_code == 401
 
 
 class TestBulkDataAPI:

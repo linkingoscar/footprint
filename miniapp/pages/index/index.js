@@ -1,5 +1,6 @@
 const app = getApp();
 const { formatDate, modeName, modeIcon } = require('../../utils/storage');
+const api = require('../../utils/api.js');
 
 Page({
     data: {
@@ -20,7 +21,8 @@ Page({
             latitude: null,
             longitude: null
         },
-        stats: { records: 0, places: 0, photos: 0 }
+        stats: { records: 0, places: 0, photos: 0 },
+        saving: false
     },
 
     onShow() {
@@ -80,7 +82,7 @@ Page({
         });
     },
 
-    saveRecord() {
+    async saveRecord() {
         if (!this.data.form.title.trim()) {
             app.showToast('请输入标题', 'none');
             return;
@@ -89,6 +91,33 @@ Page({
             app.showToast('请添加照片', 'none');
             return;
         }
+        if (this.data.saving) return;
+
+        this.setData({ saving: true });
+        app.showLoading('保存中...');
+
+        let imageUrls = this.data.images;
+
+        // 如果 API 可用且已登录，先上传图片获取远程 URL
+        if (app.globalData.apiAvailable && app.globalData.token) {
+            try {
+                const uploadedUrls = [];
+                for (const filePath of this.data.images) {
+                    // 本地路径才需要上传，已经是 URL 的跳过
+                    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+                        uploadedUrls.push(filePath);
+                    } else {
+                        const result = await api.uploadImage(filePath);
+                        uploadedUrls.push(result.url || result.data || filePath);
+                    }
+                }
+                imageUrls = uploadedUrls;
+            } catch (e) {
+                console.log('Image upload failed, using local paths:', e);
+                // 上传失败时继续使用本地路径
+            }
+        }
+
         app.saveRecord({
             mode: this.data.mode,
             title: this.data.form.title.trim(),
@@ -97,12 +126,15 @@ Page({
             latitude: this.data.form.latitude,
             longitude: this.data.form.longitude,
             date: formatDate(),
-            images: this.data.images
+            images: imageUrls
         });
+
         this.setData({
             images: [],
-            form: { title: '', location: '', description: '', latitude: null, longitude: null }
+            form: { title: '', location: '', description: '', latitude: null, longitude: null },
+            saving: false
         });
+        app.hideLoading();
         this.refresh();
         app.showToast('保存成功');
     }

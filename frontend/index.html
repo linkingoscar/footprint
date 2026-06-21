@@ -264,6 +264,112 @@
         .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-full); font-size: 14px; z-index: 2000; transition: var(--transition); }
         .toast.show { transform: translateX(-50%) translateY(0); }
 
+        /* ========== Map-First Layout ========== */
+        .hero { display: none; }
+        .features { display: none; }
+        .section-header:has(#features-title) { display: none; }
+
+        /* Mode Bar */
+        .mode-bar { padding: 8px 24px; display: flex; justify-content: center; }
+        .mode-bar .mode-switcher { margin: 0; }
+
+        /* Map Section */
+        .map-section {
+            width: 100%;
+            height: 60vh;
+            min-height: 300px;
+            max-height: 600px;
+            position: relative;
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .footprint-map {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius);
+        }
+        .map-empty {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-elevated);
+            border-radius: var(--radius);
+            border: 2px dashed var(--border);
+            color: var(--text-muted);
+        }
+        .map-empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Content Section */
+        .content-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 100px;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+        }
+        .quick-stat {
+            text-align: center;
+        }
+        .quick-stat-num {
+            display: block;
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .quick-stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            cursor: pointer;
+            z-index: 90;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px var(--glow);
+            transition: var(--transition);
+            font-size: 28px;
+        }
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px var(--glow);
+        }
+        .fab:active {
+            transform: scale(0.96);
+        }
+        .fab-icon {
+            line-height: 1;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .desktop-only { display: none !important; }
@@ -277,9 +383,107 @@
             .stats { gap: 24px; }
             .stat-num { font-size: 28px; }
             .stats-grid { grid-template-columns: 1fr; }
+            .map-section { height: 45vh; min-height: 240px; }
+            .quick-stats { padding: 12px 16px; }
+            .quick-stat-num { font-size: 22px; }
+            .fab { bottom: 20px; right: 20px; width: 54px; height: 54px; font-size: 24px; }
         }
         @media (max-width: 480px) {
             .features { grid-template-columns: repeat(2, 1fr); }
+            .map-section { height: 40vh; min-height: 200px; }
+            .content-section { padding: 0 16px 100px; }
+            .mode-bar { padding: 8px 16px; }
+        }
+
+        /* Auth UI */
+        .user-menu { position: relative; }
+        .user-btn { display: flex; align-items: center; gap: 6px; }
+        .user-avatar { font-size: 18px; }
+        .user-arrow { font-size: 10px; color: var(--text-muted); }
+        .user-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: var(--bg-elevated);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 6px;
+            min-width: 160px;
+            z-index: 200;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+        .user-dropdown-item {
+            padding: 10px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text);
+            transition: var(--transition);
+        }
+        .user-dropdown-item:hover { background: var(--glass); }
+        .user-dropdown-logout { color: #EF4444; }
+        .user-dropdown-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        /* Love Mode - Together Banner */
+        .together-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(236,72,153,0.15), rgba(139,92,246,0.15));
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            border: 1px solid rgba(236,72,153,0.3);
+        }
+        .together-heart {
+            font-size: 36px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+        .together-text { text-align: center; }
+        .together-label { font-size: 14px; color: var(--text-muted); }
+        .together-days {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #EC4899, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Love Mode - Dual Avatar Header */
+        .love-header {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .love-avatar {
+            font-size: 24px;
+        }
+        .love-connector {
+            font-size: 16px;
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        /* Love Mode - Anniversary Badge */
+        .anniversary-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #EC4899, #8B5CF6);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -295,55 +499,92 @@
             <div class="logo" onclick="location.reload()">
                 <div class="logo-icon" id="logo-icon">✈️</div>
                 <div class="logo-text">足迹</div>
+                <div class="love-header" id="love-header" style="display:none">
+                    <span class="love-avatar">👩</span>
+                    <span class="love-connector">💕</span>
+                    <span class="love-avatar">👨</span>
+                </div>
             </div>
             <div class="header-actions">
                 <button class="btn btn-icon btn-ghost" onclick="toggleLang()" id="lang-btn" title="切换语言">🌐</button>
                 <button class="btn btn-icon btn-ghost" onclick="toggleTheme()" id="theme-btn">🌙</button>
                 <button class="btn btn-icon btn-ghost" onclick="openModal('guide')">📖</button>
                 <button class="btn btn-icon btn-ghost" onclick="location.href='settings.html'">⚙️</button>
-                <button class="btn btn-primary" onclick="openModal('add')" id="btn-add">+ 添加</button>
+                <div id="auth-section">
+                    <button class="btn btn-ghost" onclick="openModal('auth')" id="btn-login">🔑 登录</button>
+                </div>
+                <div id="user-section" style="display:none">
+                    <div class="user-menu">
+                        <button class="btn btn-ghost user-btn" onclick="toggleUserMenu()" id="user-btn">
+                            <span class="user-avatar">👤</span>
+                            <span id="user-name">用户</span>
+                            <span class="user-arrow">▾</span>
+                        </button>
+                        <div class="user-dropdown" id="user-dropdown" style="display:none">
+                            <div class="user-dropdown-item" onclick="handleFeature('export')">📦 导出数据</div>
+                            <div class="user-dropdown-divider"></div>
+                            <div class="user-dropdown-item user-dropdown-logout" onclick="logout()">🚪 退出登录</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
-        <section class="hero">
-            <div class="hero-badge"><span class="hero-dot"></span><span id="hero-badge">记录旅行的每一刻</span></div>
-            <h1 id="hero-title">用<span class="hero-gradient">足迹</span>记录<br>你的旅行</h1>
-            <p id="hero-desc">记录每一次旅行，探索世界的美好</p>
-            <div class="hero-actions">
-                <button class="btn btn-primary" id="hero-start-btn" onclick="openModal('add')">开始记录</button>
-                <button class="btn btn-ghost" id="hero-view-btn" onclick="document.getElementById('records-section').scrollIntoView({behavior:'smooth'})">查看记录</button>
-            </div>
+        <div class="mode-bar" id="mode-switcher-bar">
             <div class="mode-switcher" id="mode-switcher" aria-label="记录模式">
                 <button class="mode-pill" data-mode-option="travel" onclick="switchMode('travel')"><span>✈️</span><span>旅行</span></button>
                 <button class="mode-pill" data-mode-option="food" onclick="switchMode('food')"><span>🍜</span><span>美食</span></button>
                 <button class="mode-pill" data-mode-option="love" onclick="switchMode('love')"><span>💕</span><span>情侣</span></button>
             </div>
-            <div class="stats">
-                <div><div class="stat-num" id="stat-records">0</div><div class="stat-label" id="stat-l1">✈️ 旅行</div></div>
-                <div><div class="stat-num" id="stat-places">0</div><div class="stat-label" id="stat-l2">📍 地点</div></div>
-                <div><div class="stat-num" id="stat-photos">0</div><div class="stat-label" id="stat-l3">📸 照片</div></div>
+        </div>
+
+        <section class="map-section">
+            <div id="footprint-map" class="footprint-map"></div>
+            <div class="map-empty" id="map-empty" style="display:none">
+                <div class="map-empty-icon">🗺️</div>
+                <p>添加带 GPS 的照片，足迹会自动标记在地图上</p>
             </div>
         </section>
 
-        <main class="main">
-            <div class="section-header">
-                <div class="section-title" id="features-title">✨ 功能</div>
+        <section class="content-section">
+            <div class="together-banner" id="together-banner" style="display:none">
+                <div class="together-heart">💕</div>
+                <div class="together-text">
+                    <div class="together-label">在一起</div>
+                    <div class="together-days" id="together-days">第 1 天</div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="setTogetherDate()" id="together-set-btn">设置日期</button>
             </div>
-            <div class="features" id="features"></div>
+            <div class="quick-stats glass">
+                <div class="quick-stat">
+                    <span class="quick-stat-num" id="stat-records">0</span>
+                    <span class="quick-stat-label" id="stat-l1">旅行</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-num" id="stat-places">0</span>
+                    <span class="quick-stat-label" id="stat-l2">地点</span>
+                </div>
+                <div class="quick-stat">
+                    <span class="quick-stat-num" id="stat-photos">0</span>
+                    <span class="quick-stat-label" id="stat-l3">照片</span>
+                </div>
+            </div>
 
-            <div id="records-section">
-                <div class="section-header">
-                    <div class="section-title" id="records-title">📸 我的记录</div>
-                </div>
-                <div class="photo-grid" id="photo-grid"></div>
-                <div class="empty" id="empty" style="display:none">
-                    <div class="empty-icon" id="empty-icon">📷</div>
-                    <h3 id="empty-title">开始你的记录之旅</h3>
-                    <p id="empty-desc">记录生活中的美好瞬间，让回忆永不褪色</p>
-                    <button class="btn btn-primary" onclick="openModal('add')">添加第一条记录</button>
-                </div>
+            <div class="section-header">
+                <div class="section-title" id="records-title">📸 最近记录</div>
+                <button class="btn btn-ghost btn-sm" onclick="handleFeature('timeline')" id="btn-all-records">查看全部 →</button>
             </div>
-        </main>
+            <div class="photo-grid" id="photo-grid"></div>
+            <div class="empty" id="empty" style="display:none">
+                <div class="empty-icon" id="empty-icon">📷</div>
+                <h3 id="empty-title">开始你的记录之旅</h3>
+                <p id="empty-desc">记录生活中的美好瞬间，让回忆永不褪色</p>
+            </div>
+        </section>
+
+        <button class="fab" onclick="openModal('add')" id="fab-add" title="添加记录">
+            <span class="fab-icon">+</span>
+        </button>
     </div>
 
     <!-- Add Modal -->
@@ -469,17 +710,49 @@
     <div class="modal-overlay" id="modal-guide">
         <div class="modal" style="max-width:420px">
             <div class="modal-header">
-                <div class="modal-title">📖 使用指南</div>
+                <div class="modal-title" id="guide-title">快速开始</div>
                 <button class="modal-close" onclick="closeModal('guide')">✕</button>
             </div>
-            <div class="modal-body" style="text-align:center;padding:30px">
-                <div style="font-size:48px;margin-bottom:16px;line-height:1" id="guide-icon">📍</div>
-                <h3 id="guide-title">欢迎使用足迹</h3>
-                <p style="color:var(--text-sec);margin:12px 0 24px" id="guide-desc">记录你的美好生活</p>
-                <div style="display:flex;justify-content:center;gap:6px;margin-bottom:20px" id="guide-dots"></div>
-                <div style="display:flex;justify-content:space-between">
-                    <button class="btn btn-ghost btn-sm" id="guide-prev" onclick="prevGuide()" disabled>上一步</button>
-                    <button class="btn btn-primary btn-sm" id="guide-next" onclick="nextGuide()">下一步</button>
+            <div class="modal-body" style="text-align:center">
+                <div id="guide-step-icon" style="font-size:64px;margin:20px 0"></div>
+                <h3 id="guide-step-title" style="margin-bottom:8px"></h3>
+                <p id="guide-step-desc" style="color:var(--text-muted);margin-bottom:24px"></p>
+                <div id="guide-step-action"></div>
+                <div style="display:flex;justify-content:center;gap:8px;margin-top:20px">
+                    <button class="btn btn-ghost btn-sm" onclick="prevGuide()" id="guide-prev" style="display:none">上一步</button>
+                    <div id="guide-dots" style="display:flex;gap:8px;align-items:center"></div>
+                    <button class="btn btn-primary btn-sm" onclick="nextGuide()" id="guide-next">下一步</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="modal-auth">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title" id="auth-modal-title">登录</div>
+                <button class="modal-close" onclick="closeModal('auth')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <div class="form-label">👤 用户名</div>
+                    <input type="text" class="form-input" id="auth-username" placeholder="输入用户名（3-32个字符）" minlength="3" maxlength="32">
+                </div>
+                <div class="form-group">
+                    <div class="form-label">🔒 密码</div>
+                    <input type="password" class="form-input" id="auth-password" placeholder="输入密码（至少6位）" minlength="6">
+                </div>
+                <div class="form-group" id="auth-confirm-group" style="display:none">
+                    <div class="form-label">🔒 确认密码</div>
+                    <input type="password" class="form-input" id="auth-confirm-password" placeholder="再次输入密码" minlength="6">
+                </div>
+                <div id="auth-error" style="color:#EF4444;font-size:13px;margin-bottom:12px;display:none"></div>
+                <div style="display:flex;gap:8px;margin-top:16px">
+                    <button class="btn btn-primary" style="flex:1" id="auth-submit-btn" onclick="submitAuth()">登录</button>
+                </div>
+                <div style="text-align:center;margin-top:12px">
+                    <button class="btn btn-ghost btn-sm" onclick="toggleAuthMode()" id="auth-toggle-btn">没有账号？注册</button>
                 </div>
             </div>
         </div>
@@ -732,9 +1005,6 @@
 
         function applyLang() {
             document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
-            document.getElementById('btn-add').textContent = t('add');
-            document.getElementById('hero-start-btn').textContent = t('startBtn');
-            document.getElementById('hero-view-btn').textContent = t('viewBtn');
             applyMode();
         }
 
@@ -792,62 +1062,38 @@
         const MODES = {
             travel: { icon:'✈️', badge:'记录旅行的每一刻', title:'用<span class="hero-gradient">足迹</span>记录<br>你的旅行', desc:'记录每一次旅行，探索世界的美好', recordsTitle:'📸 我的旅行', emptyIcon:'✈️', emptyTitle:'还没有旅行记录', emptyDesc:'点击添加开始记录你的旅行', modalTitle:'添加旅行记录', labelTitle:'✏️ 旅行标题', titlePlaceholder:'给这次旅行起个名字', labelLocation:'📍 旅行地点', locationPlaceholder:'搜索旅行地点', stat1:'✈️ 旅行', stat2:'📍 地点', stat3:'📸 照片', featuresTitle:'✨ 旅行功能',
                 features:[ 
-                    {icon:'📍',name:'EXIF定位',action:'exif',highlight:true}, 
                     {icon:'🗺️',name:'足迹地图',action:'map',highlight:true}, 
                     {icon:'🛤️',name:'轨迹回放',action:'replay',highlight:true}, 
                     {icon:'📅',name:'时间线',action:'timeline',highlight:true}, 
                     {icon:'📊',name:'统计报告',action:'stats'}, 
                     {icon:'📸',name:'旅行相册',action:'album'}, 
-                    {icon:'🏆',name:'成就徽章',action:'badges'}, 
-                    {icon:'🌤️',name:'天气',action:'weather'}, 
-                    {icon:'📝',name:'行程规划',action:'plan'}, 
-                    {icon:'💰',name:'费用',action:'cost'}, 
-                    {icon:'📖',name:'日记',action:'diary'}, 
-                    {icon:'📍',name:'打卡',action:'checkin'},
-                    {icon:'🏙️',name:'城市点亮',action:'cities',highlight:true},
                     {icon:'📦',name:'数据导出',action:'export'},
-                    {icon:'✨',name:'AI故事',action:'ai-story'},
-                    {icon:'🖼️',name:'分享海报',action:'share-summary'},
                     {icon:'💰',name:'费用追踪',action:'expense'},
-                    {icon:'🏃',name:'运动追踪',action:'exercise'},
-                    {icon:'🌍',name:'3D地球',action:'globe'}
                 ] },
             food: { icon:'🍜', badge:'发现美食的每一刻', title:'用<span class="hero-gradient">味蕾</span>记录<br>你的美食', desc:'发现美食，留下味蕾记忆', recordsTitle:'🍽️ 我的美食', emptyIcon:'🍜', emptyTitle:'还没有美食记录', emptyDesc:'点击添加开始记录美食', modalTitle:'添加美食记录', labelTitle:'✏️ 美食名称', titlePlaceholder:'给这道美食起个名字', labelLocation:'📍 餐厅地址', locationPlaceholder:'搜索餐厅地址', stat1:'🍜 美食', stat2:'🍽️ 餐厅', stat3:'📸 照片', featuresTitle:'✨ 美食功能', showRating:true, showPrice:true,
                 features:[ 
-                    {icon:'📍',name:'EXIF定位',action:'exif',highlight:true}, 
                     {icon:'🗺️',name:'美食地图',action:'map',highlight:true}, 
                     {icon:'📅',name:'时间线',action:'timeline',highlight:true}, 
-                    {icon:'🍽️',name:'餐厅打卡',action:'checkin'}, 
-                    {icon:'⭐',name:'美食评分',action:'rating'}, 
                     {icon:'📸',name:'美食相册',action:'album'}, 
-                    {icon:'🏷️',name:'分类标签',action:'tags'}, 
-                    {icon:'❤️',name:'推荐清单',action:'wishlist'}, 
-                    {icon:'💰',name:'价格记录',action:'cost'}, 
-                    {icon:'👅',name:'口味偏好',action:'taste'}, 
-                    {icon:'📖',name:'美食日记',action:'diary'}, 
-                    {icon:'🥬',name:'食材追踪',action:'ingredients'}
+                    {icon:'⭐',name:'美食评分',action:'rating'}, 
+                    {icon:'📊',name:'统计报告',action:'stats'}, 
+                    {icon:'📦',name:'数据导出',action:'export'},
                 ] },
             love: { icon:'💕', badge:'记录甜蜜的每一刻', title:'用<span class="hero-gradient">爱</span>记录<br>你们的故事', desc:'记录甜蜜时光，珍藏美好回忆', recordsTitle:'💕 我们的回忆', emptyIcon:'💕', emptyTitle:'还没有甜蜜记录', emptyDesc:'点击添加开始记录故事', modalTitle:'添加甜蜜记录', labelTitle:'✏️ 回忆标题', titlePlaceholder:'给这段回忆起个名字', labelLocation:'📍 约会地点', locationPlaceholder:'搜索约会地点', stat1:'💕 回忆', stat2:'📍 地点', stat3:'📸 照片', featuresTitle:'✨ 情侣功能',
                 features:[ 
-                    {icon:'📍',name:'EXIF定位',action:'exif',highlight:true}, 
                     {icon:'🗺️',name:'爱情地图',action:'map',highlight:true}, 
-                    {icon:'🛤️',name:'轨迹回放',action:'replay',highlight:true}, 
                     {icon:'📅',name:'时间线',action:'timeline',highlight:true}, 
-                    {icon:'💕',name:'情侣日记',action:'diary'}, 
                     {icon:'📸',name:'情侣相册',action:'album'}, 
-                    {icon:'💌',name:'爱情笔记',action:'notes'}, 
-                    {icon:'🎯',name:'愿望清单',action:'wishlist'}, 
+                    {icon:'💕',name:'情侣日记',action:'diary'}, 
                     {icon:'📊',name:'恋爱统计',action:'stats'}, 
-                    {icon:'💑',name:'约会计划',action:'date'}, 
-                    {icon:'✅',name:'情侣任务',action:'tasks'}, 
-                    {icon:'⏰',name:'在一起',action:'days'}
+                    {icon:'⏰',name:'在一起',action:'days'},
                 ] }
         };
 
         const GUIDE = [
-            { icon:'📍', titleKey:'guideWelcome', descKey:'guideWelcomeDesc', title:'欢迎使用足迹', desc:'记录你的美好生活' },
-            { icon:'📷', titleKey:'guideUpload', descKey:'guideUploadDesc', title:'拖拽上传', desc:'支持批量、文件夹、URL链接上传' },
-            { icon:'🗺️', titleKey:'guideMap', descKey:'guideMapDesc', title:'地图视图', desc:'在地图上查看足迹' }
+            { icon:'✈️', title:'选择记录模式', desc:'旅行记录足迹，美食记录味道，情侣记录甜蜜', action:'mode' },
+            { icon:'📷', title:'添加第一条记录', desc:'拍照或选择照片，系统会自动提取位置信息', action:'add' },
+            { icon:'🗺️', title:'在地图上查看足迹', desc:'所有带位置的记录都会标记在地图上', action:'map' }
         ];
 
         let state = {
@@ -859,24 +1105,221 @@
             guideStep: 0
         };
 
+        // ========== Auth State ==========
+        let authState = {
+            token: localStorage.getItem('footprint_token') || null,
+            user: JSON.parse(localStorage.getItem('footprint_user') || 'null'),
+            isRegister: false
+        };
+
+        function getAuthHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (authState.token) {
+                headers['Authorization'] = `Bearer ${authState.token}`;
+            }
+            return headers;
+        }
+
+        function updateAuthUI() {
+            const loginSection = document.getElementById('auth-section');
+            const userSection = document.getElementById('user-section');
+            const userName = document.getElementById('user-name');
+            
+            if (authState.token && authState.user) {
+                if (loginSection) loginSection.style.display = 'none';
+                if (userSection) userSection.style.display = 'block';
+                if (userName) userName.textContent = authState.user.username;
+            } else {
+                if (loginSection) loginSection.style.display = 'block';
+                if (userSection) userSection.style.display = 'none';
+            }
+        }
+
+        function toggleAuthMode() {
+            authState.isRegister = !authState.isRegister;
+            const title = document.getElementById('auth-modal-title');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+            const confirmGroup = document.getElementById('auth-confirm-group');
+            
+            if (authState.isRegister) {
+                title.textContent = '注册';
+                submitBtn.textContent = '注册';
+                toggleBtn.textContent = '已有账号？登录';
+                confirmGroup.style.display = 'block';
+            } else {
+                title.textContent = '登录';
+                submitBtn.textContent = '登录';
+                toggleBtn.textContent = '没有账号？注册';
+                confirmGroup.style.display = 'none';
+            }
+            document.getElementById('auth-error').style.display = 'none';
+        }
+
+        async function submitAuth() {
+            const username = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const errorEl = document.getElementById('auth-error');
+            
+            if (!username || !password) {
+                errorEl.textContent = '请填写用户名和密码';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            if (authState.isRegister) {
+                const confirm = document.getElementById('auth-confirm-password').value;
+                if (password !== confirm) {
+                    errorEl.textContent = '两次密码不一致';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+            }
+            
+            try {
+                const endpoint = authState.isRegister ? '/api/auth/register' : '/api/auth/login';
+                const base = getApiBase();
+                const response = await fetch(base + endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    errorEl.textContent = data.error || '操作失败';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+                
+                authState.token = data.token;
+                authState.user = data.user;
+                localStorage.setItem('footprint_token', data.token);
+                localStorage.setItem('footprint_user', JSON.stringify(data.user));
+                
+                updateAuthUI();
+                closeModal('auth');
+                toast('✅ ' + (authState.isRegister ? '注册成功' : '登录成功'));
+                
+                // Clear form
+                document.getElementById('auth-username').value = '';
+                document.getElementById('auth-password').value = '';
+                document.getElementById('auth-confirm-password').value = '';
+                authState.isRegister = false;
+                toggleAuthMode();  // Reset to login mode
+            } catch (err) {
+                errorEl.textContent = '网络错误，请检查后端是否运行';
+                errorEl.style.display = 'block';
+            }
+        }
+
+        function logout() {
+            authState.token = null;
+            authState.user = null;
+            localStorage.removeItem('footprint_token');
+            localStorage.removeItem('footprint_user');
+            updateAuthUI();
+            toggleUserMenu();
+            toast('已退出登录');
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('user-dropdown');
+            const btn = document.getElementById('user-btn');
+            if (dropdown && !dropdown.contains(e.target) && !btn?.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // ========== Love Mode - Together Days ==========
+        function getTogetherDays() {
+            const config = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+            if (!config.togetherDate) return null;
+            const start = new Date(config.togetherDate);
+            const now = new Date();
+            const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+            return diff + 1; // Day 1 is the start date
+        }
+
+        function setTogetherDate() {
+            const config = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+            const current = config.togetherDate || '';
+            const date = prompt('设置在一起的日期 (YYYY-MM-DD)', current);
+            if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+                config.togetherDate = date;
+                localStorage.setItem('footprint_config', JSON.stringify(config));
+                updateTogetherBanner();
+                toast('💕 日期已设置');
+            } else if (date !== null) {
+                toast('请输入正确的日期格式 (YYYY-MM-DD)');
+            }
+        }
+
+        function updateTogetherBanner() {
+            const banner = document.getElementById('together-banner');
+            if (!banner) return;
+
+            if (state.mode !== 'love') {
+                banner.style.display = 'none';
+                return;
+            }
+
+            const days = getTogetherDays();
+            if (days !== null) {
+                banner.style.display = 'flex';
+                document.getElementById('together-days').textContent = `第 ${days} 天`;
+                checkAnniversaries(days);
+            } else {
+                banner.style.display = 'flex';
+                document.getElementById('together-days').textContent = '点击设置日期';
+            }
+        }
+
+        function checkAnniversaries(days) {
+            const milestones = [100, 200, 365, 500, 730, 1000];
+            if (milestones.includes(days)) {
+                const years = Math.floor(days / 365);
+                const label = years > 0 ? `${years}周年` : `${days}天`;
+                setTimeout(() => {
+                    toast(`🎉 恭喜！今天是你们在一起${label}纪念日！`);
+                }, 2000);
+            }
+        }
+
         // ========== Init ==========
         async function init() {
             loadTheme();
             applyMode();
+            updateTogetherBanner();
             applyLang();
             initDragDrop();
             await loadRecords();
             render();
+            initMainMap();
+            loadMapAPI();
             initParticles();
             applyModeSwitcherVisibility();
+            updateAuthUI();
+
+            // Show guide for new users (once only)
+            if (!state.records.length && !localStorage.getItem('footprint_guide_seen')) {
+                openGuide();
+                localStorage.setItem('footprint_guide_seen', '1');
+            }
         }
 
         // 根据配置决定是否显示模式切换器
         function applyModeSwitcherVisibility() {
             const config = getConfig();
-            const switcher = document.getElementById('mode-switcher');
+            const switcher = document.getElementById('mode-switcher-bar') || document.getElementById('mode-switcher');
             if (!switcher) return;
-            // 如果配置了 lockMode，则隐藏切换器
             if (config.lockMode) {
                 switcher.style.display = 'none';
             } else {
@@ -896,7 +1339,9 @@
             return base ? `${base}${url}` : url;
         }
         async function apiFetch(path, options = {}) {
-            const response = await fetch(apiUrl(path), options);
+            const authHeaders = getAuthHeaders();
+            const mergedHeaders = { ...authHeaders, ...(options.headers || {}) };
+            const response = await fetch(apiUrl(path), { ...options, headers: mergedHeaders });
             let data = null;
             try { data = await response.json(); } catch { data = null; }
             if (!response.ok) {
@@ -964,9 +1409,6 @@
             const text = getModeText();
             document.documentElement.setAttribute('data-mode', state.mode);
             document.getElementById('logo-icon').textContent = m.icon;
-            document.getElementById('hero-badge').textContent = text.badge;
-            document.getElementById('hero-title').innerHTML = text.title;
-            document.getElementById('hero-desc').textContent = text.desc;
             document.getElementById('records-title').textContent = text.recordsTitle;
             document.getElementById('empty-icon').textContent = text.emptyIcon;
             document.getElementById('empty-title').textContent = text.emptyTitle;
@@ -979,10 +1421,25 @@
             document.getElementById('stat-l1').textContent = text.stat1;
             document.getElementById('stat-l2').textContent = text.stat2;
             document.getElementById('stat-l3').textContent = text.stat3;
-            document.getElementById('features-title').textContent = text.featuresTitle;
             document.getElementById('group-rating').style.display = m.showRating ? 'block' : 'none';
             document.getElementById('group-price').style.display = m.showPrice ? 'block' : 'none';
             updateModeSwitcher();
+
+            // Love mode: dual avatar header
+            const loveHeader = document.getElementById('love-header');
+            const logoIcon = document.getElementById('logo-icon');
+            const logoText = document.querySelector('.logo-text');
+            if (state.mode === 'love') {
+                if (loveHeader) loveHeader.style.display = 'flex';
+                if (logoIcon) logoIcon.style.display = 'none';
+                if (logoText) logoText.style.display = 'none';
+            } else {
+                if (loveHeader) loveHeader.style.display = 'none';
+                if (logoIcon) logoIcon.style.display = 'block';
+                if (logoText) logoText.style.display = 'block';
+            }
+
+            updateTogetherBanner();
         }
 
         function switchMode(mode) {
@@ -993,6 +1450,7 @@
             localStorage.setItem('footprint_config', JSON.stringify(config));
             applyLang();
             render();
+            initMainMap();
             initParticles();
         }
 
@@ -1012,18 +1470,13 @@
             document.getElementById('stat-places').textContent = new Set(filtered.filter(r => r.location).map(r => r.location)).size;
             document.getElementById('stat-photos').textContent = filtered.reduce((s,r) => s + (r.images?.length||0), 0);
 
-            document.getElementById('features').innerHTML = m.features.map(f => `
-                <div class="feature-card ${f.highlight ? 'highlight' : ''}" onclick="handleFeature('${f.action}')">
-                    <div class="feature-icon">${f.icon}</div>
-                    <div class="feature-name">${featureLabel(f)}</div>
-                </div>`).join('');
-
             const grid = document.getElementById('photo-grid');
             const empty = document.getElementById('empty');
             if (filtered.length === 0) { grid.style.display = 'none'; empty.style.display = 'block'; }
             else {
                 grid.style.display = 'grid'; empty.style.display = 'none';
-                grid.innerHTML = filtered.map((r,i) => `
+                const recentRecords = filtered.slice(0, 5);
+                grid.innerHTML = recentRecords.map((r,i) => `
                     <div class="photo-card" onclick="viewRecord('${r.id}')" style="animation:modalIn 0.4s ease ${i*0.05}s backwards">
                         <span class="photo-card-tag tag-${r.mode}">${getModeName(r.mode)}</span>
                         <img src="${r.images[0]||''}" alt="${r.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
@@ -1376,6 +1829,7 @@
             }
             persistLocalRecords();
             render(); closeModal('add'); toast('✅ 保存成功');
+            initMainMap();
             window._lat = null; window._lng = null;
         }
 
@@ -1410,6 +1864,7 @@
             persistLocalRecords();
             closeModal('feature');
             render();
+            initMainMap();
             toast('已删除');
         }
 
@@ -1417,7 +1872,7 @@
         function openModal(type) {
             document.getElementById(`modal-${type}`).classList.add('active');
             if (type === 'add' && !state.editingId) document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
-            if (type === 'guide') { state.guideStep = 0; updateGuide(); }
+            if (type === 'guide') { state.guideStep = 0; renderGuideStep(); }
         }
         function closeModal(type) {
             document.getElementById(`modal-${type}`).classList.remove('active');
@@ -1436,17 +1891,58 @@
         }
 
         // ========== Guide ==========
-        function nextGuide() { if (state.guideStep >= 2) { closeModal('guide'); return; } state.guideStep++; updateGuide(); }
-        function prevGuide() { if (state.guideStep <= 0) return; state.guideStep--; updateGuide(); }
-        function updateGuide() {
-            const s = GUIDE[state.guideStep];
-            document.getElementById('guide-icon').textContent = s.icon;
-            document.getElementById('guide-title').textContent = t(s.titleKey) || s.title;
-            document.getElementById('guide-desc').textContent = t(s.descKey) || s.desc;
-            document.getElementById('guide-prev').disabled = state.guideStep === 0;
-            document.getElementById('guide-prev').textContent = t('prevBtn');
-            document.getElementById('guide-next').textContent = state.guideStep >= 2 ? t('guideStartBtn') : t('nextBtn');
-            document.getElementById('guide-dots').innerHTML = GUIDE.map((_,i) => `<span style="width:${i===state.guideStep?24:8}px;height:8px;border-radius:4px;background:${i===state.guideStep?'var(--primary)':'var(--border)'};transition:all 0.3s"></span>`).join('');
+        function openGuide() {
+            state.guideStep = 0;
+            renderGuideStep();
+            openModal('guide');
+        }
+
+        function renderGuideStep() {
+            const step = GUIDE[state.guideStep];
+            document.getElementById('guide-step-icon').textContent = step.icon;
+            document.getElementById('guide-step-title').textContent = step.title;
+            document.getElementById('guide-step-desc').textContent = step.desc;
+            
+            // Action button
+            const actionEl = document.getElementById('guide-step-action');
+            if (step.action === 'mode') {
+                actionEl.innerHTML = `
+                    <div style="display:flex;gap:8px;justify-content:center">
+                        <button class="btn btn-ghost" onclick="switchMode('travel');nextGuide()">✈️ 旅行</button>
+                        <button class="btn btn-ghost" onclick="switchMode('food');nextGuide()">🍜 美食</button>
+                        <button class="btn btn-ghost" onclick="switchMode('love');nextGuide()">💕 情侣</button>
+                    </div>`;
+            } else if (step.action === 'add') {
+                actionEl.innerHTML = '<button class="btn btn-primary" onclick="closeModal(\'guide\');openModal(\'add\')">📷 开始添加</button>';
+            } else if (step.action === 'map') {
+                actionEl.innerHTML = '<button class="btn btn-primary" onclick="closeModal(\'guide\');document.querySelector(\'.map-section\')?.scrollIntoView({behavior:\'smooth\'})">🗺️ 查看地图</button>';
+            }
+            
+            // Navigation
+            document.getElementById('guide-prev').style.display = state.guideStep > 0 ? 'block' : 'none';
+            document.getElementById('guide-next').textContent = state.guideStep < GUIDE.length - 1 ? '下一步' : '完成';
+            
+            // Dots
+            const dots = document.getElementById('guide-dots');
+            dots.innerHTML = GUIDE.map((_, i) => 
+                `<div style="width:8px;height:8px;border-radius:50%;background:${i === state.guideStep ? 'var(--primary)' : 'var(--border)'};transition:var(--transition)"></div>`
+            ).join('');
+        }
+
+        function nextGuide() {
+            if (state.guideStep < GUIDE.length - 1) {
+                state.guideStep++;
+                renderGuideStep();
+            } else {
+                closeModal('guide');
+            }
+        }
+
+        function prevGuide() {
+            if (state.guideStep > 0) {
+                state.guideStep--;
+                renderGuideStep();
+            }
         }
 
         // ========== Features ==========
@@ -1530,7 +2026,7 @@
                             </div>
                             <button class="btn btn-ghost btn-sm" onclick="loadMapAPI();setTimeout(()=>initFootprintMap(),300)">刷新地图</button>
                         </div>
-                        <div id="footprint-map" style="height:360px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-elevated);margin-bottom:14px"></div>
+                        <div id="modal-map" style="height:360px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-elevated);margin-bottom:14px"></div>
                         <div>
                             ${located.map(r => `<div class="list-item" onclick="viewRecord('${r.id}')"><div class="list-icon">📍</div><div class="list-content"><div class="list-title">${r.title}</div><div class="list-desc">${r.location || `GPS ${r.latitude}, ${r.longitude}`} · ${r.date || ''}</div></div></div>`).join('') || '<p style="text-align:center;color:var(--text-muted);padding:24px">暂无已定位记录，请上传带 GPS 的照片或搜索地点后保存。</p>'}
                         </div>
@@ -1594,21 +2090,39 @@
                     
                     const months = Object.keys(grouped).sort().reverse();
                     
+                    // Love mode: anniversary detection
+                    const togetherConfig = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+                    const togetherDate = togetherConfig.togetherDate;
+                    
                     showFeatureModal('📅 时间线', `
                         <div>
                             ${months.map(month => `
                                 <div style="margin-bottom:24px">
                                     <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--primary)">${formatMonth(month)}</div>
-                                    ${grouped[month].map(r => `
+                                    ${grouped[month].map(r => {
+                                        let anniversaryBadge = '';
+                                        if (togetherDate && state.mode === 'love' && r.date) {
+                                            const startDate = new Date(togetherDate);
+                                            const recordDate = new Date(r.date);
+                                            const dayNum = Math.floor((recordDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                                            const milestones = [100, 200, 365, 500, 730, 1000];
+                                            if (milestones.includes(dayNum)) {
+                                                const years = Math.floor(dayNum / 365);
+                                                const label = years > 0 ? `${years}周年纪念` : `第${dayNum}天纪念`;
+                                                anniversaryBadge = `<div class="anniversary-badge">🎉 ${label}</div>`;
+                                            }
+                                        }
+                                        return `
                                         <div class="timeline-item">
                                             <div class="timeline-date">${r.date ? new Date(r.date).getDate() + '日' : ''}</div>
                                             <div>
+                                                ${anniversaryBadge}
                                                 <div class="timeline-title">${r.title}</div>
                                                 <div class="timeline-desc">${r.location || ''}</div>
                                                 ${r.images?.length ? `<div class="timeline-photo-flow">${r.images.slice(0,8).map((img,j)=>`<img src="${img}" style="aspect-ratio:${j % 3 === 0 ? '4/5' : (j % 3 === 1 ? '1/1' : '5/4')}">`).join('')}${r.images.length>8?`<div class="timeline-more">+${r.images.length-8} 张</div>`:''}</div>` : ''}
                                             </div>
-                                        </div>
-                                    `).join('')}
+                                        </div>`;
+                                    }).join('')}
                                 </div>
                             `).join('') || '<p style="text-align:center;color:var(--text-muted)">暂无记录</p>'}
                         </div>
@@ -1843,14 +2357,20 @@
             return state.records.filter(r => r.mode === state.mode && hasCoordinates(r));
         }
 
-        function initFootprintMap() {
+        function initMainMap() {
             const el = document.getElementById('footprint-map');
+            const emptyEl = document.getElementById('map-empty');
             if (!el) return;
+
             const located = getLocatedRecords();
             if (!located.length) {
-                el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);padding:20px;text-align:center">暂无坐标数据。上传带 GPS 的照片，或在保存记录前搜索并选择地点。</div>';
+                el.style.display = 'none';
+                if (emptyEl) emptyEl.style.display = 'flex';
                 return;
             }
+            el.style.display = 'block';
+            if (emptyEl) emptyEl.style.display = 'none';
+
             const provider = getConfig().mapProvider || 'amap';
 
             if (provider === 'baidu' && typeof BMap !== 'undefined') {
@@ -1901,6 +2421,87 @@
 
             if (typeof AMap !== 'undefined') {
                 const map = new AMap.Map('footprint-map', {
+                    zoom: 5,
+                    center: [located[0].longitude, located[0].latitude],
+                    mapStyle: 'amap://styles/normal'
+                });
+                const markers = located.map((r, i) => {
+                    const marker = new AMap.Marker({
+                        position: new AMap.LngLat(r.longitude, r.latitude),
+                        title: r.title,
+                        content: `<div style="background:var(--primary);color:white;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)">${i + 1}</div>`,
+                        anchor: 'center'
+                    });
+                    marker.on('click', () => viewRecord(r.id));
+                    marker.setMap(map);
+                    return marker;
+                });
+                if (markers.length > 1) map.setFitView(markers);
+                return;
+            }
+
+            // Fallback: show list only
+            el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);padding:20px;text-align:center">地图 SDK 未加载。请在设置中保存地图 API Key。</div>';
+        }
+
+        function initFootprintMap() {
+            const el = document.getElementById('modal-map');
+            if (!el) return;
+            const located = getLocatedRecords();
+            if (!located.length) {
+                el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);padding:20px;text-align:center">暂无坐标数据。上传带 GPS 的照片，或在保存记录前搜索并选择地点。</div>';
+                return;
+            }
+            const provider = getConfig().mapProvider || 'amap';
+
+            if (provider === 'baidu' && typeof BMap !== 'undefined') {
+                const map = new BMap.Map('modal-map');
+                const points = located.map(r => new BMap.Point(r.longitude, r.latitude));
+                map.centerAndZoom(points[0], 5);
+                map.enableScrollWheelZoom(true);
+                points.forEach((point, i) => {
+                    const marker = new BMap.Marker(point);
+                    marker.addEventListener('click', () => viewRecord(located[i].id));
+                    map.addOverlay(marker);
+                });
+                if (points.length > 1) map.setViewport(points);
+                return;
+            }
+
+            if (provider === 'tencent' && typeof TMap !== 'undefined') {
+                const center = new TMap.LatLng(located[0].latitude, located[0].longitude);
+                const map = new TMap.Map(el, { center, zoom: 5 });
+                new TMap.MultiMarker({
+                    map,
+                    geometries: located.map((r, i) => ({
+                        id: r.id,
+                        position: new TMap.LatLng(r.latitude, r.longitude),
+                        properties: { title: r.title, index: i + 1 }
+                    }))
+                }).on('click', event => viewRecord(event.geometry.id));
+                return;
+            }
+
+            if (provider === 'bing' && window.Microsoft?.Maps) {
+                const map = new Microsoft.Maps.Map(el, {
+                    center: new Microsoft.Maps.Location(located[0].latitude, located[0].longitude),
+                    zoom: 5
+                });
+                const pins = located.map(r => {
+                    const pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(r.latitude, r.longitude), { title: r.title });
+                    Microsoft.Maps.Events.addHandler(pin, 'click', () => viewRecord(r.id));
+                    map.entities.push(pin);
+                    return pin;
+                });
+                if (pins.length > 1) {
+                    const bounds = Microsoft.Maps.LocationRect.fromLocations(pins.map(pin => pin.getLocation()));
+                    map.setView({ bounds });
+                }
+                return;
+            }
+
+            if (typeof AMap !== 'undefined') {
+                const map = new AMap.Map('modal-map', {
                     zoom: 5,
                     center: [located[0].longitude, located[0].latitude],
                     mapStyle: 'amap://styles/normal'
@@ -2265,7 +2866,7 @@
         }
 
         // ========== Start ==========
-        window.onload = async () => { await init(); loadMapAPI(); };
+        window.onload = async () => { await init(); };
     </script>
     <script src="features.js"></script>
 </body>

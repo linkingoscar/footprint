@@ -1,32 +1,36 @@
 # 足迹 - Python依赖
 
-# Web框架
+# 核心依赖（必需）
 flask==3.0.0
 flask-cors==4.0.0
 werkzeug==3.0.1
+requests==2.31.0
+python-dotenv==1.0.0
+PyJWT==2.8.0
+flask-limiter==3.5.0
 
-# 图片处理
+# 图片处理（必需）
 pillow==10.2.0
 exifread==3.0.0
-
-# OCR处理
-baidu-aip==4.16.13
-
-# 云存储（可选）
-oss2==2.18.4              # 阿里云OSS
-cos-python-sdk-v5==1.9.44        # 腾讯云COS
-qiniu==7.12.0             # 七牛云
-boto3==1.34.0             # AWS S3
-google-cloud-storage==2.14.0  # Google Cloud
-azure-storage-blob==12.19.0   # Azure Blob
-
-# 数据库（可选）
-psycopg2-binary==2.9.9    # PostgreSQL
 
 # 测试
 pytest==7.4.4
 pytest-cov==4.1.0
 
-# 工具
-requests==2.31.0
-python-dotenv==1.0.0
+# === 以下为可选依赖，按需安装 ===
+# 安装方式: pip install -r requirements.txt -r requirements-optional.txt
+# 或: pip install "footprint[aliyun]" (如果发布为包)
+
+# 云存储（可选，按需安装一个或多个）
+# oss2==2.18.4              # 阿里云OSS: pip install oss2
+# cos-python-sdk-v5==1.9.44  # 腾讯云COS: pip install cos-python-sdk-v5
+# qiniu==7.12.0             # 七牛云: pip install qiniu
+# boto3==1.34.0             # AWS S3: pip install boto3
+# google-cloud-storage==2.14.0  # Google Cloud: pip install google-cloud-storage
+# azure-storage-blob==12.19.0   # Azure Blob: pip install azure-storage-blob
+
+# 数据库（可选，仅PostgreSQL需要）
+# psycopg2-binary==2.9.9    # PostgreSQL: pip install psycopg2-binary
+
+# OCR（可选，仅百度OCR需要）
+# baidu-aip==4.16.13        # 百度OCR: pip install baidu-aip
