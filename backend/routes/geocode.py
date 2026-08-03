@@ -4,6 +4,7 @@
 """
 from flask import Blueprint, request, jsonify
 
+from backend.auth import login_required
 from backend.helpers import get_map_provider, get_map_key, map_key_configured
 from backend.map_provider import get_provider
 
@@ -11,6 +12,7 @@ geocode_bp = Blueprint('geocode', __name__)
 
 
 @geocode_bp.route('/api/geocode', methods=['GET'])
+@login_required
 def geocode():
     """地理编码：地址 -> 坐标"""
     address = request.args.get('address')
@@ -28,6 +30,7 @@ def geocode():
 
 
 @geocode_bp.route('/api/reverse-geocode', methods=['GET'])
+@login_required
 def reverse_geocode():
     """逆地理编码：坐标 -> 地址"""
     lat = request.args.get('lat')
@@ -53,6 +56,7 @@ def reverse_geocode():
 
 
 @geocode_bp.route('/api/search-poi', methods=['GET'])
+@login_required
 def search_poi():
     """搜索POI兴趣点"""
     keywords = request.args.get('keywords')

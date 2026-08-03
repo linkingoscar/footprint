@@ -5,17 +5,19 @@ import json
 import csv
 import io
 from datetime import datetime
-from flask import Blueprint, Response
+from flask import Blueprint, Response, g
 
+from backend.auth import login_required
 from backend.helpers import load_records
 
 export_bp = Blueprint('export', __name__)
 
 
 @export_bp.route('/api/export/gpx', methods=['GET'])
+@login_required
 def export_gpx():
     """导出GPX格式轨迹"""
-    records = load_records()
+    records = load_records(owner_id=g.current_user['user_id'])
     located = [r for r in records if r.get('latitude') and r.get('longitude')]
     located.sort(key=lambda r: r.get('date', '') or r.get('createdAt', ''))
     
@@ -36,9 +38,10 @@ def export_gpx():
 
 
 @export_bp.route('/api/export/geojson', methods=['GET'])
+@login_required
 def export_geojson():
     """导出GeoJSON格式"""
-    records = load_records()
+    records = load_records(owner_id=g.current_user['user_id'])
     features = []
     for r in records:
         if r.get('latitude') and r.get('longitude'):
@@ -64,9 +67,10 @@ def export_geojson():
 
 
 @export_bp.route('/api/export/csv', methods=['GET'])
+@login_required
 def export_csv():
     """导出CSV格式"""
-    records = load_records()
+    records = load_records(owner_id=g.current_user['user_id'])
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(['id', 'mode', 'title', 'description', 'location', 'latitude', 'longitude', 'date', 'rating', 'price', 'image_count', 'created_at'])

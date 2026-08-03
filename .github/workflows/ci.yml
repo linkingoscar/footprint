@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install pytest
+        run: pip install pytest
+
+      # 注意: 若 tests/ 当前存在失败用例，本步骤将导致 CI 变红，
+      # 由 CI 捕获问题（测试修复由专人负责，本配置不做修改）。
+      - name: Run tests
+        run: pytest tests/ -v

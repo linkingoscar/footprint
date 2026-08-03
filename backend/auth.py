@@ -89,14 +89,25 @@ def _extract_token_from_header() -> str | None:
     return None
 
 
-def get_current_user() -> dict | None:
+def _extract_token_from_query() -> str | None:
+    """从查询参数 token= 提取 Token（用于 <img> 等无法携带 Header 的场景）。"""
+    token = request.args.get('token', '')
+    return token.strip() or None
+
+
+def get_current_user(allow_query_token: bool = False) -> dict | None:
     """
     从当前 Flask 请求中提取并验证用户 Token。
+
+    参数:
+        allow_query_token: 是否允许从查询参数 ?token= 提取（仅用于图片等静态资源场景）。
 
     返回:
         包含 user_id 和 username 的字典，未认证时返回 None。
     """
     token = _extract_token_from_header()
+    if not token and allow_query_token:
+        token = _extract_token_from_query()
     if not token:
         return None
     payload = verify_token(token)

@@ -123,9 +123,9 @@ def paginate_list(items: list, page: int = 1, per_page: int = 20) -> dict:
 
 # ────────────────── 记录操作 ──────────────────
 
-def load_records(mode=None):
-    """加载记录数据"""
-    return get_record_store().list(mode)
+def load_records(mode=None, owner_id=None):
+    """加载记录数据（可按用户过滤）"""
+    return get_record_store().list(mode, owner_id)
 
 
 def allowed_file(filename):
@@ -258,7 +258,13 @@ def redact_config(config):
 # ────────────────── 安全 ──────────────────
 
 def _is_safe_url(url: str) -> bool:
-    """检查 URL 是否安全（非内网地址）。"""
+    """检查 URL 是否安全（非内网地址）。
+
+    同时检查主机名与解析出的 IP（防 DNS 反查绕过）：
+    - 拒绝私有、回环、链路本地、保留、组播地址；
+    - 拒绝指向上述地址的域名解析结果。
+    """
+    import socket
     try:
         parsed = urllib.parse.urlparse(url)
         if parsed.scheme not in ('http', 'https'):
@@ -270,14 +276,72 @@ def _is_safe_url(url: str) -> bool:
         blocked_hosts = {'localhost', '127.0.0.1', '0.0.0.0', '[::1]', 'metadata.google.internal'}
         if hostname.lower() in blocked_hosts:
             return False
-        # 尝试解析 IP 并检查是否为私有地址
+
+        def _ip_unsafe(ip_str: str) -> bool:
+            try:
+                ip = ipaddress.ip_address(ip_str.split('%')[0])
+                return (ip.is_private or ip.is_loopback or ip.is_link_local
+                        or ip.is_reserved or ip.is_multicast or ip.is_unspecified)
+            except ValueError:
+                return False
+
+        # 主机名本身就是 IP：直接检查
         try:
             ip = ipaddress.ip_address(hostname)
-            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved or ip.is_multicast:
-                return False
+            return not _ip_unsafe(hostname)
         except ValueError:
-            # hostname 不是 IP，是域名 — 允许
             pass
+
+        # 域名：解析全部 A/AAAA 记录，任一命中内网地址即拒绝
+        try:
+            infos = socket.getaddrinfo(hostname, None, proto=socket.IPPROTO_TCP)
+        except OSError:
+            return False
+        if not infos:
+            return False
+        for info in infos:
+            if _ip_unsafe(info[4][0]):
+                return False
         return True
     except Exception:
         return False
+
+
+def fetch_image_url_safe(url: str, timeout: int = 8, max_redirects: int = 5):
+    """按安全规则请求图片 URL，手动跟随重定向并逐跳复查目标。
+
+    返回 (status_code, content_type, final_url, error)；error 非空表示拒绝/失败。
+    相比 requests 自动跟随，这里会在每一跳后重新执行 _is_safe_url 检查，
+    防止重定向链被用于 SSRF。
+    """
+    import requests as http_requests
+    current_url = url
+    session = http_requests.Session()
+    session.max_redirects = 0
+    for _ in range(max_redirects + 1):
+        if not _is_safe_url(current_url):
+            return None, None, None, '不允许访问内网地址'
+        try:
+            resp = session.get(
+                current_url,
+                timeout=timeout,
+                stream=True,
+                allow_redirects=False,
+                headers={'User-Agent': 'Mozilla/5.0 (Footprint)'}
+            )
+        except http_requests.Timeout:
+            return None, None, None, '请求超时'
+        except http_requests.ConnectionError:
+            return None, None, None, '无法连接到目标地址'
+        except Exception:
+            return None, None, None, '验证失败'
+        if resp.is_redirect:
+            location = resp.headers.get('Location')
+            if not location:
+                return None, None, None, '无效的重定向响应'
+            current_url = urllib.parse.urljoin(current_url, location)
+            resp.close()
+            continue
+        content_type = resp.headers.get('Content-Type', '')
+        return resp.status_code, content_type, current_url, None
+    return None, None, None, '重定向次数过多'

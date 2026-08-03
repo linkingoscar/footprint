@@ -3,14 +3,16 @@
 """
 import uuid
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 
+from backend.auth import login_required
 from backend.helpers import get_record_store, parse_float
 
 expenses_bp = Blueprint('expenses', __name__)
 
 
 @expenses_bp.route('/api/expenses', methods=['GET'])
+@login_required
 def get_expenses():
     """获取费用列表（支持分页）"""
     record_id = request.args.get('record_id')
@@ -18,7 +20,7 @@ def get_expenses():
     per_page = request.args.get('per_page', 20, type=int)
 
     store = get_record_store()
-    expenses = store.list_expenses(record_id)
+    expenses = store.list_expenses(record_id, g.current_user['user_id'])
 
     if 'page' in request.args or 'per_page' in request.args:
         from backend.helpers import paginate_list
@@ -29,6 +31,7 @@ def get_expenses():
 
 
 @expenses_bp.route('/api/expenses', methods=['POST'])
+@login_required
 def create_expense():
     """创建费用记录"""
     data = request.get_json()
@@ -47,11 +50,12 @@ def create_expense():
     }
     
     store = get_record_store()
-    created = store.create_expense(expense)
+    created = store.create_expense(expense, g.current_user['user_id'])
     return jsonify(created), 201
 
 
 @expenses_bp.route('/api/expenses/<expense_id>', methods=['PUT'])
+@login_required
 def update_expense(expense_id):
     """更新费用记录"""
     data = request.get_json()
@@ -69,25 +73,27 @@ def update_expense(expense_id):
     }
     
     store = get_record_store()
-    updated = store.update_expense(expense_id, expense)
+    updated = store.update_expense(expense_id, expense, g.current_user['user_id'])
     if not updated:
         return jsonify({'error': '费用不存在'}), 404
     return jsonify(updated)
 
 
 @expenses_bp.route('/api/expenses/<expense_id>', methods=['DELETE'])
+@login_required
 def delete_expense(expense_id):
     """删除费用记录"""
     store = get_record_store()
-    deleted = store.delete_expense(expense_id)
+    deleted = store.delete_expense(expense_id, g.current_user['user_id'])
     if not deleted:
         return jsonify({'error': '费用不存在'}), 404
     return jsonify({'message': '删除成功'})
 
 
 @expenses_bp.route('/api/expenses/stats', methods=['GET'])
+@login_required
 def get_expense_stats():
     """获取费用统计"""
     store = get_record_store()
-    stats = store.get_expense_stats()
+    stats = store.get_expense_stats(g.current_user['user_id'])
     return jsonify(stats)

@@ -46,9 +46,11 @@
 
 ## 🚀 快速开始
 
-### 方式一：纯前端模式（推荐）
+### 方式一：纯前端模式（仅体验）
 
 无需后端服务，直接打开HTML文件：
+
+> ⚠️ 纯前端模式数据仅保存在浏览器 localStorage，容量有限（约 5MB），不建议长期使用；完整服务模式支持后端持久化与多用户。
 
 ```powershell
 # 1. 打开设置页面配置API Key
@@ -93,15 +95,31 @@ footprint/
 │
 ├── backend/                     # 后端服务
 │   ├── app.py                  # Flask主程序
+│   ├── auth.py                 # JWT认证
 │   ├── database.py             # 数据库模型
 │   ├── exif_extractor.py       # EXIF提取
+│   ├── helpers.py              # 公共工具
+│   ├── map_provider.py         # 地图服务封装
 │   ├── ocr_processor.py        # OCR处理
+│   ├── routes/                 # API路由
+│   │   ├── records.py          # 记录管理
+│   │   ├── upload.py           # 图片上传
+│   │   ├── expenses.py         # 费用追踪
+│   │   ├── export.py           # 数据导出
+│   │   ├── geocode.py          # 地理编码
+│   │   ├── misc.py             # 统计/城市/AI故事/批量照片
+│   │   ├── config.py           # 运行时配置
+│   │   └── auth.py             # 注册/登录
+│   ├── runtime_config.json     # 运行时配置（启动后生成）
 │   └── uploads/                # 上传文件存储
 │
 ├── miniapp/                     # 微信小程序
+├── scripts/                     # 工具脚本（如图标压缩）
 ├── tests/                       # 测试文件
 ├── docs/                        # 文档
 ├── nginx/                       # Nginx配置
+├── data/                        # SQLite数据（Docker挂载卷）
+├── .github/workflows/           # CI工作流
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt

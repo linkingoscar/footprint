@@ -1334,9 +1334,16 @@
         }
         function apiUrl(path) { return `${getApiBase()}${path}`; }
         function resolveAssetUrl(url) {
-            if (!url || /^(https?:|data:|blob:)/.test(url)) return url;
+            if (!url || /^(data:|blob:)/.test(url)) return url;
             const base = getApiBase();
-            return base ? `${base}${url}` : url;
+            // 本地 /uploads/ 相对路径(或已拼接 base 的完整本地地址)才需要附加 token
+            const isLocalUpload = url.startsWith('/uploads/') || (base && url.startsWith(`${base}/uploads/`));
+            const resolved = (base && url.startsWith('/')) ? `${base}${url}` : url;
+            if (isLocalUpload && authState.token) {
+                const sep = resolved.includes('?') ? '&' : '?';
+                return `${resolved}${sep}token=${encodeURIComponent(authState.token)}`;
+            }
+            return resolved;
         }
         async function apiFetch(path, options = {}) {
             const authHeaders = getAuthHeaders();
@@ -1479,7 +1486,7 @@
                 grid.innerHTML = recentRecords.map((r,i) => `
                     <div class="photo-card" onclick="viewRecord('${r.id}')" style="animation:modalIn 0.4s ease ${i*0.05}s backwards">
                         <span class="photo-card-tag tag-${r.mode}">${getModeName(r.mode)}</span>
-                        <img src="${r.images[0]||''}" alt="${r.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
+                        <img src="${resolveAssetUrl(r.images[0]||'')}" alt="${r.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
                         <div class="photo-card-body">
                             <div class="photo-card-title">${r.title}</div>
                             <div class="photo-card-meta">
@@ -1527,8 +1534,8 @@
                     const formData = new FormData();
                     formData.append('file', file);
                     const result = await apiFetch('/api/upload', { method: 'POST', body: formData });
-                    state.images.push(resolveAssetUrl(result.url));
-                    state.imageMeta.push({ ...result, display_url: resolveAssetUrl(result.url) });
+                    state.images.push(result.url);
+                    state.imageMeta.push({ ...result });
                     syncLocationFromImageMeta(result);
                 } catch (error) {
                     const dataUrl = await readFileAsDataURL(file);
@@ -1699,7 +1706,7 @@
         function renderPreview() {
             document.getElementById('preview-grid').innerHTML = state.images.map((img,i) => `
                 <div class="preview-item">
-                    <img src="${img}">
+                    <img src="${resolveAssetUrl(img)}">
                     <button class="preview-remove" onclick="removeImage(${i})">✕</button>
                     ${i===0 ? '<span class="preview-badge">封面</span>' : ''}
                 </div>`).join('');
@@ -1836,7 +1843,7 @@
         function viewRecord(id) {
             const r = state.records.find(r => r.id === id); if (!r) return;
             showFeatureModal(r.title, `
-                <div style="margin-bottom:16px"><img src="${r.images[0]||''}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px"></div>
+                <div style="margin-bottom:16px"><img src="${resolveAssetUrl(r.images[0]||'')}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px"></div>
                 ${r.description?`<p style="margin-bottom:12px;color:var(--text-sec)">${r.description}</p>`:''}
                 <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-muted);margin-bottom:18px">
                     ${r.location?`<span>📍 ${r.location}</span>`:''}
@@ -2119,7 +2126,7 @@
                                                 ${anniversaryBadge}
                                                 <div class="timeline-title">${r.title}</div>
                                                 <div class="timeline-desc">${r.location || ''}</div>
-                                                ${r.images?.length ? `<div class="timeline-photo-flow">${r.images.slice(0,8).map((img,j)=>`<img src="${img}" style="aspect-ratio:${j % 3 === 0 ? '4/5' : (j % 3 === 1 ? '1/1' : '5/4')}">`).join('')}${r.images.length>8?`<div class="timeline-more">+${r.images.length-8} 张</div>`:''}</div>` : ''}
+                                                ${r.images?.length ? `<div class="timeline-photo-flow">${r.images.slice(0,8).map((img,j)=>`<img src="${resolveAssetUrl(img)}" style="aspect-ratio:${j % 3 === 0 ? '4/5' : (j % 3 === 1 ? '1/1' : '5/4')}">`).join('')}${r.images.length>8?`<div class="timeline-more">+${r.images.length-8} 张</div>`:''}</div>` : ''}
                                             </div>
                                         </div>`;
                                     }).join('')}
@@ -2241,7 +2248,7 @@
                     `);
                     break;
                 case 'album':
-                    showFeatureModal('📸 相册', `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${filtered.filter(r=>r.images?.length).flatMap(r=>r.images.map(img=>`<img src="${img}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">`)).join('')||'<p style="text-align:center;color:var(--text-muted);grid-column:3">暂无照片</p>'}</div>`);
+                    showFeatureModal('📸 相册', `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${filtered.filter(r=>r.images?.length).flatMap(r=>r.images.map(img=>`<img src="${resolveAssetUrl(img)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px">`)).join('')||'<p style="text-align:center;color:var(--text-muted);grid-column:3">暂无照片</p>'}</div>`);
                     break;
                 case 'plan':
                     const plans = JSON.parse(localStorage.getItem('travel_plans')||'[]');
@@ -2868,6 +2875,5 @@
         // ========== Start ==========
         window.onload = async () => { await init(); };
     </script>
-    <script src="features.js"></script>
 </body>
 </html>

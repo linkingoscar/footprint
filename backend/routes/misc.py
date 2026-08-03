@@ -5,8 +5,9 @@
 import uuid
 import os
 from datetime import datetime
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 
+from backend.auth import login_required
 from backend.helpers import (
     get_record_store, load_records, get_storage_provider,
     get_map_provider, map_key_configured, allowed_file,
@@ -17,9 +18,11 @@ misc_bp = Blueprint('misc', __name__)
 
 
 @misc_bp.route('/api/stats', methods=['GET'])
+@login_required
 def get_stats():
     """获取统计数据"""
-    records = load_records()
+    owner_id = g.current_user['user_id']
+    records = load_records(owner_id=owner_id)
     
     monthly = {}
     places = sorted(set(r.get('location') for r in records if r.get('location')))
@@ -44,7 +47,7 @@ def get_stats():
 
 @misc_bp.route('/api/health', methods=['GET'])
 def health_check():
-    """健康检查接口"""
+    """健康检查接口（无需认证，供容器探针使用）"""
     return jsonify({
         'status': 'ok',
         'timestamp': datetime.now().isoformat(),
@@ -56,9 +59,10 @@ def health_check():
 
 
 @misc_bp.route('/api/cities', methods=['GET'])
+@login_required
 def get_cities():
     """从记录中提取城市统计"""
-    records = load_records()
+    records = load_records(owner_id=g.current_user['user_id'])
     cities = {}
     for r in records:
         loc = r.get('location', '')
@@ -81,6 +85,7 @@ def get_cities():
 
 
 @misc_bp.route('/api/ai/story', methods=['POST'])
+@login_required
 def generate_story():
     """基于记录生成旅行故事（模板方式）"""
     data = request.get_json() or {}
@@ -88,10 +93,12 @@ def generate_story():
     style = data.get('style', 'travel')
     
     store = get_record_store()
+    owner_id = g.current_user['user_id']
     if record_ids:
-        records = [store.get(rid) for rid in record_ids if store.get(rid)]
+        records = [store.get(rid, owner_id) for rid in record_ids]
+        records = [r for r in records if r]
     else:
-        records = load_records()[:10]
+        records = load_records(owner_id=owner_id)[:10]
     
     if not records:
         return jsonify({'error': '没有记录'}), 400
@@ -131,6 +138,7 @@ def generate_story():
 
 
 @misc_bp.route('/api/upload/batch-photos', methods=['POST'])
+@login_required
 def upload_batch_photos():
     """批量上传照片并自动提取EXIF"""
     if 'files' not in request.files:
@@ -164,7 +172,7 @@ def upload_batch_photos():
             'tags': [],
             'metadata': {'images': results}
         }
-        get_record_store().create(record)
+        get_record_store().create(record, g.current_user['user_id'])
     
     return jsonify({
         'total': len(results),
