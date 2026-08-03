@@ -10,7 +10,7 @@ google-cloud-storage==2.14.0
 azure-storage-blob==12.19.0
 
 # PostgreSQL
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.12
 
 # 百度OCR
 baidu-aip==4.16.13
