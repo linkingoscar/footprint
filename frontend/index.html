@@ -111,7 +111,7 @@
         .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--glow); }
         .btn-ghost { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
         .btn-ghost:hover { background: var(--glass); }
-        .btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 18px; }
+        .btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
         .btn-sm { padding: 8px 14px; min-height: 36px; font-size: 13px; }
         .btn-danger { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
 
@@ -125,6 +125,7 @@
         .hero-actions { display: flex; gap: 12px; justify-content: center; }
         .mode-switcher { display: inline-flex; gap: 4px; align-items: center; margin: 26px auto 0; padding: 4px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); }
         .mode-pill { min-width: 112px; height: 42px; border: none; border-radius: 8px; background: transparent; color: var(--text-sec); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition); }
+        .mode-pill > span:first-child { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 16px; line-height: 1; flex-shrink: 0; }
         .mode-pill:hover { color: var(--text); background: var(--glass); }
         .mode-pill.active { color: white; background: var(--gradient); box-shadow: 0 4px 14px var(--glow); }
         .stats { display: flex; gap: 48px; justify-content: center; margin-top: 48px; }
@@ -485,6 +486,10 @@
             font-weight: 600;
             margin-bottom: 8px;
         }
+
+        /* Emoji alignment fixes */
+        #guide-step-icon { display: flex; align-items: center; justify-content: center; width: 72px; height: 72px; margin: 20px auto; font-size: 56px; line-height: 1; }
+        #guide-step-action .btn > span:first-child { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 16px; line-height: 1; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -572,6 +577,7 @@
 
             <div class="section-header">
                 <div class="section-title" id="records-title">📸 最近记录</div>
+                <button class="btn btn-ghost btn-sm" id="btn-clear-demo" style="display:none" onclick="clearDemoData()">🧹 清空示例数据</button>
                 <button class="btn btn-ghost btn-sm" onclick="handleFeature('timeline')" id="btn-all-records">查看全部 →</button>
             </div>
             <div class="photo-grid" id="photo-grid"></div>
@@ -579,6 +585,10 @@
                 <div class="empty-icon" id="empty-icon">📷</div>
                 <h3 id="empty-title">开始你的记录之旅</h3>
                 <p id="empty-desc">记录生活中的美好瞬间，让回忆永不褪色</p>
+                <div id="demo-actions">
+                    <button class="btn btn-primary" id="btn-load-demo" onclick="loadDemoData()"><span>✨</span><span>加载示例数据</span></button>
+                    <p style="font-size:12px;color:var(--text-muted);margin-top:10px;margin-bottom:0">体验完整功能，数据仅保存在本机浏览器</p>
+                </div>
             </div>
         </section>
 
@@ -714,7 +724,7 @@
                 <button class="modal-close" onclick="closeModal('guide')">✕</button>
             </div>
             <div class="modal-body" style="text-align:center">
-                <div id="guide-step-icon" style="font-size:64px;margin:20px 0"></div>
+                <div id="guide-step-icon"></div>
                 <h3 id="guide-step-title" style="margin-bottom:8px"></h3>
                 <p id="guide-step-desc" style="color:var(--text-muted);margin-bottom:24px"></p>
                 <div id="guide-step-action"></div>
@@ -1302,6 +1312,7 @@
             initDragDrop();
             await loadRecords();
             render();
+            updateDemoButtons();
             initMainMap();
             loadMapAPI();
             initParticles();
@@ -1497,6 +1508,49 @@
                         </div>
                     </div>`).join('');
             }
+        }
+
+        // ========== Demo Data ==========
+        function demoImg(emoji, c1, c2) {
+            return `data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%23${c1}%22/><stop offset=%221%22 stop-color=%22%23${c2}%22/></linearGradient></defs><rect width=%22400%22 height=%22300%22 fill=%22url(%23g)%22/><text x=%22200%22 y=%22175%22 font-size=%2272%22 text-anchor=%22middle%22>${emoji}</text></svg>`;
+        }
+
+        function loadDemoData() {
+            if (state.records.length > 0) { toast('已有记录，无需加载'); return; }
+            const now = new Date().toISOString();
+            state.records = [
+                { id: generateId(), mode: 'travel', title: '杭州 · 西湖漫步', description: '西湖的清晨格外安静，断桥残雪倒映在水中，像一幅水墨画。', location: '浙江杭州 · 西湖', latitude: 30.2590, longitude: 120.1490, date: '2026-07-20', images: [demoImg('✈️','6366f1','818cf8'), demoImg('✈️','6366f1','818cf8')], metadata: { images: [] }, createdAt: now },
+                { id: generateId(), mode: 'travel', title: '西安 · 古城探秘', description: '', location: '陕西西安 · 城墙', latitude: 34.2541, longitude: 108.9422, date: '2026-04-10', images: [demoImg('🏯','f59e0b','ef4444'), demoImg('🏯','f59e0b','ef4444')], metadata: { images: [] }, createdAt: now },
+                { id: generateId(), mode: 'food', title: '成都 · 火锅之夜', description: '', location: '四川成都 · 宽窄巷子', latitude: 30.6690, longitude: 104.0610, date: '2026-06-15', rating: 5, price: 128, images: [demoImg('🍲','10b981','22d3ee'), demoImg('🍲','10b981','22d3ee')], metadata: { images: [] }, createdAt: now },
+                { id: generateId(), mode: 'love', title: '厦门 · 鼓浪屿日落', description: '海风、琴声和夕阳，把这一刻定格在记忆里。', location: '福建厦门 · 鼓浪屿', latitude: 24.4470, longitude: 118.0670, date: '2026-05-01', images: [demoImg('🌅','ec4899','f472b6'), demoImg('🌅','ec4899','f472b6')], metadata: { images: [] }, createdAt: now }
+            ];
+            persistLocalRecords();
+            localStorage.setItem('footprint_demo', '1');
+            localStorage.setItem('footprint_guide_seen', '1');
+            render();
+            initMainMap();
+            updateDemoButtons();
+            toast('✨ 已加载示例数据');
+        }
+
+        function clearDemoData() {
+            state.records = [];
+            localStorage.removeItem('footprint_data');
+            localStorage.removeItem('footprint_demo');
+            persistLocalRecords();
+            render();
+            initMainMap();
+            updateDemoButtons();
+            toast('已清空示例数据');
+        }
+
+        function updateDemoButtons() {
+            const loadBtn = document.getElementById('btn-load-demo');
+            const clearBtn = document.getElementById('btn-clear-demo');
+            if (!loadBtn || !clearBtn) return;
+            const isDemo = localStorage.getItem('footprint_demo') === '1';
+            loadBtn.style.display = isDemo ? 'none' : '';
+            clearBtn.style.display = isDemo ? '' : 'none';
         }
 
         // ========== Upload ==========
@@ -1915,9 +1969,9 @@
             if (step.action === 'mode') {
                 actionEl.innerHTML = `
                     <div style="display:flex;gap:8px;justify-content:center">
-                        <button class="btn btn-ghost" onclick="switchMode('travel');nextGuide()">✈️ 旅行</button>
-                        <button class="btn btn-ghost" onclick="switchMode('food');nextGuide()">🍜 美食</button>
-                        <button class="btn btn-ghost" onclick="switchMode('love');nextGuide()">💕 情侣</button>
+                        <button class="btn btn-ghost" onclick="switchMode('travel');nextGuide()"><span>✈️</span><span>旅行</span></button>
+                        <button class="btn btn-ghost" onclick="switchMode('food');nextGuide()"><span>🍜</span><span>美食</span></button>
+                        <button class="btn btn-ghost" onclick="switchMode('love');nextGuide()"><span>💕</span><span>情侣</span></button>
                     </div>`;
             } else if (step.action === 'add') {
                 actionEl.innerHTML = '<button class="btn btn-primary" onclick="closeModal(\'guide\');openModal(\'add\')">📷 开始添加</button>';
