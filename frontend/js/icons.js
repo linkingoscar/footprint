@@ -40,6 +40,7 @@ const AppIcons = {
         'map-pin': '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
         'check': '<path d="M20 6 9 17l-5-5"/>',
         'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+        'chevron-up': '<path d="m18 15-6-6-6 6"/>',
         'clock': '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
         'database': '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/>',
         'hard-drive': '<line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/>',
@@ -55,13 +56,53 @@ const AppIcons = {
         return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="${cls}"${styleAttr}>${inner}</svg>`;
     },
 
+    // 渲染极具高级感与探索精神的纯矢量品牌徽标 (Compass Star & Mountain Horizon)
+    getBrandLogo(size = 34) {
+        return `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="${size}" height="${size}" class="brand-logo-svg" style="display:inline-block;vertical-align:middle;border-radius:10px;filter:drop-shadow(0 4px 10px rgba(0,0,0,0.25));">
+            <defs>
+                <linearGradient id="fp-brand-bg" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#1A202C"/>
+                    <stop offset="100%" stop-color="#090C10"/>
+                </linearGradient>
+                <linearGradient id="fp-brand-stroke" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.8"/>
+                    <stop offset="50%" stop-color="#0D9488" stop-opacity="0.4"/>
+                    <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.6"/>
+                </linearGradient>
+                <linearGradient id="fp-peaks" x1="6" y1="20" x2="34" y2="28" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#0D9488"/>
+                    <stop offset="50%" stop-color="#14B8A6"/>
+                    <stop offset="100%" stop-color="#F59E0B"/>
+                </linearGradient>
+                <linearGradient id="fp-star" x1="24" y1="7" x2="32" y2="15" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stop-color="#FBBF24"/>
+                    <stop offset="100%" stop-color="#D97706"/>
+                </linearGradient>
+            </defs>
+            <rect width="40" height="40" rx="10" fill="url(#fp-brand-bg)"/>
+            <rect width="38" height="38" x="1" y="1" rx="9" stroke="url(#fp-brand-stroke)" stroke-width="1.2" fill="none"/>
+            <path d="M4 27C12 25 24 29 36 26" stroke="rgba(255,255,255,0.08)" stroke-width="1.2" fill="none"/>
+            <path d="M4 31C14 30 26 33 36 31" stroke="rgba(255,255,255,0.05)" stroke-width="1" fill="none"/>
+            <polygon points="10,28 17,18 24,28" fill="rgba(13, 148, 136, 0.25)" stroke="#0D9488" stroke-width="1.4" stroke-linejoin="round"/>
+            <polygon points="17,28 26,14 34,28" fill="rgba(245, 158, 11, 0.15)" stroke="url(#fp-peaks)" stroke-width="1.8" stroke-linejoin="round"/>
+            <line x1="26" y1="14" x2="26" y2="28" stroke="rgba(245, 158, 11, 0.4)" stroke-width="1" stroke-dasharray="2 2"/>
+            <path d="M26 6.5 L27.2 10.5 L31.2 11.7 L27.2 12.9 L26 16.9 L24.8 12.9 L20.8 11.7 L24.8 10.5 Z" fill="url(#fp-star)"/>
+            <circle cx="26" cy="11.7" r="1" fill="#FFF"/>
+        </svg>`;
+    },
+
     // 扫描页面并渲染带 [data-icon] 属性的元素
     renderAll(root = document) {
         root.querySelectorAll('[data-icon]').forEach(el => {
             const iconName = el.getAttribute('data-icon');
             const extraClass = el.getAttribute('data-icon-class') || '';
             const style = el.getAttribute('data-icon-style') || '';
-            el.innerHTML = this.get(iconName, extraClass, style);
+            if (iconName === 'brand-logo') {
+                el.innerHTML = this.getBrandLogo(el.getAttribute('data-logo-size') || 34);
+            } else {
+                el.innerHTML = this.get(iconName, extraClass, style);
+            }
         });
     }
 };

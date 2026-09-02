@@ -644,6 +644,12 @@
                     <span class="nav-icon">📱</span>
                     <span>微信小程序支持</span>
                 </div>
+
+                <div class="nav-group-title">系统与偏好</div>
+                <div class="nav-item" onclick="switchTab('settings')">
+                    <span class="nav-icon">⚙️</span>
+                    <span>偏好与系统设置</span>
+                </div>
             </nav>
 
             <div class="sidebar-footer">
@@ -666,9 +672,6 @@
                 <div class="navbar-actions">
                     <button class="btn btn-ghost btn-sm" onclick="location.href='index.html'" target="_blank">
                         <span>🏠</span><span>访问前台首页</span>
-                    </button>
-                    <button class="btn btn-ghost btn-sm" onclick="location.href='settings.html'">
-                        <span>⚙️</span><span>个人偏好设置</span>
                     </button>
                     <button class="btn btn-ghost btn-sm" onclick="toggleTheme()" id="theme-btn">🌙</button>
                 </div>
@@ -1182,6 +1185,131 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Tab: Settings (偏好与系统设置) -->
+                <section class="tab-panel" id="tab-settings">
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">🎯 足迹核心定位</div>
+                                <div class="card-desc">旅行 + 美食 双主线</div>
+                            </div>
+                        </div>
+                        <div style="padding:20px">
+                            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:12px;">
+                                <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px">
+                                    <div style="font-size:32px">✈️</div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:15px;margin-bottom:4px">旅行探索</div>
+                                        <div style="font-size:12px;color:var(--text-sec)">路线、景点、城市足迹、打卡相册</div>
+                                    </div>
+                                </div>
+                                <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px">
+                                    <div style="font-size:32px">🍜</div>
+                                    <div>
+                                        <div style="font-weight:600;font-size:15px;margin-bottom:4px">美食寻味</div>
+                                        <div style="font-size:12px;color:var(--text-sec)">餐厅、探店、评分、价格、风味清单</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="font-size:13px;color:var(--text-sec);line-height:1.6">
+                                💡 足迹（Footprint）聚焦于记录生活中的山川湖海与人间烟火。首页默认融合呈现旅行与美食足迹，两者天然共存不冲突。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Map Service -->
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div class="card-title">🗺️ 地图服务商</div>
+                            <span style="padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:500;background:rgba(59,130,246,0.15);color:var(--primary)">可选</span>
+                        </div>
+                        <div style="padding:20px">
+                            <div class="form-group">
+                                <label class="form-label">选择地图服务</label>
+                                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+                                    <div class="settings-map-opt selected" data-provider="amap" onclick="selectSettingsMap('amap')" style="padding:14px;border:2px solid var(--primary);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:10px;background:rgba(59,130,246,0.06)">
+                                        <span>🇨🇳</span><div><div style="font-size:13px;font-weight:600">高德地图</div><div style="font-size:11px;color:var(--text-muted)">国内首选</div></div>
+                                    </div>
+                                    <div class="settings-map-opt" data-provider="baidu" onclick="selectSettingsMap('baidu')" style="padding:14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:10px">
+                                        <span>🇨🇳</span><div><div style="font-size:13px;font-weight:600">百度地图</div><div style="font-size:11px;color:var(--text-muted)">POI丰富</div></div>
+                                    </div>
+                                    <div class="settings-map-opt" data-provider="tencent" onclick="selectSettingsMap('tencent')" style="padding:14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:10px">
+                                        <span>🇨🇳</span><div><div style="font-size:13px;font-weight:600">腾讯地图</div><div style="font-size:11px;color:var(--text-muted)">微信生态</div></div>
+                                    </div>
+                                    <div class="settings-map-opt" data-provider="bing" onclick="selectSettingsMap('bing')" style="padding:14px;border:2px solid var(--border);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:10px">
+                                        <span>🌍</span><div><div style="font-size:13px;font-weight:600">必应地图</div><div style="font-size:11px;color:var(--text-muted)">全球覆盖</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">API Key</label>
+                                <div style="display:flex;gap:8px">
+                                    <input type="text" class="form-input" id="settings-map-key" placeholder="输入对应地图服务的 API Key">
+                                    <button class="btn btn-ghost" onclick="testSettingsMapKey()">测试</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+                            <span style="font-size:12px;color:var(--text-muted)">配置后可使用地图功能</span>
+                            <button class="btn btn-primary" onclick="saveSettingsMap()">保存地图设置</button>
+                        </div>
+                    </div>
+
+                    <!-- API Base URL -->
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div class="card-title">🔌 后端服务地址</div>
+                            <span style="padding:2px 10px;border-radius:9999px;font-size:11px;font-weight:500;background:rgba(59,130,246,0.15);color:var(--primary)">可选</span>
+                        </div>
+                        <div style="padding:20px">
+                            <div style="padding:12px 16px;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.15);border-radius:var(--radius-sm);font-size:13px;color:var(--text-sec);margin-bottom:16px;line-height:1.6">
+                                💡 填写后端地址启用 API、图片上传、EXIF 定位和云存储；留空则使用浏览器本地存储。
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">API Base URL</label>
+                                <div style="display:flex;gap:8px">
+                                    <input type="text" class="form-input" id="settings-api-base" placeholder="如：http://localhost:5000">
+                                    <button class="btn btn-ghost" onclick="testSettingsApiBase()">测试连接</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+                            <span style="font-size:12px;color:var(--text-muted)">完整服务模式建议 http://localhost:5000</span>
+                            <button class="btn btn-primary" onclick="saveSettingsApiBase()">保存</button>
+                        </div>
+                    </div>
+
+                    <!-- Data Management -->
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div class="card-title">💾 数据导入导出与清理</div>
+                        </div>
+                        <div style="padding:20px;display:flex;flex-direction:column;gap:10px">
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <span style="font-size:20px">📤</span>
+                                    <div><div style="font-size:14px;font-weight:500">导出所有数据</div><div style="font-size:12px;color:var(--text-muted)">下载完整 JSON 备份</div></div>
+                                </div>
+                                <button class="btn btn-ghost" onclick="exportAllSettings()">导出</button>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <span style="font-size:20px">📥</span>
+                                    <div><div style="font-size:14px;font-weight:500">导入数据</div><div style="font-size:12px;color:var(--text-muted)">从 JSON 备份恢复</div></div>
+                                </div>
+                                <button class="btn btn-ghost" onclick="importAllSettings()">导入</button>
+                            </div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(239,68,68,0.04);border-radius:var(--radius-sm);border:1px solid rgba(239,68,68,0.15)">
+                                <div style="display:flex;align-items:center;gap:10px">
+                                    <span style="font-size:20px">🗑️</span>
+                                    <div><div style="font-size:14px;font-weight:500;color:#EF4444">清除全部本地数据</div><div style="font-size:12px;color:var(--text-muted)">不可恢复，请先导出备份</div></div>
+                                </div>
+                                <button class="btn" style="background:rgba(239,68,68,0.1);color:#EF4444;border:1px solid rgba(239,68,68,0.2)" onclick="clearAllSettings()">清除</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -1297,8 +1425,10 @@
         // ========== Auth & API Helper ==========
         function checkAuth() {
             if (!adminState.token) {
-                location.href = 'index.html';
-                return false;
+                // 离线模式 / GitHub Pages 静态部署：以本地访客管理员身份继续
+                console.log('[Admin] 未检测到登录令牌，以本地离线管理员模式运行');
+                document.getElementById('sidebar-username').textContent = '本地管理员';
+                return true;
             }
             if (adminState.user) {
                 document.getElementById('sidebar-username').textContent = adminState.user.username || '管理员';
@@ -1315,9 +1445,8 @@
             try {
                 const resp = await fetch(path, { ...options, headers });
                 if (resp.status === 401) {
-                    toast('登录会话已失效，请重新登录');
-                    setTimeout(() => location.href = 'index.html', 1000);
-                    throw new Error('Unauthorized');
+                    // 不跳转，走本地离线兜底
+                    throw new Error('Unauthorized - fallback to local');
                 }
                 const data = await resp.json().catch(() => ({}));
                 if (!resp.ok) {
@@ -1403,7 +1532,8 @@
                 'love-features': '💑 情侣回忆与扩展数据',
                 database: '🗄️ 数据库引擎脚手架',
                 storage: '☁️ 图床与对象存储平台',
-                wechat: '📱 微信小程序对接与管理'
+                wechat: '📱 微信小程序对接与管理',
+                settings: '⚙️ 偏好与系统设置'
             };
             document.getElementById('page-header-title').innerHTML = titles[tabKey] || '管理后台';
 
@@ -2138,6 +2268,108 @@
             document.getElementById(modalId)?.classList.remove('active');
         }
 
+        // ========== Settings Tab Functions ==========
+        function selectSettingsMap(provider) {
+            document.querySelectorAll('.settings-map-opt').forEach(el => {
+                const isSelected = el.dataset.provider === provider;
+                el.classList.toggle('selected', isSelected);
+                el.style.borderColor = isSelected ? 'var(--primary)' : 'var(--border)';
+                el.style.background = isSelected ? 'rgba(59,130,246,0.06)' : '';
+            });
+            adminState._settingsMapProvider = provider;
+        }
+
+        function saveSettingsMap() {
+            const provider = adminState._settingsMapProvider || 'amap';
+            const key = document.getElementById('settings-map-key')?.value?.trim() || '';
+            const cfg = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+            cfg.mapProvider = provider;
+            cfg.mapKey = key;
+            localStorage.setItem('footprint_config', JSON.stringify(cfg));
+            toast('✅ 地图设置已保存');
+        }
+
+        function testSettingsMapKey() {
+            toast('🔍 地图 Key 验证需在前台地图页面生效后确认');
+        }
+
+        function saveSettingsApiBase() {
+            const base = document.getElementById('settings-api-base')?.value?.trim() || '';
+            const cfg = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+            cfg.apiBase = base;
+            localStorage.setItem('footprint_config', JSON.stringify(cfg));
+            toast('✅ 后端地址已保存');
+        }
+
+        function testSettingsApiBase() {
+            const base = document.getElementById('settings-api-base')?.value?.trim();
+            if (!base) { toast('请先填写后端地址'); return; }
+            fetch(base + '/api/health').then(r => r.ok ? toast('✅ 后端连接正常') : toast('⚠️ 后端返回异常')).catch(() => toast('❌ 无法连接后端'));
+        }
+
+        function exportAllSettings() {
+            const data = {
+                records: JSON.parse(localStorage.getItem('footprint_data') || '[]'),
+                config: JSON.parse(localStorage.getItem('footprint_config') || '{}'),
+                features: JSON.parse(localStorage.getItem('footprint_features') || '{}'),
+                couple: {
+                    coupleMode: localStorage.getItem('couple_mode'),
+                    togetherDate: localStorage.getItem('together_date'),
+                    partnerName: localStorage.getItem('partner_name')
+                },
+                exportedAt: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `footprint-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            toast('📤 数据已导出');
+        }
+
+        function importAllSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (data.records) localStorage.setItem('footprint_data', JSON.stringify(data.records));
+                        if (data.config) localStorage.setItem('footprint_config', JSON.stringify(data.config));
+                        if (data.features) localStorage.setItem('footprint_features', JSON.stringify(data.features));
+                        if (data.couple) {
+                            if (data.couple.coupleMode) localStorage.setItem('couple_mode', data.couple.coupleMode);
+                            if (data.couple.togetherDate) localStorage.setItem('together_date', data.couple.togetherDate);
+                            if (data.couple.partnerName) localStorage.setItem('partner_name', data.couple.partnerName);
+                        }
+                        toast('📥 数据导入成功，刷新页面生效');
+                        setTimeout(() => location.reload(), 1200);
+                    } catch { toast('❌ 导入失败，JSON 格式错误'); }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function clearAllSettings() {
+            if (!confirm('⚠️ 确定清除所有本地数据？此操作不可恢复！')) return;
+            if (!confirm('🚨 再次确认：所有足迹记录、配置、情侣数据都将永久删除！')) return;
+            ['footprint_data', 'footprint_config', 'footprint_features', 'couple_mode', 'together_date', 'partner_name', 'travel_plans', 'wishes', 'ingredients', 'anniversaries', 'love_notes'].forEach(k => localStorage.removeItem(k));
+            toast('🗑️ 已清除全部本地数据');
+            setTimeout(() => location.reload(), 1200);
+        }
+
+        function loadSettingsConfig() {
+            const cfg = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+            if (cfg.mapProvider) selectSettingsMap(cfg.mapProvider);
+            if (cfg.mapKey) { const el = document.getElementById('settings-map-key'); if (el) el.value = cfg.mapKey; }
+            if (cfg.apiBase) { const el = document.getElementById('settings-api-base'); if (el) el.value = cfg.apiBase; }
+        }
+
         // ========== Initialization ==========
         async function initAdmin() {
             if (!checkAuth()) return;
@@ -2149,6 +2381,13 @@
             await loadLayoutConfig();
             await loadCoupleConfig();
             await loadWeChatConfig();
+
+            // 支持 URL 参数跳转到指定 Tab（如 settings.html 重定向过来的 ?tab=settings）
+            const urlTab = new URLSearchParams(location.search).get('tab');
+            if (urlTab) {
+                switchTab(urlTab);
+                if (urlTab === 'settings') loadSettingsConfig();
+            }
         }
 
         window.addEventListener('DOMContentLoaded', initAdmin);

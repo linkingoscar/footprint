@@ -2,16 +2,26 @@
    Footprint - Components CSS (UI Elements, Buttons, Cards, Modals, Forms)
    ========================================================================== */
 
-/* Header */
+/* Header (Invisible Floating Minimalist Navigation) */
 .header {
     position: sticky;
     top: 0;
     z-index: 100;
-    padding: 0 24px;
-    height: 64px;
+    padding: 0 28px;
+    height: 58px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: rgba(11, 14, 20, 0.5) !important;
+    backdrop-filter: blur(18px) saturate(180%);
+    -webkit-backdrop-filter: blur(18px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: none !important;
+}
+
+[data-theme="light"] .header {
+    background: rgba(248, 246, 240, 0.65) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 
 .logo {
@@ -23,16 +33,19 @@
     cursor: pointer;
 }
 
-.logo-icon {
-    width: 36px;
-    height: 36px;
-    background: var(--gradient);
-    border-radius: 10px;
-    display: flex;
+.logo-icon-svg {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    line-height: 1;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.logo:hover .logo-icon-svg {
+    transform: rotate(-6deg) scale(1.06);
+}
+
+.logo-icon {
+    display: none;
 }
 
 .logo-text {

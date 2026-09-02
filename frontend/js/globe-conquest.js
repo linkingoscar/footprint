@@ -377,13 +377,13 @@ const GlobeConquest = {
 
             this.globeInstance
                 .polygonsData(combinedFeatures)
-                .polygonAltitude(d => d.isVisited ? 0.05 : 0.008)
-                .polygonCapColor(d => d.isVisited ? 'rgba(245, 158, 11, 0.78)' : 'rgba(30, 41, 59, 0.4)')
-                .polygonSideColor(d => d.isVisited ? 'rgba(217, 119, 6, 0.6)' : 'rgba(15, 23, 42, 0.25)')
-                .polygonStrokeColor(() => 'rgba(255, 255, 255, 0.18)')
+                .polygonAltitude(d => d.isVisited ? 0.06 : 0.012)
+                .polygonCapColor(d => d.isVisited ? 'rgba(245, 158, 11, 0.88)' : 'rgba(13, 148, 136, 0.25)')
+                .polygonSideColor(d => d.isVisited ? 'rgba(217, 119, 6, 0.75)' : 'rgba(13, 148, 136, 0.45)')
+                .polygonStrokeColor(d => d.isVisited ? '#F59E0B' : 'rgba(56, 189, 248, 0.65)')
                 .polygonLabel(({ displayName, isVisited, level }) => `
-                    <div style="background: rgba(15,23,42,0.92); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #F8FAFC; box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
-                        <div style="font-weight: 800; font-size: 13px; color: ${isVisited ? '#F59E0B' : '#94A3B8'};">
+                    <div style="background: rgba(15,23,42,0.95); border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: #F8FAFC; box-shadow: 0 4px 16px rgba(0,0,0,0.5);">
+                        <div style="font-weight: 800; font-size: 13px; color: ${isVisited ? '#F59E0B' : '#38BDF8'};">
                             ${displayName}
                         </div>
                         <div style="font-size: 11px; color: #CBD5E1; margin-top: 2px;">
@@ -417,12 +417,12 @@ const GlobeConquest = {
 
             this.globeInstance
                 .polygonsData(worldFeatures)
-                .polygonAltitude(d => d.isVisited ? 0.05 : 0.008)
-                .polygonCapColor(d => d.isVisited ? 'rgba(56, 189, 248, 0.72)' : 'rgba(30, 41, 59, 0.4)')
-                .polygonSideColor(d => d.isVisited ? 'rgba(14, 165, 233, 0.55)' : 'rgba(15, 23, 42, 0.25)')
-                .polygonStrokeColor(() => 'rgba(255, 255, 255, 0.15)')
+                .polygonAltitude(d => d.isVisited ? 0.06 : 0.012)
+                .polygonCapColor(d => d.isVisited ? 'rgba(56, 189, 248, 0.85)' : 'rgba(30, 41, 59, 0.55)')
+                .polygonSideColor(d => d.isVisited ? 'rgba(14, 165, 233, 0.65)' : 'rgba(15, 23, 42, 0.4)')
+                .polygonStrokeColor(d => d.isVisited ? '#38BDF8' : 'rgba(255, 255, 255, 0.25)')
                 .polygonLabel(({ displayName, isVisited }) => `
-                    <div style="background: rgba(15,23,42,0.92); border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #F8FAFC;">
+                    <div style="background: rgba(15,23,42,0.95); border: 1px solid rgba(255,255,255,0.25); border-radius: 6px; padding: 6px 12px; font-size: 12px; color: #F8FAFC;">
                         <strong>${displayName}</strong>: ${isVisited ? '🌐 已点亮足迹国家' : '尚未踏足'}
                     </div>
                 `);
@@ -445,14 +445,17 @@ const GlobeConquest = {
         if (!this.globeInstance) {
             const globe = Globe()(container)
                 .backgroundColor('rgba(0,0,0,0)')
+                // 提供高清夜景与大陆纹理底图，彻底解决黑球问题
+                .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
+                .bumpImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png')
                 .showAtmosphere(true)
                 .atmosphereColor('#38BDF8')
-                .atmosphereAltitude(0.18)
+                .atmosphereAltitude(0.2)
                 // 城市脉冲光环
                 .ringsData(analysis.visitedCities)
                 .ringLat('lat')
                 .ringLng('lng')
-                .ringColor(() => () => this.currentView === 'china' ? 'rgba(245, 158, 11, 0.75)' : 'rgba(56, 189, 248, 0.75)')
+                .ringColor(() => () => this.currentView === 'china' ? 'rgba(245, 158, 11, 0.85)' : 'rgba(56, 189, 248, 0.85)')
                 .ringMaxRadius(2.8)
                 .ringPropagationSpeed(1.6)
                 .ringRepeatPeriod(1200)
@@ -461,8 +464,8 @@ const GlobeConquest = {
                 .labelLat('lat')
                 .labelLng('lng')
                 .labelText('name')
-                .labelSize(1.1)
-                .labelDotRadius(0.35)
+                .labelSize(1.2)
+                .labelDotRadius(0.4)
                 .labelColor(() => '#F8FAFC')
                 .labelResolution(2)
                 // 3D 大圆抛物流光航线
@@ -471,9 +474,9 @@ const GlobeConquest = {
                 .arcStartLng('startLng')
                 .arcEndLat('endLat')
                 .arcEndLng('endLng')
-                .arcColor(() => ['rgba(245, 158, 11, 0.9)', 'rgba(239, 68, 68, 0.85)'])
+                .arcColor(() => ['rgba(245, 158, 11, 0.95)', 'rgba(239, 68, 68, 0.9)'])
                 .arcAltitude(0.12)
-                .arcStroke(1.2)
+                .arcStroke(1.4)
                 .arcDashLength(0.4)
                 .arcDashGap(0.2)
                 .arcDashAnimateTime(1800);

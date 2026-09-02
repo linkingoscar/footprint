@@ -68,7 +68,7 @@
     <div class="app">
         <header class="header glass">
             <div class="logo" onclick="location.reload()">
-                <div class="logo-icon" id="logo-icon">✈️</div>
+                <div class="logo-icon-svg" id="logo-icon" data-icon="brand-logo" data-logo-size="34"></div>
                 <div class="logo-text">足迹</div>
                 <div class="love-header" id="love-header" style="display:none">
                     <span class="love-avatar">👩</span>
@@ -83,8 +83,7 @@
                 </div>
                 <button class="btn btn-icon btn-ghost" onclick="toggleLang()" id="lang-btn" title="切换语言"><span data-icon="globe"></span></button>
                 <button class="btn btn-icon btn-ghost" onclick="toggleTheme()" id="theme-btn" title="切换主题"><span data-icon="moon"></span></button>
-                <button class="btn btn-icon btn-ghost" onclick="location.href='admin.html'" title="网页管理后台"><span data-icon="layout-grid"></span></button>
-                <button class="btn btn-icon btn-ghost" onclick="location.href='settings.html'" title="设置"><span data-icon="settings"></span></button>
+                <button class="btn btn-icon btn-ghost" onclick="location.href='admin.html'" title="管理后台与设置"><span data-icon="layout-grid"></span></button>
                 <div id="auth-section">
                     <button class="btn btn-ghost" onclick="openModal('auth')" id="btn-login"><span data-icon="key"></span> 登录</button>
                 </div>
@@ -97,7 +96,7 @@
                         </button>
                         <div class="user-dropdown" id="user-dropdown" style="display:none">
                             <div class="user-dropdown-item" onclick="location.href='admin.html'"><span data-icon="layout-grid"></span> 网页管理后台</div>
-                            <div class="user-dropdown-item" onclick="location.href='settings.html'"><span data-icon="settings"></span> 偏好与系统设置</div>
+                            <div class="user-dropdown-item" onclick="location.href='admin.html?tab=settings'"><span data-icon="settings"></span> 偏好与系统设置</div>
                             <div class="user-dropdown-item" onclick="handleFeature('export')"><span data-icon="package"></span> 导出数据</div>
                             <div class="user-dropdown-divider"></div>
                             <div class="user-dropdown-item user-dropdown-logout" onclick="logout()"><span data-icon="key"></span> 退出登录</div>
@@ -116,10 +115,25 @@
             </div>
         </div>
 
-        <section class="map-section">
+        <section class="map-section" id="main-map-section">
+            <div class="map-header-bar">
+                <div class="map-title-tag">
+                    <span data-icon="map"></span>
+                    <span>探索足迹地图</span>
+                </div>
+                <div class="map-actions-toggle">
+                    <button class="btn btn-xs btn-ghost" id="btn-toggle-map-fold" onclick="toggleMapFold()" title="折叠/展开地图">
+                        <span data-icon="chevron-down" id="map-fold-icon"></span>
+                        <span id="map-fold-text">收起地图</span>
+                    </button>
+                    <button class="btn btn-xs btn-ghost" onclick="toggleMapFullscreen()" title="全屏浏览">
+                        <span>⛶ 全屏</span>
+                    </button>
+                </div>
+            </div>
             <div id="footprint-map" class="footprint-map"></div>
             <div class="map-empty" id="map-empty" style="display:none">
-                <div class="map-empty-icon">🗺️</div>
+                <div class="map-empty-icon" data-icon="map"></div>
                 <p>添加带 GPS 的照片，足迹会自动标记在地图上</p>
             </div>
         </section>
@@ -148,22 +162,51 @@
                 </div>
             </div>
 
-            <!-- Quick Feature Bar -->
-            <div class="feature-bar-section">
-                <div class="feature-bar-scroll">
-                    <button class="feature-pill-btn" onclick="handleFeature('map')"><span data-icon="map"></span><span>足迹地图</span></button>
+            <!-- Curated Lifestyle & Explorer Hub (Zero Ugly Scrollbar) -->
+            <div class="explorer-hub" style="margin-bottom: 24px;">
+                <!-- 4 核心大展馆 -->
+                <div class="hub-hero-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px;">
+                    <div class="hub-card" onclick="handleFeature('map')" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: var(--transition);">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(13,148,136,0.15); color: #0D9488; display: flex; align-items: center; justify-content: center;" data-icon="map"></div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: var(--text);">足迹地图</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">查看标记与路线</div>
+                        </div>
+                    </div>
+                    <div class="hub-card" onclick="GlobeConquest.open()" style="background: var(--bg-card); border: 1px solid rgba(56,189,248,0.25); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: var(--transition);">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(56,189,248,0.15); color: #38BDF8; display: flex; align-items: center; justify-content: center;" data-icon="globe-2"></div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #38BDF8;">3D 点亮地球</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">细密地级市浮雕</div>
+                        </div>
+                    </div>
+                    <div class="hub-card" onclick="PassportModule.open()" style="background: var(--bg-card); border: 1px solid rgba(217,119,6,0.25); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: var(--transition);">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(217,119,6,0.15); color: #D97706; display: flex; align-items: center; justify-content: center;" data-icon="stamp"></div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #D97706;">通关护照本</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">城市复古海关印章</div>
+                        </div>
+                    </div>
+                    <div class="hub-card" onclick="BadgesModule.open()" style="background: var(--bg-card); border: 1px solid rgba(16,185,129,0.25); border-radius: var(--radius-sm); padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: var(--transition);">
+                        <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(16,185,129,0.15); color: #10B981; display: flex; align-items: center; justify-content: center;" data-icon="award"></div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: #10B981;">成就勋章</div>
+                            <div style="font-size: 11px; color: var(--text-muted);">8阶旅行家里程碑</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 灵动生活实用工具组 (自动响应折行，绝无横向滚动条) -->
+                <div class="hub-tool-dock" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; align-items: center;">
+                    <button class="feature-pill-btn" onclick="FoodWheel.open()" style="border-color:rgba(245,158,11,0.45);background:rgba(245,158,11,0.12)"><span style="color:#F59E0B" data-icon="dices"></span><span style="font-weight:700;color:#F59E0B">今天吃什么</span></button>
+                    <button class="feature-pill-btn" onclick="PackingListModule.open()" style="border-color:rgba(16,185,129,0.3);"><span style="color:#10B981" data-icon="briefcase"></span><span>行前清单</span></button>
                     <button class="feature-pill-btn" onclick="handleFeature('replay')"><span data-icon="play-circle"></span><span>轨迹回放</span></button>
                     <button class="feature-pill-btn" onclick="handleFeature('timeline')"><span data-icon="calendar"></span><span>时光轨迹</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('cities')"><span data-icon="building-2"></span><span>城市点亮</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('cities')"><span data-icon="building-2"></span><span>城市排行</span></button>
                     <button class="feature-pill-btn" onclick="handleFeature('ai-story')"><span data-icon="sparkles"></span><span>AI游记</span></button>
                     <button class="feature-pill-btn" onclick="handleFeature('expense')"><span data-icon="wallet"></span><span>花费账单</span></button>
-                    <button class="feature-pill-btn" onclick="FoodWheel.open()" style="border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.08)"><span style="color:#F59E0B" data-icon="dices"></span><span style="font-weight:600;color:#F59E0B">今天吃什么</span></button>
                     <button class="feature-pill-btn" onclick="handleFeature('ingredients')"><span data-icon="salad"></span><span>美食食材</span></button>
                     <button class="feature-pill-btn" onclick="handleFeature('stats')"><span data-icon="bar-chart-3"></span><span>足迹报告</span></button>
-                    <button class="feature-pill-btn" onclick="GlobeConquest.open()" style="border-color:rgba(56,189,248,0.4);background:rgba(56,189,248,0.08)"><span style="color:#38BDF8" data-icon="globe-2"></span><span style="font-weight:600;color:#38BDF8">3D点亮地球</span></button>
-                    <button class="feature-pill-btn" onclick="PassportModule.open()" style="border-color:rgba(217,119,6,0.4);background:rgba(217,119,6,0.08)"><span style="color:#D97706" data-icon="stamp"></span><span style="font-weight:600;color:#D97706">通关护照</span></button>
-                    <button class="feature-pill-btn" onclick="BadgesModule.open()" style="border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.08)"><span style="color:#10B981" data-icon="award"></span><span style="font-weight:600;color:#10B981">成就勋章</span></button>
-                    <button class="feature-pill-btn" onclick="PackingListModule.open()" style="border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.08)"><span style="color:#10B981" data-icon="briefcase"></span><span style="font-weight:600;color:#10B981">行前清单</span></button>
                     <button class="feature-pill-btn" onclick="handleFeature('export')"><span data-icon="package"></span><span>数据导出</span></button>
                 </div>
             </div>
@@ -2919,6 +2962,29 @@
 
             // 打开模态框
             openModal('add');
+        }
+
+        function toggleMapFold() {
+            const mapSection = document.getElementById('main-map-section');
+            const icon = document.getElementById('map-fold-icon');
+            const text = document.getElementById('map-fold-text');
+            if (!mapSection) return;
+            const isCollapsed = mapSection.classList.toggle('collapsed');
+            if (text) text.textContent = isCollapsed ? '展开地图' : '收起地图';
+            if (icon) icon.innerHTML = AppIcons.get(isCollapsed ? 'chevron-down' : 'chevron-up');
+            setTimeout(() => {
+                if (state.mapInstance?.invalidateSize) state.mapInstance.invalidateSize();
+            }, 420);
+        }
+
+        function toggleMapFullscreen() {
+            const mapSection = document.getElementById('main-map-section');
+            if (!mapSection) return;
+            if (!document.fullscreenElement) {
+                mapSection.requestFullscreen?.().catch(() => {});
+            } else {
+                document.exitFullscreen?.().catch(() => {});
+            }
         }
 
         // ========== Feature Helpers ==========

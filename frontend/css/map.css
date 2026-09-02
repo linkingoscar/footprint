@@ -4,14 +4,62 @@
 
 .map-section {
     width: 100%;
-    height: 60vh;
-    min-height: 300px;
-    max-height: 600px;
+    height: 360px;
     position: relative;
     border-radius: var(--radius);
     overflow: hidden;
     margin-bottom: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.map-section.collapsed {
+    height: 48px;
+}
+
+.map-header-bar {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    z-index: 400;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+}
+
+.map-title-tag {
+    pointer-events: auto;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    padding: 6px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.map-actions-toggle {
+    pointer-events: auto;
+    display: flex;
+    gap: 6px;
+}
+
+.map-actions-toggle .btn {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
 }
 
 .footprint-map {
