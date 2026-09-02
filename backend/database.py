@@ -76,6 +76,35 @@ class RecordStore:
         """把无主（旧版本导入）的数据归给指定用户，仅在数据尚无属主时执行。"""
         raise NotImplementedError
 
+    # ---- User Features (Plans, Wishes, Notes, Anniversaries, etc.) ----
+    def get_user_features(self, owner_id: str) -> Dict[str, Any]:
+        """获取用户的所有扩展特性数据"""
+        raise NotImplementedError
+
+    def save_user_feature(self, owner_id: str, feature_key: str, data: Any) -> None:
+        """保存用户的单个扩展特性数据"""
+        raise NotImplementedError
+
+    def delete_user_feature(self, owner_id: str, feature_key: str) -> None:
+        """删除用户的单个扩展特性数据"""
+        raise NotImplementedError
+
+    # ---- Couple Space Pairing ----
+    def create_couple_invite(self, owner_id: str, code: str, expires_at: str) -> dict:
+        raise NotImplementedError
+
+    def get_couple_invite(self, code: str) -> Optional[dict]:
+        raise NotImplementedError
+
+    def bind_couple_space(self, user_a_id: str, user_b_id: str, space_id: str) -> dict:
+        raise NotImplementedError
+
+    def get_couple_status(self, user_id: str) -> dict:
+        raise NotImplementedError
+
+    def unbind_couple_space(self, user_id: str) -> bool:
+        raise NotImplementedError
+
 
 class JsonRecordStore(RecordStore):
     """向后兼容的 JSON 文件存储。"""
@@ -86,6 +115,7 @@ class JsonRecordStore(RecordStore):
         os.makedirs(base_dir, exist_ok=True)
         self.users_file = os.path.join(base_dir, 'users.json')
         self.expenses_file = os.path.join(base_dir, 'expenses.json')
+        self.features_file = os.path.join(base_dir, 'features.json')
 
     def _load(self) -> List[Dict[str, Any]]:
         if os.path.exists(self.metadata_file):
@@ -267,6 +297,139 @@ class JsonRecordStore(RecordStore):
         if changed:
             self._save_expenses(expenses)
 
+    def _load_features(self) -> dict:
+        if os.path.exists(self.features_file):
+            try:
+                with open(self.features_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except (OSError, json.JSONDecodeError):
+                return {}
+        return {}
+
+    def _save_features(self, features: dict):
+        with open(self.features_file, 'w', encoding='utf-8') as f:
+            json.dump(features, f, ensure_ascii=False, indent=2)
+
+    def get_user_features(self, owner_id: str) -> Dict[str, Any]:
+        return self._load_features().get(owner_id, {})
+
+    def save_user_feature(self, owner_id: str, feature_key: str, data: Any) -> None:
+        features = self._load_features()
+        features.setdefault(owner_id, {})[feature_key] = data
+        self._save_features(features)
+
+    def delete_user_feature(self, owner_id: str, feature_key: str) -> None:
+        features = self._load_features()
+        if owner_id in features and feature_key in features[owner_id]:
+            del features[owner_id][feature_key]
+            self._save_features(features)
+
+    def _load_couple_invites(self) -> list:
+        invites_file = os.path.join(os.path.dirname(self.metadata_file), 'couple_invites.json')
+        if os.path.exists(invites_file):
+            try:
+                with open(invites_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                return []
+        return []
+
+    def _save_couple_invites(self, invites: list):
+        invites_file = os.path.join(os.path.dirname(self.metadata_file), 'couple_invites.json')
+        with open(invites_file, 'w', encoding='utf-8') as f:
+            json.dump(invites, f, ensure_ascii=False, indent=2)
+
+    def _load_couple_spaces(self) -> list:
+        spaces_file = os.path.join(os.path.dirname(self.metadata_file), 'couple_spaces.json')
+        if os.path.exists(spaces_file):
+            try:
+                with open(spaces_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                return []
+        return []
+
+    def _save_couple_spaces(self, spaces: list):
+        spaces_file = os.path.join(os.path.dirname(self.metadata_file), 'couple_spaces.json')
+        with open(spaces_file, 'w', encoding='utf-8') as f:
+            json.dump(spaces, f, ensure_ascii=False, indent=2)
+
+    def create_couple_invite(self, owner_id: str, code: str, expires_at: str) -> dict:
+        invites = [i for i in self._load_couple_invites() if i.get('owner_id') != owner_id]
+        item = {
+            'code': code,
+            'owner_id': owner_id,
+            'created_at': datetime.now().isoformat(),
+            'expires_at': expires_at
+        }
+        invites.append(item)
+        self._save_couple_invites(invites)
+        return item
+
+    def get_couple_invite(self, code: str) -> Optional[dict]:
+        now = datetime.now().isoformat()
+        invites = self._load_couple_invites()
+        for i in invites:
+            if i.get('code') == code:
+                if i.get('expires_at') > now:
+                    return i
+                return None
+        return None
+
+    def bind_couple_space(self, user_a_id: str, user_b_id: str, space_id: str) -> dict:
+        spaces = self._load_couple_spaces()
+        space_item = {
+            'id': space_id,
+            'user_a_id': user_a_id,
+            'user_b_id': user_b_id,
+            'created_at': datetime.now().isoformat()
+        }
+        spaces.append(space_item)
+        self._save_couple_spaces(spaces)
+
+        # Update users
+        users = self._load_users()
+        for u in users:
+            if u.get('id') == user_a_id:
+                u['partner_id'] = user_b_id
+                u['couple_space_id'] = space_id
+            elif u.get('id') == user_b_id:
+                u['partner_id'] = user_a_id
+                u['couple_space_id'] = space_id
+        self._save_users(users)
+
+        # Remove invites
+        invites = [i for i in self._load_couple_invites() if i.get('owner_id') not in (user_a_id, user_b_id)]
+        self._save_couple_invites(invites)
+        return space_item
+
+    def get_couple_status(self, user_id: str) -> dict:
+        user = self.get_user_by_id(user_id)
+        if not user or not user.get('couple_space_id'):
+            return {'paired': False, 'couple_space_id': None, 'partner': None}
+        partner = self.get_user_by_id(user.get('partner_id')) if user.get('partner_id') else None
+        return {
+            'paired': True,
+            'couple_space_id': user.get('couple_space_id'),
+            'partner': {
+                'id': partner['id'],
+                'username': partner['username']
+            } if partner else None
+        }
+
+    def unbind_couple_space(self, user_id: str) -> bool:
+        user = self.get_user_by_id(user_id)
+        if not user or not user.get('couple_space_id'):
+            return False
+        partner_id = user.get('partner_id')
+        users = self._load_users()
+        for u in users:
+            if u.get('id') in (user_id, partner_id):
+                u['partner_id'] = ''
+                u['couple_space_id'] = ''
+        self._save_users(users)
+        return True
+
 
 class SQLiteRecordStore(RecordStore):
     """SQLite 记录存储，归一化模式，支持用户和费用管理。"""
@@ -411,6 +574,8 @@ class SQLiteRecordStore(RecordStore):
             """)
         self._init_users_table()
         self._init_expenses_table()
+        self._init_features_table()
+        self._init_couple_tables()
 
     def _init_users_table(self):
         """Create users table for authentication."""
@@ -446,7 +611,46 @@ class SQLiteRecordStore(RecordStore):
             # 旧库迁移：为已存在的表补充新增列
             self._ensure_column(conn, 'records', 'owner_id', "owner_id TEXT DEFAULT ''")
             self._ensure_column(conn, 'users', 'expires_at', "expires_at TEXT")
+            self._ensure_column(conn, 'users', 'partner_id', "partner_id TEXT DEFAULT ''")
+            self._ensure_column(conn, 'users', 'couple_space_id', "couple_space_id TEXT DEFAULT ''")
             self._ensure_column(conn, 'expenses', 'owner_id', "owner_id TEXT DEFAULT ''")
+
+    def _init_features_table(self):
+        """Create user features table for plans, wishes, notes, etc."""
+        with self._connect() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS user_features (
+                    id TEXT PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
+                    feature_key TEXT NOT NULL,
+                    data_json TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(owner_id, feature_key)
+                )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_features_owner ON user_features(owner_id)")
+
+    def _init_couple_tables(self):
+        """Create couple invites and couple spaces table."""
+        with self._connect() as conn:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS couple_invites (
+                    code TEXT PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
+                    created_at TEXT NOT NULL,
+                    expires_at TEXT NOT NULL
+                )
+            """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS couple_spaces (
+                    id TEXT PRIMARY KEY,
+                    user_a_id TEXT NOT NULL,
+                    user_b_id TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_couple_invites_owner ON couple_invites(owner_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_couple_spaces_users ON couple_spaces(user_a_id, user_b_id)")
 
     def _migrate_json_once(self):
         if not self.metadata_file or not os.path.exists(self.metadata_file):
@@ -466,9 +670,11 @@ class SQLiteRecordStore(RecordStore):
 
     # ---- Record helpers ----
     def _row_to_record(self, row) -> Dict[str, Any]:
+        meta = json.loads(row['metadata']) if row['metadata'] else {}
         return {
             'id': row['id'],
             'mode': row['mode'],
+            'is_couple': meta.get('is_couple', False) or row['mode'] == 'love',
             'title': row['title'],
             'description': row['description'] or '',
             'location': row['location'],
@@ -478,7 +684,7 @@ class SQLiteRecordStore(RecordStore):
             'rating': row['rating'],
             'price': row['price'],
             'tags': json.loads(row['tags']) if row['tags'] else [],
-            'metadata': json.loads(row['metadata']) if row['metadata'] else {},
+            'metadata': meta,
             'images': json.loads(row['images']) if row['images'] else [],
             'createdAt': row['created_at'],
             'updatedAt': row['updated_at'],
@@ -677,6 +883,113 @@ class SQLiteRecordStore(RecordStore):
             conn.execute("UPDATE records SET owner_id = ? WHERE owner_id = '' OR owner_id IS NULL", (user_id,))
             conn.execute("UPDATE expenses SET owner_id = ? WHERE owner_id = '' OR owner_id IS NULL", (user_id,))
 
+    # ---- User Features ----
+    def get_user_features(self, owner_id: str) -> Dict[str, Any]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                "SELECT feature_key, data_json FROM user_features WHERE owner_id = ?",
+                (owner_id,)
+            ).fetchall()
+            result = {}
+            for row in rows:
+                try:
+                    result[row['feature_key']] = json.loads(row['data_json'])
+                except Exception:
+                    result[row['feature_key']] = None
+            return result
+
+    def save_user_feature(self, owner_id: str, feature_key: str, data: Any) -> None:
+        now = datetime.now().isoformat()
+        data_json = json.dumps(data, ensure_ascii=False)
+        feature_id = f"{owner_id}_{feature_key}"
+        with self._connect() as conn:
+            conn.execute("""
+                INSERT INTO user_features (id, owner_id, feature_key, data_json, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(owner_id, feature_key) DO UPDATE SET
+                    data_json = excluded.data_json,
+                    updated_at = excluded.updated_at
+            """, (feature_id, owner_id, feature_key, data_json, now))
+            conn.commit()
+
+    def delete_user_feature(self, owner_id: str, feature_key: str) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                "DELETE FROM user_features WHERE owner_id = ? AND feature_key = ?",
+                (owner_id, feature_key)
+            )
+            conn.commit()
+
+    # ---- Couple Space Pairing ----
+    def create_couple_invite(self, owner_id: str, code: str, expires_at: str) -> dict:
+        now = datetime.now().isoformat()
+        with self._connect() as conn:
+            conn.execute("DELETE FROM couple_invites WHERE owner_id = ?", (owner_id,))
+            conn.execute("""
+                INSERT INTO couple_invites (code, owner_id, created_at, expires_at)
+                VALUES (?, ?, ?, ?)
+            """, (code, owner_id, now, expires_at))
+            conn.commit()
+        return {'code': code, 'owner_id': owner_id, 'created_at': now, 'expires_at': expires_at}
+
+    def get_couple_invite(self, code: str) -> Optional[dict]:
+        now = datetime.now().isoformat()
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM couple_invites WHERE code = ?", (code,)).fetchone()
+            if not row:
+                return None
+            item = dict(row)
+            if item.get('expires_at') and item['expires_at'] < now:
+                conn.execute("DELETE FROM couple_invites WHERE code = ?", (code,))
+                conn.commit()
+                return None
+            return item
+
+    def bind_couple_space(self, user_a_id: str, user_b_id: str, space_id: str) -> dict:
+        now = datetime.now().isoformat()
+        with self._connect() as conn:
+            conn.execute("""
+                INSERT INTO couple_spaces (id, user_a_id, user_b_id, created_at)
+                VALUES (?, ?, ?, ?)
+            """, (space_id, user_a_id, user_b_id, now))
+            conn.execute("UPDATE users SET partner_id = ?, couple_space_id = ? WHERE id = ?", (user_b_id, space_id, user_a_id))
+            conn.execute("UPDATE users SET partner_id = ?, couple_space_id = ? WHERE id = ?", (user_a_id, space_id, user_b_id))
+            conn.execute("DELETE FROM couple_invites WHERE owner_id IN (?, ?)", (user_a_id, user_b_id))
+            conn.commit()
+        return {'id': space_id, 'user_a_id': user_a_id, 'user_b_id': user_b_id, 'created_at': now}
+
+    def get_couple_status(self, user_id: str) -> dict:
+        with self._connect() as conn:
+            row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+            if not row:
+                return {'paired': False, 'couple_space_id': None, 'partner': None}
+            u = dict(row)
+            couple_space_id = u.get('couple_space_id')
+            partner_id = u.get('partner_id')
+            if not couple_space_id or not partner_id:
+                return {'paired': False, 'couple_space_id': None, 'partner': None}
+
+            p_row = conn.execute("SELECT id, username FROM users WHERE id = ?", (partner_id,)).fetchone()
+            partner = dict(p_row) if p_row else None
+            return {
+                'paired': True,
+                'couple_space_id': couple_space_id,
+                'partner': partner
+            }
+
+    def unbind_couple_space(self, user_id: str) -> bool:
+        with self._connect() as conn:
+            row = conn.execute("SELECT partner_id, couple_space_id FROM users WHERE id = ?", (user_id,)).fetchone()
+            if not row:
+                return False
+            u = dict(row)
+            partner_id = u.get('partner_id')
+            conn.execute("UPDATE users SET partner_id = '', couple_space_id = '' WHERE id = ?", (user_id,))
+            if partner_id:
+                conn.execute("UPDATE users SET partner_id = '', couple_space_id = '' WHERE id = ?", (partner_id,))
+            conn.commit()
+            return True
+
 
 class PostgresRecordStore(RecordStore):
     """PostgreSQL 记录存储，归一化模式，支持用户和费用管理。"""
@@ -805,6 +1118,7 @@ class PostgresRecordStore(RecordStore):
             conn.commit()
         self._init_users_table()
         self._init_expenses_table()
+        self._init_features_table()
 
     def _init_users_table(self):
         """Create users table for authentication."""
@@ -840,14 +1154,33 @@ class PostgresRecordStore(RecordStore):
                 """)
             conn.commit()
 
+    def _init_features_table(self):
+        """Create user features table."""
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS user_features (
+                        id TEXT PRIMARY KEY,
+                        owner_id TEXT NOT NULL,
+                        feature_key TEXT NOT NULL,
+                        data_json JSONB NOT NULL,
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        UNIQUE(owner_id, feature_key)
+                    );
+                    CREATE INDEX IF NOT EXISTS idx_features_owner ON user_features(owner_id);
+                """)
+            conn.commit()
+
     # ---- Record helpers ----
     def _row_to_record(self, row) -> Dict[str, Any]:
         tags = row[10]
         metadata = row[11]
         images = row[12]
+        meta = metadata if isinstance(metadata, dict) else (json.loads(metadata) if metadata else {})
         return {
             'id': row[0],
             'mode': row[1],
+            'is_couple': meta.get('is_couple', False) or row[1] == 'love',
             'title': row[2],
             'description': row[3] or '',
             'location': row[4],
@@ -856,9 +1189,9 @@ class PostgresRecordStore(RecordStore):
             'date': str(row[7]) if row[7] else None,
             'rating': row[8],
             'price': row[9],
-            'tags': tags if isinstance(tags, list) else json.loads(tags),
-            'metadata': metadata if isinstance(metadata, dict) else json.loads(metadata),
-            'images': images if isinstance(images, list) else json.loads(images),
+            'tags': tags if isinstance(tags, list) else (json.loads(tags) if tags else []),
+            'metadata': meta,
+            'images': images if isinstance(images, list) else (json.loads(images) if images else []),
             'createdAt': row[13].isoformat() if hasattr(row[13], 'isoformat') else str(row[13]),
             'updatedAt': row[14].isoformat() if row[14] and hasattr(row[14], 'isoformat') else str(row[14]) if row[14] else None,
         }
@@ -1094,6 +1427,49 @@ class PostgresRecordStore(RecordStore):
             with conn.cursor() as cursor:
                 cursor.execute("UPDATE records SET owner_id = %s WHERE owner_id = '' OR owner_id IS NULL", (user_id,))
                 cursor.execute("UPDATE expenses SET owner_id = %s WHERE owner_id = '' OR owner_id IS NULL", (user_id,))
+            conn.commit()
+
+    # ---- User Features ----
+    def get_user_features(self, owner_id: str) -> Dict[str, Any]:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT feature_key, data_json FROM user_features WHERE owner_id = %s",
+                    (owner_id,)
+                )
+                rows = cursor.fetchall()
+                result = {}
+                for row in rows:
+                    data = row[1]
+                    if isinstance(data, str):
+                        try:
+                            data = json.loads(data)
+                        except Exception:
+                            pass
+                    result[row[0]] = data
+                return result
+
+    def save_user_feature(self, owner_id: str, feature_key: str, data: Any) -> None:
+        from psycopg2.extras import Json
+        feature_id = f"{owner_id}_{feature_key}"
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO user_features (id, owner_id, feature_key, data_json, updated_at)
+                    VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT(owner_id, feature_key) DO UPDATE SET
+                        data_json = EXCLUDED.data_json,
+                        updated_at = CURRENT_TIMESTAMP
+                """, (feature_id, owner_id, feature_key, Json(data)))
+            conn.commit()
+
+    def delete_user_feature(self, owner_id: str, feature_key: str) -> None:
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "DELETE FROM user_features WHERE owner_id = %s AND feature_key = %s",
+                    (owner_id, feature_key)
+                )
             conn.commit()
 
 

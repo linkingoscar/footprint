@@ -61,6 +61,10 @@ function register(username, password) {
     return request({ url: '/api/auth/register', method: 'POST', data: { username, password } });
 }
 
+function wechatLogin(code) {
+    return request({ url: '/api/wechat/login', method: 'POST', data: { code } });
+}
+
 // Records API
 function getRecords(mode) {
     const url = mode ? `/api/records?mode=${mode}` : '/api/records';
@@ -122,7 +126,7 @@ function healthCheck() {
 
 module.exports = {
     getApiBase, setApiBase, getToken, setToken, clearToken,
-    request, login, register,
+    request, login, register, wechatLogin,
     getRecords, createRecord, updateRecord, deleteRecord,
     uploadImage, geocode, reverseGeocode, healthCheck
 };

@@ -30,467 +30,33 @@
     
     <!-- tsParticles -->
     <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
-    <style>
-        :root {
-            --font: 'Inter', -apple-system, sans-serif;
-            --radius: 20px;
-            --radius-sm: 14px;
-            --radius-full: 9999px;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        [data-theme="dark"] {
-            --bg: #0F0F14;
-            --bg-elevated: rgba(255,255,255,0.08);
-            --text: #fff;
-            --text-sec: rgba(255,255,255,0.7);
-            --text-muted: rgba(255,255,255,0.4);
-            --border: rgba(255,255,255,0.1);
-            --glass: rgba(255,255,255,0.06);
-            --glass-border: rgba(255,255,255,0.12);
-        }
-        [data-theme="light"] {
-            --bg: #F5F5F7;
-            --bg-elevated: rgba(255,255,255,0.9);
-            --text: #1D1D1F;
-            --text-sec: rgba(0,0,0,0.6);
-            --text-muted: rgba(0,0,0,0.4);
-            --border: rgba(0,0,0,0.1);
-            --glass: rgba(255,255,255,0.7);
-            --glass-border: rgba(255,255,255,0.5);
-        }
-        [data-mode="travel"] { --primary: #3B82F6; --glow: rgba(59,130,246,0.3); --gradient: linear-gradient(135deg, #3B82F6, #06B6D4); --mode-bg: rgba(59,130,246,0.1); }
-        [data-mode="food"] { --primary: #F59E0B; --glow: rgba(245,158,11,0.3); --gradient: linear-gradient(135deg, #F59E0B, #EF4444); --mode-bg: rgba(245,158,11,0.1); }
-        [data-mode="love"] { --primary: #EC4899; --glow: rgba(236,72,153,0.3); --gradient: linear-gradient(135deg, #EC4899, #8B5CF6); --mode-bg: rgba(236,72,153,0.1); }
+    <!-- Leaflet & MarkerCluster CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        /* iOS Safe Area Support */
-        body { 
-            font-family: var(--font); 
-            background: var(--bg); 
-            color: var(--text); 
-            min-height: 100vh; 
-            overflow-x: hidden;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
-            -webkit-text-size-adjust: 100%;
-            -webkit-tap-highlight-color: transparent;
-        }
+    <!-- Modular CSS Stylesheets -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="css/couple.css">
 
-        /* iOS specific fixes */
-        @supports (-webkit-touch-callout: none) {
-            body {
-                min-height: -webkit-fill-available;
-            }
-        }
+    <!-- Leaflet, MarkerCluster, Confetti & Globe.gl 3D Vendor Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.32.2/dist/globe.gl.min.js"></script>
 
-        .glass { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); }
-
-        /* Dynamic BG */
-        .dynamic-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-        .bg-blob { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.08; animation: blobFloat 20s ease-in-out infinite; }
-        .bg-blob-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; }
-        .bg-blob-2 { width: 350px; height: 350px; background: #06B6D4; bottom: -100px; right: -100px; animation-delay: -7s; }
-        @keyframes blobFloat { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,30px) scale(1.1)} }
-
-        .app { position: relative; z-index: 1; min-height: 100vh; }
-
-        /* Header */
-        .header { position: sticky; top: 0; z-index: 100; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; }
-        .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); cursor: pointer; }
-        .logo-icon { width: 36px; height: 36px; background: var(--gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; }
-        .logo-text { font-size: 18px; font-weight: 700; }
-        .header-actions { display: flex; gap: 8px; }
-
-        /* Buttons */
-        .btn { padding: 10px 18px; min-height: 44px; border-radius: var(--radius-full); border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: var(--transition); font-family: var(--font); display: inline-flex; align-items: center; justify-content: center; gap: 6px; line-height: 1; }
-        .btn:active { transform: scale(0.96); }
-        .btn-primary { background: var(--gradient); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--glow); }
-        .btn-ghost { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
-        .btn-ghost:hover { background: var(--glass); }
-        .btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
-        .btn-sm { padding: 8px 14px; min-height: 36px; font-size: 13px; }
-        .btn-danger { background: rgba(239,68,68,0.1); color: #EF4444; border: 1px solid rgba(239,68,68,0.2); }
-
-        /* Hero */
-        .hero { text-align: center; padding: 60px 24px 40px; position: relative; }
-        .hero-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px; background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius-full); font-size: 13px; color: var(--text-sec); margin-bottom: 24px; }
-        .hero-dot { width: 6px; height: 6px; border-radius: 50%; background: #10B981; }
-        .hero h1 { font-size: 48px; font-weight: 800; line-height: 1.2; margin-bottom: 16px; }
-        .hero-gradient { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .hero p { font-size: 16px; color: var(--text-sec); margin-bottom: 32px; }
-        .hero-actions { display: flex; gap: 12px; justify-content: center; }
-        .mode-switcher { display: inline-flex; gap: 4px; align-items: center; margin: 26px auto 0; padding: 4px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .mode-pill { min-width: 112px; height: 42px; border: none; border-radius: 8px; background: transparent; color: var(--text-sec); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: var(--transition); }
-        .mode-pill > span:first-child { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 16px; line-height: 1; flex-shrink: 0; }
-        .mode-pill:hover { color: var(--text); background: var(--glass); }
-        .mode-pill.active { color: white; background: var(--gradient); box-shadow: 0 4px 14px var(--glow); }
-        .stats { display: flex; gap: 48px; justify-content: center; margin-top: 48px; }
-        .stat-num { font-size: 36px; font-weight: 800; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .stat-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; justify-content: center; gap: 4px; }
-
-        /* Main */
-        .main { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
-        .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .section-title { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-
-        /* Features */
-        .features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 40px; }
-        .feature-card { background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 12px; cursor: pointer; transition: var(--transition); text-align: center; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .feature-card:hover { transform: translateY(-4px); border-color: var(--primary); background: var(--mode-bg); }
-        .feature-card.highlight { border-color: var(--primary); background: var(--mode-bg); }
-        .feature-card.highlight .feature-icon { font-size: 32px; }
-        .feature-card:active { transform: scale(0.96); }
-        .feature-icon { font-size: 28px; margin-bottom: 8px; line-height: 1; }
-        .feature-name { font-size: 12px; font-weight: 500; }
-
-        /* Photo Grid - Polaroid */
-        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
-        .photo-card { background: white; border-radius: 4px; overflow: hidden; cursor: pointer; transition: all 0.4s cubic-bezier(0.4,0,0.2,1); box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24); padding: 12px 12px 16px; position: relative; }
-        [data-theme="dark"] .photo-card { background: rgba(30,30,40,0.95); }
-        .photo-card:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: 0 14px 28px rgba(0,0,0,0.25); }
-        .photo-card:nth-child(even):hover { transform: translateY(-8px) rotate(1deg); }
-        .photo-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 2px; display: block; }
-        .photo-card-body { padding: 12px 4px 4px; }
-        .photo-card-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
-        .photo-card-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 10px; }
-        .photo-card-tag { position: absolute; top: 16px; right: 16px; padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; z-index: 2; }
-        .tag-travel { background: rgba(59,130,246,0.2); color: #60A5FA; }
-        .tag-food { background: rgba(245,158,11,0.2); color: #FBBF24; }
-        .tag-love { background: rgba(236,72,153,0.2); color: #F472B6; }
-
-        /* Empty */
-        .empty { text-align: center; padding: 60px 20px; }
-        .empty-icon { font-size: 72px; margin-bottom: 20px; line-height: 1; animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-        .empty h3 { font-size: 22px; margin-bottom: 12px; }
-        .empty p { color: var(--text-sec); margin-bottom: 24px; max-width: 300px; margin-left: auto; margin-right: auto; }
-
-        /* Modal */
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
-        .modal-overlay.active { display: flex; }
-        .modal { background: var(--glass); backdrop-filter: blur(40px); border: 1px solid var(--glass-border); border-radius: var(--radius); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 100px rgba(0,0,0,0.5); animation: modalIn 0.3s ease; }
-        .modal-lg { max-width: 800px; }
-        @keyframes modalIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-        .modal-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--glass); backdrop-filter: blur(20px); z-index: 10; }
-        .modal-title { font-size: 17px; font-weight: 600; }
-        .modal-close { width: 30px; height: 30px; border-radius: 50%; border: none; background: var(--bg-elevated); color: var(--text); cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-        .modal-body { padding: 20px; }
-        .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; position: sticky; bottom: 0; background: var(--glass); backdrop-filter: blur(20px); }
-
-        /* Form */
-        .form-group { margin-bottom: 16px; }
-        .form-label { font-size: 13px; font-weight: 500; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        .form-input, .form-textarea, .form-select { width: 100%; padding: 10px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; color: var(--text); font-family: var(--font); }
-        .form-input:focus, .form-textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--glow); }
-        .form-textarea { resize: vertical; min-height: 80px; }
-        .form-row { display: flex; gap: 10px; }
-        .form-row .form-group { flex: 1; }
-
-        /* Upload Tabs */
-        .upload-tabs { display: flex; gap: 4px; background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 4px; margin-bottom: 16px; }
-        .upload-tab { flex: 1; padding: 10px 16px; border: none; border-radius: 8px; background: transparent; color: var(--text-sec); font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition); font-family: var(--font); }
-        .upload-tab.active { background: var(--primary); color: white; }
-        .upload-tab-content { display: none; }
-        .upload-tab-content.active { display: block; }
-
-        /* Upload Zone */
-        .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 40px 20px; text-align: center; transition: var(--transition); cursor: pointer; }
-        .upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: var(--mode-bg); }
-        .upload-zone-icon { font-size: 48px; margin-bottom: 12px; line-height: 1; }
-        .upload-zone h4 { font-size: 15px; margin-bottom: 6px; }
-        .upload-zone p { font-size: 13px; color: var(--text-sec); margin-bottom: 16px; }
-        .upload-zone-actions { display: flex; gap: 10px; justify-content: center; }
-
-        /* URL Upload */
-        .url-upload-zone { padding: 16px; background: var(--bg-elevated); border-radius: var(--radius-sm); border: 1px solid var(--border); }
-        .url-provider-tag { padding: 4px 10px; background: var(--glass); border: 1px solid var(--border); border-radius: var(--radius-full); font-size: 11px; cursor: pointer; transition: var(--transition); display: inline-block; }
-        .url-provider-tag:hover { border-color: var(--primary); background: var(--mode-bg); }
-
-        /* Preview */
-        .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 16px; }
-        .preview-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; border: 2px solid var(--border); }
-        .preview-item img { width: 100%; height: 100%; object-fit: cover; }
-        .preview-remove { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.7); color: white; border: none; cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; }
-        .preview-item:hover .preview-remove { display: flex; }
-        .preview-badge { position: absolute; bottom: 4px; left: 4px; padding: 1px 6px; background: rgba(0,0,0,0.7); color: white; border-radius: 4px; font-size: 10px; }
-
-        /* Progress */
-        .upload-progress { margin-top: 16px; display: none; }
-        .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--gradient); width: 0%; transition: width 0.3s; }
-        .progress-text { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
-
-        /* Search */
-        .search-results { position: absolute; top: 100%; left: 0; right: 0; background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 4px; max-height: 180px; overflow-y: auto; display: none; z-index: 100; }
-        .search-results.active { display: block; }
-        .search-item { padding: 10px 14px; cursor: pointer; font-size: 13px; border-bottom: 1px solid var(--border); }
-        .search-item:hover { background: var(--bg-elevated); }
-        .search-item:last-child { border-bottom: none; }
-        .search-item small { color: var(--text-muted); }
-
-        /* Stats Card */
-        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
-        .stat-card { background: var(--bg-elevated); border-radius: var(--radius-sm); padding: 16px; text-align: center; }
-        .stat-card-icon { font-size: 24px; margin-bottom: 8px; line-height: 1; }
-        .stat-card-num { font-size: 24px; font-weight: 700; color: var(--primary); }
-        .stat-card-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-
-        /* List */
-        .list-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--bg-elevated); border-radius: var(--radius-sm); margin-bottom: 8px; }
-        .list-icon { font-size: 20px; width: 24px; text-align: center; line-height: 1; }
-        .list-content { flex: 1; }
-        .list-title { font-size: 14px; font-weight: 500; }
-        .list-desc { font-size: 12px; color: var(--text-muted); }
-        .list-action { font-size: 18px; cursor: pointer; padding: 4px; }
-
-        /* Timeline */
-        .timeline-item { display: flex; gap: 16px; padding: 16px 0; border-left: 2px solid var(--border); margin-left: 12px; padding-left: 20px; position: relative; }
-        .timeline-item::before { content: ''; position: absolute; left: -7px; top: 20px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); }
-        .timeline-date { font-size: 12px; color: var(--text-muted); min-width: 60px; }
-        .timeline-title { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
-        .timeline-desc { font-size: 13px; color: var(--text-sec); }
-        .timeline-photo-flow { column-count: 3; column-gap: 8px; margin-top: 10px; max-width: 420px; }
-        .timeline-photo-flow img { width: 100%; margin: 0 0 8px; break-inside: avoid; border-radius: 8px; object-fit: cover; display: block; background: var(--bg-elevated); }
-        .timeline-more { display: inline-flex; height: 36px; padding: 0 10px; align-items: center; justify-content: center; break-inside: avoid; border-radius: 8px; background: var(--bg-elevated); color: var(--text-muted); font-size: 12px; }
-
-        /* Desktop/Mobile */
-        .desktop-only { display: flex !important; }
-        .mobile-only { display: none !important; }
-
-        /* Toast */
-        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--radius-full); font-size: 14px; z-index: 2000; transition: var(--transition); }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-
-        /* ========== Map-First Layout ========== */
-        .hero { display: none; }
-        .features { display: none; }
-        .section-header:has(#features-title) { display: none; }
-
-        /* Mode Bar */
-        .mode-bar { padding: 8px 24px; display: flex; justify-content: center; }
-        .mode-bar .mode-switcher { margin: 0; }
-
-        /* Map Section */
-        .map-section {
-            width: 100%;
-            height: 60vh;
-            min-height: 300px;
-            max-height: 600px;
-            position: relative;
-            border-radius: var(--radius);
-            overflow: hidden;
-            margin-bottom: 20px;
-        }
-        .footprint-map {
-            width: 100%;
-            height: 100%;
-            border-radius: var(--radius);
-        }
-        .map-empty {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-elevated);
-            border-radius: var(--radius);
-            border: 2px dashed var(--border);
-            color: var(--text-muted);
-        }
-        .map-empty-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        /* Content Section */
-        .content-section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px 100px;
-        }
-
-        /* Quick Stats */
-        .quick-stats {
-            display: flex;
-            justify-content: space-around;
-            padding: 16px 20px;
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-        }
-        .quick-stat {
-            text-align: center;
-        }
-        .quick-stat-num {
-            display: block;
-            font-size: 28px;
-            font-weight: 800;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .quick-stat-label {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-top: 4px;
-        }
-
-        /* Floating Action Button */
-        .fab {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: var(--gradient);
-            color: white;
-            border: none;
-            cursor: pointer;
-            z-index: 90;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 6px 20px var(--glow);
-            transition: var(--transition);
-            font-size: 28px;
-        }
-        .fab:hover {
-            transform: scale(1.1);
-            box-shadow: 0 8px 30px var(--glow);
-        }
-        .fab:active {
-            transform: scale(0.96);
-        }
-        .fab-icon {
-            line-height: 1;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .desktop-only { display: none !important; }
-            .mobile-only { display: flex !important; }
-            .features { grid-template-columns: repeat(3, 1fr); }
-            .photo-grid { grid-template-columns: repeat(2, 1fr); }
-            .hero h1 { font-size: 32px; }
-            .mode-switcher { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: min(100%, 420px); }
-            .mode-pill { min-width: 0; width: 100%; }
-            .timeline-photo-flow { column-count: 2; max-width: 100%; }
-            .stats { gap: 24px; }
-            .stat-num { font-size: 28px; }
-            .stats-grid { grid-template-columns: 1fr; }
-            .map-section { height: 45vh; min-height: 240px; }
-            .quick-stats { padding: 12px 16px; }
-            .quick-stat-num { font-size: 22px; }
-            .fab { bottom: 20px; right: 20px; width: 54px; height: 54px; font-size: 24px; }
-        }
-        @media (max-width: 480px) {
-            .features { grid-template-columns: repeat(2, 1fr); }
-            .map-section { height: 40vh; min-height: 200px; }
-            .content-section { padding: 0 16px 100px; }
-            .mode-bar { padding: 8px 16px; }
-        }
-
-        /* Auth UI */
-        .user-menu { position: relative; }
-        .user-btn { display: flex; align-items: center; gap: 6px; }
-        .user-avatar { font-size: 18px; }
-        .user-arrow { font-size: 10px; color: var(--text-muted); }
-        .user-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 8px;
-            background: var(--bg-elevated);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 6px;
-            min-width: 160px;
-            z-index: 200;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-        }
-        .user-dropdown-item {
-            padding: 10px 14px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text);
-            transition: var(--transition);
-        }
-        .user-dropdown-item:hover { background: var(--glass); }
-        .user-dropdown-logout { color: #EF4444; }
-        .user-dropdown-divider {
-            height: 1px;
-            background: var(--border);
-            margin: 4px 0;
-        }
-
-        /* Love Mode - Together Banner */
-        .together-banner {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(236,72,153,0.15), rgba(139,92,246,0.15));
-            border-radius: var(--radius);
-            margin-bottom: 20px;
-            border: 1px solid rgba(236,72,153,0.3);
-        }
-        .together-heart {
-            font-size: 36px;
-            animation: heartbeat 1.5s ease-in-out infinite;
-        }
-        @keyframes heartbeat {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-        .together-text { text-align: center; }
-        .together-label { font-size: 14px; color: var(--text-muted); }
-        .together-days {
-            font-size: 28px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #EC4899, #8B5CF6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Love Mode - Dual Avatar Header */
-        .love-header {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .love-avatar {
-            font-size: 24px;
-        }
-        .love-connector {
-            font-size: 16px;
-            animation: heartbeat 1.5s ease-in-out infinite;
-        }
-
-        /* Love Mode - Anniversary Badge */
-        .anniversary-badge {
-            display: inline-block;
-            background: linear-gradient(135deg, #EC4899, #8B5CF6);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        /* Emoji alignment fixes */
-        #guide-step-icon { display: flex; align-items: center; justify-content: center; width: 72px; height: 72px; margin: 20px auto; font-size: 56px; line-height: 1; }
-        #guide-step-action .btn > span:first-child { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; font-size: 16px; line-height: 1; flex-shrink: 0; }
-    </style>
+    <!-- Modular Feature Scripts -->
+    <script src="js/quick-catch.js"></script>
+    <script src="js/food-wheel.js"></script>
+    <script src="js/couple-pair.js"></script>
+    <script src="js/globe-conquest.js"></script>
+    <script src="js/passport.js"></script>
+    <script src="js/badges.js"></script>
+    <script src="js/packing-list.js"></script>
+    <script src="js/love-capsule.js"></script>
+    <script src="js/icons.js"></script>
 </head>
 <body>
     <div class="dynamic-bg">
@@ -508,27 +74,33 @@
                     <span class="love-avatar">👩</span>
                     <span class="love-connector">💕</span>
                     <span class="love-avatar">👨</span>
+                    <span id="couple-partner-badge" style="display:none;font-size:12px;color:#EC4899;font-weight:600;margin-left:6px"></span>
                 </div>
             </div>
             <div class="header-actions">
-                <button class="btn btn-icon btn-ghost" onclick="toggleLang()" id="lang-btn" title="切换语言">🌐</button>
-                <button class="btn btn-icon btn-ghost" onclick="toggleTheme()" id="theme-btn">🌙</button>
-                <button class="btn btn-icon btn-ghost" onclick="openModal('guide')">📖</button>
-                <button class="btn btn-icon btn-ghost" onclick="location.href='settings.html'">⚙️</button>
+                <div id="connection-status-badge" style="font-size:11px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);display:inline-flex;align-items:center;gap:5px;cursor:pointer;" title="当前运行与存储模式">
+                    <span>🟢</span><span>云端已连接</span>
+                </div>
+                <button class="btn btn-icon btn-ghost" onclick="toggleLang()" id="lang-btn" title="切换语言"><span data-icon="globe"></span></button>
+                <button class="btn btn-icon btn-ghost" onclick="toggleTheme()" id="theme-btn" title="切换主题"><span data-icon="moon"></span></button>
+                <button class="btn btn-icon btn-ghost" onclick="location.href='admin.html'" title="网页管理后台"><span data-icon="layout-grid"></span></button>
+                <button class="btn btn-icon btn-ghost" onclick="location.href='settings.html'" title="设置"><span data-icon="settings"></span></button>
                 <div id="auth-section">
-                    <button class="btn btn-ghost" onclick="openModal('auth')" id="btn-login">🔑 登录</button>
+                    <button class="btn btn-ghost" onclick="openModal('auth')" id="btn-login"><span data-icon="key"></span> 登录</button>
                 </div>
                 <div id="user-section" style="display:none">
                     <div class="user-menu">
                         <button class="btn btn-ghost user-btn" onclick="toggleUserMenu()" id="user-btn">
-                            <span class="user-avatar">👤</span>
+                            <span class="user-avatar" data-icon="user"></span>
                             <span id="user-name">用户</span>
                             <span class="user-arrow">▾</span>
                         </button>
                         <div class="user-dropdown" id="user-dropdown" style="display:none">
-                            <div class="user-dropdown-item" onclick="handleFeature('export')">📦 导出数据</div>
+                            <div class="user-dropdown-item" onclick="location.href='admin.html'"><span data-icon="layout-grid"></span> 网页管理后台</div>
+                            <div class="user-dropdown-item" onclick="location.href='settings.html'"><span data-icon="settings"></span> 偏好与系统设置</div>
+                            <div class="user-dropdown-item" onclick="handleFeature('export')"><span data-icon="package"></span> 导出数据</div>
                             <div class="user-dropdown-divider"></div>
-                            <div class="user-dropdown-item user-dropdown-logout" onclick="logout()">🚪 退出登录</div>
+                            <div class="user-dropdown-item user-dropdown-logout" onclick="logout()"><span data-icon="key"></span> 退出登录</div>
                         </div>
                     </div>
                 </div>
@@ -536,10 +108,11 @@
         </header>
 
         <div class="mode-bar" id="mode-switcher-bar">
-            <div class="mode-switcher" id="mode-switcher" aria-label="记录模式">
-                <button class="mode-pill" data-mode-option="travel" onclick="switchMode('travel')"><span>✈️</span><span>旅行</span></button>
-                <button class="mode-pill" data-mode-option="food" onclick="switchMode('food')"><span>🍜</span><span>美食</span></button>
-                <button class="mode-pill" data-mode-option="love" onclick="switchMode('love')"><span>💕</span><span>情侣</span></button>
+            <div class="mode-switcher" id="mode-switcher" aria-label="足迹分类筛选">
+                <button class="mode-pill active" data-filter="all" onclick="setFootprintFilter('all')"><span data-icon="layers"></span><span>全部足迹</span></button>
+                <button class="mode-pill" data-filter="travel" onclick="setFootprintFilter('travel')"><span data-icon="compass"></span><span>旅行探索</span></button>
+                <button class="mode-pill" data-filter="food" onclick="setFootprintFilter('food')"><span data-icon="utensils"></span><span>美食寻味</span></button>
+                <button class="mode-pill" data-filter="love" id="couple-filter-pill" style="display:none" onclick="setFootprintFilter('love')"><span data-icon="heart"></span><span>专属回忆</span></button>
             </div>
         </div>
 
@@ -555,7 +128,7 @@
             <div class="together-banner" id="together-banner" style="display:none">
                 <div class="together-heart">💕</div>
                 <div class="together-text">
-                    <div class="together-label">在一起</div>
+                    <div class="together-label" id="together-label">我们在一起</div>
                     <div class="together-days" id="together-days">第 1 天</div>
                 </div>
                 <button class="btn btn-ghost btn-sm" onclick="setTogetherDate()" id="together-set-btn">设置日期</button>
@@ -563,20 +136,84 @@
             <div class="quick-stats glass">
                 <div class="quick-stat">
                     <span class="quick-stat-num" id="stat-records">0</span>
-                    <span class="quick-stat-label" id="stat-l1">旅行</span>
+                    <span class="quick-stat-label" id="stat-l1">足迹记录</span>
                 </div>
                 <div class="quick-stat">
                     <span class="quick-stat-num" id="stat-places">0</span>
-                    <span class="quick-stat-label" id="stat-l2">地点</span>
+                    <span class="quick-stat-label" id="stat-l2">打卡地点</span>
                 </div>
                 <div class="quick-stat">
                     <span class="quick-stat-num" id="stat-photos">0</span>
-                    <span class="quick-stat-label" id="stat-l3">照片</span>
+                    <span class="quick-stat-label" id="stat-l3">珍贵照片</span>
+                </div>
+            </div>
+
+            <!-- Quick Feature Bar -->
+            <div class="feature-bar-section">
+                <div class="feature-bar-scroll">
+                    <button class="feature-pill-btn" onclick="handleFeature('map')"><span data-icon="map"></span><span>足迹地图</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('replay')"><span data-icon="play-circle"></span><span>轨迹回放</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('timeline')"><span data-icon="calendar"></span><span>时光轨迹</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('cities')"><span data-icon="building-2"></span><span>城市点亮</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('ai-story')"><span data-icon="sparkles"></span><span>AI游记</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('expense')"><span data-icon="wallet"></span><span>花费账单</span></button>
+                    <button class="feature-pill-btn" onclick="FoodWheel.open()" style="border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.08)"><span style="color:#F59E0B" data-icon="dices"></span><span style="font-weight:600;color:#F59E0B">今天吃什么</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('ingredients')"><span data-icon="salad"></span><span>美食食材</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('stats')"><span data-icon="bar-chart-3"></span><span>足迹报告</span></button>
+                    <button class="feature-pill-btn" onclick="GlobeConquest.open()" style="border-color:rgba(56,189,248,0.4);background:rgba(56,189,248,0.08)"><span style="color:#38BDF8" data-icon="globe-2"></span><span style="font-weight:600;color:#38BDF8">3D点亮地球</span></button>
+                    <button class="feature-pill-btn" onclick="PassportModule.open()" style="border-color:rgba(217,119,6,0.4);background:rgba(217,119,6,0.08)"><span style="color:#D97706" data-icon="stamp"></span><span style="font-weight:600;color:#D97706">通关护照</span></button>
+                    <button class="feature-pill-btn" onclick="BadgesModule.open()" style="border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.08)"><span style="color:#10B981" data-icon="award"></span><span style="font-weight:600;color:#10B981">成就勋章</span></button>
+                    <button class="feature-pill-btn" onclick="PackingListModule.open()" style="border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.08)"><span style="color:#10B981" data-icon="briefcase"></span><span style="font-weight:600;color:#10B981">行前清单</span></button>
+                    <button class="feature-pill-btn" onclick="handleFeature('export')"><span data-icon="package"></span><span>数据导出</span></button>
+                </div>
+            </div>
+
+            <!-- Couple Tools Section (Only shown when Couple Mode is active) -->
+            <div class="couple-tools-section" id="couple-tools-section" style="display:none">
+                <div class="couple-section-title">
+                    <span>💕</span><span>情侣时光专属工具</span>
+                </div>
+                <div class="couple-tools-grid">
+                    <div class="couple-tool-card" onclick="handleFeature('anniversary')">
+                        <div class="couple-tool-icon" data-icon="calendar"></div>
+                        <div class="couple-tool-info">
+                            <div class="couple-tool-name">纪念日</div>
+                            <div class="couple-tool-desc" id="anniversary-quick-desc">倒数与提醒</div>
+                        </div>
+                    </div>
+                    <div class="couple-tool-card" onclick="handleFeature('notes')">
+                        <div class="couple-tool-icon" data-icon="mail"></div>
+                        <div class="couple-tool-info">
+                            <div class="couple-tool-name">恋爱手账</div>
+                            <div class="couple-tool-desc" id="notes-quick-desc">写给TA的悄悄话</div>
+                        </div>
+                    </div>
+                    <div class="couple-tool-card" onclick="handleFeature('date')">
+                        <div class="couple-tool-icon" data-icon="map-pin"></div>
+                        <div class="couple-tool-info">
+                            <div class="couple-tool-name">约会计划</div>
+                            <div class="couple-tool-desc" id="dates-quick-desc">浪漫行程清单</div>
+                        </div>
+                    </div>
+                    <div class="couple-tool-card" onclick="handleFeature('tasks')">
+                        <div class="couple-tool-icon" data-icon="heart"></div>
+                        <div class="couple-tool-info">
+                            <div class="couple-tool-name">甜蜜心愿</div>
+                            <div class="couple-tool-desc" id="tasks-quick-desc">一起做100件事</div>
+                        </div>
+                    </div>
+                    <div class="couple-tool-card" onclick="LoveCapsuleModule.open()" style="border-color:rgba(225,29,72,0.4);">
+                        <div class="couple-tool-icon" data-icon="hourglass" style="color:#F43F5E;"></div>
+                        <div class="couple-tool-info">
+                            <div class="couple-tool-name" style="color:#F43F5E;">大日子倒数 & 胶囊</div>
+                            <div class="couple-tool-desc">密信与下个纪念日</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="section-header">
-                <div class="section-title" id="records-title">📸 最近记录</div>
+                <div class="section-title" id="records-title">📸 最近足迹</div>
                 <button class="btn btn-ghost btn-sm" id="btn-clear-demo" style="display:none" onclick="clearDemoData()">🧹 清空示例数据</button>
                 <button class="btn btn-ghost btn-sm" onclick="handleFeature('timeline')" id="btn-all-records">查看全部 →</button>
             </div>
@@ -663,6 +300,19 @@
                         <div class="progress-text" id="progress-text"></div>
                     </div>
                     <div class="preview-grid" id="preview-grid"></div>
+                </div>
+                <div class="form-group">
+                    <div class="form-label">🏷️ 足迹类型</div>
+                    <div class="record-type-selector">
+                        <button type="button" class="record-type-btn active" id="type-btn-travel" onclick="selectRecordType('travel')">✈️ 旅行探索</button>
+                        <button type="button" class="record-type-btn" id="type-btn-food" onclick="selectRecordType('food')">🍜 美食寻味</button>
+                    </div>
+                </div>
+                <div class="form-group" id="group-couple-tag" style="display:none">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:8px 12px;background:rgba(236,72,153,0.08);border:1px dashed rgba(236,72,153,0.3);border-radius:8px">
+                        <input type="checkbox" id="input-is-couple" style="accent-color:#EC4899;width:18px;height:18px">
+                        <span style="font-size:13px;color:var(--text);font-weight:600">💕 标记为情侣专属回忆</span>
+                    </label>
                 </div>
                 <div class="form-group">
                     <div class="form-label" id="label-title">✏️ 标题</div>
@@ -1097,7 +747,8 @@
                     {icon:'💕',name:'情侣日记',action:'diary'}, 
                     {icon:'📊',name:'恋爱统计',action:'stats'}, 
                     {icon:'⏰',name:'在一起',action:'days'},
-                ] }
+                ] },
+            all: { icon:'🌟', badge:'记录生活的每一步', title:'用<span class="hero-gradient">足迹</span>记录<br>你的生活', desc:'旅行与美食，探索世界的美好', recordsTitle:'📸 全部足迹', emptyIcon:'🌟', emptyTitle:'还没有足迹记录', emptyDesc:'点击添加开始记录你的足迹', modalTitle:'添加足迹记录', labelTitle:'✏️ 标题', titlePlaceholder:'起个名字', labelLocation:'📍 地点', locationPlaceholder:'搜索地点', stat1:'🌟 足迹', stat2:'📍 地点', stat3:'📸 照片', featuresTitle:'✨ 足迹功能' }
         };
 
         const GUIDE = [
@@ -1108,7 +759,9 @@
 
         let state = {
             records: JSON.parse(localStorage.getItem('footprint_data') || '[]'),
-            mode: (JSON.parse(localStorage.getItem('footprint_config') || '{}')).mode || 'travel',
+            mode: 'travel',
+            filter: 'all',
+            coupleMode: !!(JSON.parse(localStorage.getItem('footprint_config') || '{}')).coupleMode,
             images: [],
             imageMeta: [],
             apiAvailable: false,
@@ -1211,6 +864,8 @@
                 updateAuthUI();
                 closeModal('auth');
                 toast('✅ ' + (authState.isRegister ? '注册成功' : '登录成功'));
+                await loadRecords();
+                render();
                 
                 // Clear form
                 document.getElementById('auth-username').value = '';
@@ -1258,13 +913,14 @@
             return diff + 1; // Day 1 is the start date
         }
 
-        function setTogetherDate() {
-            const config = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+        async function setTogetherDate() {
+            const config = getConfig();
             const current = config.togetherDate || '';
             const date = prompt('设置在一起的日期 (YYYY-MM-DD)', current);
             if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
                 config.togetherDate = date;
-                localStorage.setItem('footprint_config', JSON.stringify(config));
+                saveConfig(config);
+                await syncBackendConfig(config);
                 updateTogetherBanner();
                 toast('💕 日期已设置');
             } else if (date !== null) {
@@ -1276,38 +932,47 @@
             const banner = document.getElementById('together-banner');
             if (!banner) return;
 
-            if (state.mode !== 'love') {
+            if (!state.coupleMode) {
                 banner.style.display = 'none';
                 return;
             }
 
+            banner.style.display = 'flex';
+            const config = getConfig();
+            const partnerName = config.partnerName;
+            const labelEl = document.getElementById('together-label');
+            if (labelEl) {
+                labelEl.textContent = partnerName ? `与 ${partnerName} 在一起` : '我们已经在一起';
+            }
+
             const days = getTogetherDays();
             if (days !== null) {
-                banner.style.display = 'flex';
                 document.getElementById('together-days').textContent = `第 ${days} 天`;
                 checkAnniversaries(days);
             } else {
-                banner.style.display = 'flex';
                 document.getElementById('together-days').textContent = '点击设置日期';
             }
         }
 
         function checkAnniversaries(days) {
-            const milestones = [100, 200, 365, 500, 730, 1000];
+            const milestones = [100, 200, 365, 500, 520, 730, 1000, 1314];
             if (milestones.includes(days)) {
                 const years = Math.floor(days / 365);
                 const label = years > 0 ? `${years}周年` : `${days}天`;
                 setTimeout(() => {
+                    if (typeof confetti === 'function') {
+                        confetti({ particleCount: 80, spread: 80, origin: { y: 0.6 }, colors: ['#EC4899', '#F472B6', '#8B5CF6', '#F43F5E', '#FFFFFF'] });
+                    }
                     toast(`🎉 恭喜！今天是你们在一起${label}纪念日！`);
-                }, 2000);
+                }, 1500);
             }
         }
 
         // ========== Init ==========
         async function init() {
             loadTheme();
+            updateCoupleUI();
             applyMode();
-            updateTogetherBanner();
             applyLang();
             initDragDrop();
             await loadRecords();
@@ -1318,6 +983,9 @@
             initParticles();
             applyModeSwitcherVisibility();
             updateAuthUI();
+            if (window.CouplePair) {
+                CouplePair.fetchStatus();
+            }
 
             // Show guide for new users (once only)
             if (!state.records.length && !localStorage.getItem('footprint_guide_seen')) {
@@ -1338,6 +1006,19 @@
             }
         }
         function getConfig() { try { return JSON.parse(localStorage.getItem('footprint_config') || '{}'); } catch { return {}; } }
+        function saveConfig(config) { localStorage.setItem('footprint_config', JSON.stringify(config)); }
+        async function syncBackendConfig(config) {
+            if (!authState.token) return;
+            try {
+                await apiFetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+            } catch (e) {
+                console.log('Sync backend config skipped:', e.message);
+            }
+        }
         function getApiBase() {
             const config = getConfig();
             if (config.apiBase) return config.apiBase.replace(/\/$/, '');
@@ -1379,6 +1060,95 @@
                 state.apiAvailable = false;
                 console.log('API records unavailable, using localStorage:', error.message);
             }
+            await loadConfigFromCloud();
+            await loadFeaturesFromCloud();
+        }
+
+        async function loadConfigFromCloud() {
+            if (!authState.token) return;
+            try {
+                const cloudConfig = await apiFetch('/api/config');
+                if (cloudConfig) {
+                    const localConfig = getConfig();
+                    const merged = { ...localConfig, ...cloudConfig };
+                    saveConfig(merged);
+                    state.coupleMode = !!merged.coupleMode;
+                    updateCoupleUI();
+                    if (merged.layoutConfig) {
+                        applyLayoutConfig(merged.layoutConfig);
+                    }
+                }
+            } catch (e) {
+                console.log('Config cloud sync unavailable:', e.message);
+            }
+        }
+
+        function applyLayoutConfig(layout) {
+            if (!layout) return;
+            if (layout.siteTitle) {
+                const titleEl = document.querySelector('.logo-text');
+                if (titleEl) titleEl.textContent = layout.siteTitle;
+                document.title = `${layout.siteTitle} · 记录旅行与美食`;
+            }
+            if (layout.logoEmoji) {
+                const iconEl = document.getElementById('logo-icon');
+                if (iconEl) iconEl.textContent = layout.logoEmoji;
+            }
+            if (layout.defaultFilter && !state.userSelectedFilter) {
+                if (layout.defaultFilter === 'love' && !state.coupleMode) {
+                    setFootprintFilter('all');
+                } else {
+                    setFootprintFilter(layout.defaultFilter);
+                }
+            }
+            if (layout.mapHeight) {
+                const mapEl = document.getElementById('footprint-map');
+                if (mapEl) mapEl.style.height = layout.mapHeight;
+            }
+            if (Array.isArray(layout.visibleFeatures)) {
+                const featureButtons = document.querySelectorAll('.feature-pills-bar .feature-pill-btn');
+                featureButtons.forEach(btn => {
+                    const clickAttr = btn.getAttribute('onclick') || '';
+                    const match = clickAttr.match(/handleFeature\('([^']+)'\)/);
+                    if (match) {
+                        const featKey = match[1];
+                        btn.style.display = layout.visibleFeatures.includes(featKey) ? '' : 'none';
+                    }
+                });
+            }
+            if (layout.cardLayout === 'dense') {
+                const gridEl = document.getElementById('record-grid');
+                if (gridEl) gridEl.style.gridTemplateColumns = 'repeat(auto-fill, minmax(240px, 1fr))';
+            }
+        }
+
+        async function loadFeaturesFromCloud() {
+            if (!authState.token) return;
+            try {
+                const resp = await apiFetch('/api/features');
+                if (resp && resp.features) {
+                    for (const [key, val] of Object.entries(resp.features)) {
+                        if (val !== undefined && val !== null) {
+                            localStorage.setItem(key, JSON.stringify(val));
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('Features cloud sync unavailable, using local:', e.message);
+            }
+        }
+
+        async function syncFeatureToCloud(featureKey, data) {
+            if (!authState.token) return;
+            try {
+                await apiFetch(`/api/features/${featureKey}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data })
+                });
+            } catch (e) {
+                console.warn(`Sync ${featureKey} to cloud failed:`, e.message);
+            }
         }
         function persistLocalRecords() {
             localStorage.setItem('footprint_data', JSON.stringify(state.records));
@@ -1393,8 +1163,24 @@
             if (hasCoordinates(meta)) {
                 window._lat = meta.latitude;
                 window._lng = meta.longitude;
-                if (!document.getElementById('input-location').value.trim()) {
-                    document.getElementById('input-location').value = `GPS ${Number(meta.latitude).toFixed(6)}, ${Number(meta.longitude).toFixed(6)}`;
+                const locInput = document.getElementById('input-location');
+                if (!locInput.value.trim() || locInput.value.startsWith('GPS ')) {
+                    locInput.value = `GPS ${Number(meta.latitude).toFixed(4)}, ${Number(meta.longitude).toFixed(4)}`;
+                    // 逆地理编码推断真实城市地名与智能起名
+                    apiFetch(`/api/geocode/reverse?lat=${meta.latitude}&lng=${meta.longitude}`)
+                        .then(res => {
+                            if (res && res.address) {
+                                locInput.value = res.address;
+                                const titleInput = document.getElementById('input-title');
+                                if (!titleInput.value.trim()) {
+                                    const parts = res.address.split('·');
+                                    const shortName = parts[1] ? parts[1].trim() : res.address;
+                                    titleInput.value = `[${shortName}] ${selectedRecordType === 'food' ? '寻味探店' : '旅行漫步'}`;
+                                }
+                                toast('⚡ 已自动推断拍摄地点与标题！');
+                            }
+                        })
+                        .catch(() => {});
                 }
             }
             if (meta?.date_taken) {
@@ -1421,93 +1207,191 @@
             toast(n === 'dark' ? '🌙 深色模式' : '☀️ 浅色模式');
         }
 
-        // ========== Mode ==========
-        function applyMode() {
-            const m = MODES[state.mode];
-            const text = getModeText();
-            document.documentElement.setAttribute('data-mode', state.mode);
-            document.getElementById('logo-icon').textContent = m.icon;
-            document.getElementById('records-title').textContent = text.recordsTitle;
-            document.getElementById('empty-icon').textContent = text.emptyIcon;
-            document.getElementById('empty-title').textContent = text.emptyTitle;
-            document.getElementById('empty-desc').textContent = text.emptyDesc;
-            document.getElementById('modal-add-title').textContent = text.modalTitle;
-            document.getElementById('label-title').textContent = text.labelTitle;
-            document.getElementById('input-title').placeholder = text.titlePlaceholder;
-            document.getElementById('label-location').textContent = text.labelLocation;
-            document.getElementById('input-location').placeholder = text.locationPlaceholder;
-            document.getElementById('stat-l1').textContent = text.stat1;
-            document.getElementById('stat-l2').textContent = text.stat2;
-            document.getElementById('stat-l3').textContent = text.stat3;
-            document.getElementById('group-rating').style.display = m.showRating ? 'block' : 'none';
-            document.getElementById('group-price').style.display = m.showPrice ? 'block' : 'none';
-            updateModeSwitcher();
+        // ========== Record Type & Filter ==========
+        let selectedRecordType = 'travel';
 
-            // Love mode: dual avatar header
+        function selectRecordType(type) {
+            selectedRecordType = type;
+            const btnTravel = document.getElementById('type-btn-travel');
+            const btnFood = document.getElementById('type-btn-food');
+            if (btnTravel) btnTravel.classList.toggle('active', type === 'travel');
+            if (btnFood) btnFood.classList.toggle('active', type === 'food');
+            document.getElementById('group-rating').style.display = type === 'food' ? 'block' : 'none';
+            document.getElementById('group-price').style.display = type === 'food' ? 'block' : 'none';
+            if (type === 'food') {
+                document.getElementById('label-title').textContent = '✏️ 美食名称';
+                document.getElementById('input-title').placeholder = '给这道美食或餐厅起个名字';
+                document.getElementById('label-location').textContent = '📍 餐厅地址';
+                document.getElementById('input-location').placeholder = '搜索餐厅地址';
+            } else {
+                document.getElementById('label-title').textContent = '✏️ 旅行标题';
+                document.getElementById('input-title').placeholder = '给这次旅行起个名字';
+                document.getElementById('label-location').textContent = '📍 旅行地点';
+                document.getElementById('input-location').placeholder = '搜索旅行地点';
+            }
+        }
+
+        function setFootprintFilter(filter) {
+            state.filter = filter;
+            document.querySelectorAll('#mode-switcher .mode-pill').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            render();
+            initMainMap();
+        }
+
+        function updateCoupleUI() {
+            const btn = document.getElementById('couple-toggle-btn');
+            const pill = document.getElementById('couple-filter-pill');
+            const banner = document.getElementById('together-banner');
+            const tools = document.getElementById('couple-tools-section');
+            const tag = document.getElementById('group-couple-tag');
             const loveHeader = document.getElementById('love-header');
             const logoIcon = document.getElementById('logo-icon');
-            const logoText = document.querySelector('.logo-text');
-            if (state.mode === 'love') {
+
+            if (state.coupleMode) {
+                document.body.classList.add('couple-mode-active');
+                if (btn) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '<span class="couple-toggle-icon">💕</span><span class="couple-toggle-text">情侣模式 · 开启</span>';
+                }
+                if (pill) pill.style.display = 'inline-flex';
+                if (tools) tools.style.display = 'block';
+                if (tag) tag.style.display = 'block';
                 if (loveHeader) loveHeader.style.display = 'flex';
                 if (logoIcon) logoIcon.style.display = 'none';
-                if (logoText) logoText.style.display = 'none';
+                updateTogetherBanner();
             } else {
+                document.body.classList.remove('couple-mode-active');
+                if (btn) {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<span class="couple-toggle-icon">💑</span><span class="couple-toggle-text">情侣模式</span>';
+                }
+                if (pill) pill.style.display = 'none';
+                if (banner) banner.style.display = 'none';
+                if (tools) tools.style.display = 'none';
+                if (tag) tag.style.display = 'none';
                 if (loveHeader) loveHeader.style.display = 'none';
                 if (logoIcon) logoIcon.style.display = 'block';
-                if (logoText) logoText.style.display = 'block';
+                if (state.filter === 'love') {
+                    setFootprintFilter('all');
+                }
             }
+        }
 
-            updateTogetherBanner();
+        async function toggleCoupleMode() {
+            state.coupleMode = !state.coupleMode;
+            const config = getConfig();
+            config.coupleMode = state.coupleMode;
+            saveConfig(config);
+            await syncBackendConfig(config);
+            updateCoupleUI();
+            render();
+            initMainMap();
+            toast(state.coupleMode ? '💕 情侣模式已开启' : '🍃 已恢复纯净足迹模式');
+        }
+
+        function getFilteredRecords() {
+            return state.records.filter(r => {
+                const isCoupleRecord = !!(r.is_couple || r.mode === 'love');
+                // If couple mode is disabled, hide couple-specific records
+                if (!state.coupleMode && isCoupleRecord) {
+                    return false;
+                }
+                if (state.filter === 'travel') return r.mode === 'travel';
+                if (state.filter === 'food') return r.mode === 'food';
+                if (state.filter === 'love') return isCoupleRecord;
+                return true; // 'all'
+            });
+        }
+
+        // ========== Mode ==========
+        function applyMode() {
+            document.documentElement.setAttribute('data-mode', 'travel');
+            const logoIcon = document.getElementById('logo-icon');
+            if (logoIcon) logoIcon.textContent = '✈️';
+            updateCoupleUI();
         }
 
         function switchMode(mode) {
-            if (!MODES[mode] || state.mode === mode) return;
-            state.mode = mode;
-            const config = getConfig();
-            config.mode = mode;
-            localStorage.setItem('footprint_config', JSON.stringify(config));
-            applyLang();
-            render();
-            initMainMap();
-            initParticles();
+            // Forward compatibility if called
+            if (mode === 'love') {
+                state.coupleMode = true;
+                updateCoupleUI();
+                setFootprintFilter('love');
+            } else if (mode === 'food') {
+                setFootprintFilter('food');
+            } else if (mode === 'travel') {
+                setFootprintFilter('travel');
+            } else {
+                setFootprintFilter('all');
+            }
         }
 
         // ========== Particles ==========
         function initParticles() {
-            const colors = { travel:['#3B82F6','#06B6D4'], food:['#F59E0B','#EF4444'], love:['#EC4899','#8B5CF6'] };
+            const colors = state.coupleMode ? ['#EC4899','#8B5CF6'] : ['#3B82F6','#10B981'];
             try {
-                tsParticles.load("particles-bg", { fullScreen:false, fpsLimit:60, particles:{ number:{value:30}, color:{value:colors[state.mode]}, opacity:{value:0.12}, size:{value:3}, line_linked:{enable:true,distance:150,opacity:0.06}, move:{enable:true,speed:0.8} }, interactivity:{events:{onhover:{enable:true,mode:"grab"}}} });
+                tsParticles.load("particles-bg", { fullScreen:false, fpsLimit:60, particles:{ number:{value:30}, color:{value:colors}, opacity:{value:0.12}, size:{value:3}, line_linked:{enable:true,distance:150,opacity:0.06}, move:{enable:true,speed:0.8} }, interactivity:{events:{onhover:{enable:true,mode:"grab"}}} });
             } catch(e) { console.log('Particles init failed:', e); }
         }
 
         // ========== Render ==========
         function render() {
-            const m = MODES[state.mode];
-            const filtered = state.records.filter(r => r.mode === state.mode);
+            const filtered = getFilteredRecords();
+            const locationSet = new Set(filtered.filter(r => r.location).map(r => r.location));
+            
             document.getElementById('stat-records').textContent = filtered.length;
-            document.getElementById('stat-places').textContent = new Set(filtered.filter(r => r.location).map(r => r.location)).size;
+            document.getElementById('stat-places').textContent = locationSet.size;
             document.getElementById('stat-photos').textContent = filtered.reduce((s,r) => s + (r.images?.length||0), 0);
+
+            if (state.filter === 'travel') {
+                document.getElementById('stat-l1').textContent = '旅行记录';
+                document.getElementById('records-title').textContent = '✈️ 旅行探索';
+            } else if (state.filter === 'food') {
+                document.getElementById('stat-l1').textContent = '美食打卡';
+                document.getElementById('records-title').textContent = '🍜 美食寻味';
+            } else if (state.filter === 'love') {
+                document.getElementById('stat-l1').textContent = '专属回忆';
+                document.getElementById('records-title').textContent = '💕 恋爱回忆';
+            } else {
+                document.getElementById('stat-l1').textContent = '全部足迹';
+                document.getElementById('records-title').textContent = '📸 最近足迹';
+            }
 
             const grid = document.getElementById('photo-grid');
             const empty = document.getElementById('empty');
-            if (filtered.length === 0) { grid.style.display = 'none'; empty.style.display = 'block'; }
-            else {
-                grid.style.display = 'grid'; empty.style.display = 'none';
-                const recentRecords = filtered.slice(0, 5);
-                grid.innerHTML = recentRecords.map((r,i) => `
-                    <div class="photo-card" onclick="viewRecord('${r.id}')" style="animation:modalIn 0.4s ease ${i*0.05}s backwards">
-                        <span class="photo-card-tag tag-${r.mode}">${getModeName(r.mode)}</span>
-                        <img src="${resolveAssetUrl(r.images[0]||'')}" alt="${r.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
-                        <div class="photo-card-body">
-                            <div class="photo-card-title">${r.title}</div>
-                            <div class="photo-card-meta">
-                                ${r.location ? `<span>📍 ${r.location}</span>` : ''}
-                                <span>📅 ${r.date||''}</span>
-                                ${r.rating ? `<span>⭐ ${r.rating}</span>` : ''}
+            if (filtered.length === 0) {
+                grid.style.display = 'none';
+                empty.style.display = 'block';
+            } else {
+                grid.style.display = 'grid';
+                empty.style.display = 'none';
+                const recentRecords = filtered.slice(0, 12);
+                grid.innerHTML = recentRecords.map((r, i) => {
+                    const isLove = !!(r.is_couple || r.mode === 'love');
+                    const tagClass = r.mode === 'food' ? 'tag-food' : (r.mode === 'love' ? 'tag-love' : 'tag-travel');
+                    const modeLabel = r.mode === 'food' ? '🍜 美食' : (r.mode === 'love' ? '💕 回忆' : '✈️ 旅行');
+                    return `
+                        <div class="photo-card" onclick="viewRecord('${r.id}')" style="animation:modalIn 0.4s ease ${i*0.05}s backwards">
+                            <div style="position:absolute;top:16px;right:16px;display:flex;gap:4px;z-index:2">
+                                <span class="photo-card-tag ${tagClass}">${modeLabel}</span>
+                                ${isLove && r.mode !== 'love' ? '<span class="photo-card-tag tag-love">💕 专属回忆</span>' : ''}
                             </div>
-                        </div>
-                    </div>`).join('');
+                            <img src="${resolveAssetUrl(r.images[0]||'')}" alt="${r.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
+                            <div class="photo-card-body">
+                                <div class="photo-card-title">${r.title}</div>
+                                <div class="photo-card-meta">
+                                    ${r.location ? `<span>📍 ${r.location}</span>` : ''}
+                                    <span>📅 ${r.date||''}</span>
+                                    ${r.rating ? `<span>⭐ ${r.rating}</span>` : ''}
+                                    ${r.price ? `<span style="color:#F59E0B;font-weight:700;margin-left:auto">人均¥${r.price}</span>` : ''}
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('');
             }
+            if (window.AppIcons) AppIcons.renderAll();
         }
 
         // ========== Demo Data ==========
@@ -1859,10 +1743,12 @@
             if (!title) { toast('请输入标题'); return; }
             if (!state.images.length) { toast('请上传照片'); return; }
             const imageGps = firstLocatedImageMeta();
+            const isCoupleChecked = !!(state.coupleMode && document.getElementById('input-is-couple')?.checked);
             const existingRecord = state.editingId ? state.records.find(r => r.id === state.editingId) : null;
             const record = {
                 id: state.editingId || generateId(),
-                mode: state.mode,
+                mode: selectedRecordType,
+                is_couple: isCoupleChecked,
                 title,
                 description: document.getElementById('input-desc').value.trim(),
                 location: document.getElementById('input-location').value.trim(),
@@ -1873,7 +1759,10 @@
                 metadata: { images: [...state.imageMeta] },
                 createdAt: existingRecord?.createdAt || new Date().toISOString()
             };
-            if (state.mode === 'food') { record.rating = parseInt(document.getElementById('input-rating').value); record.price = parseFloat(document.getElementById('input-price').value) || null; }
+            if (selectedRecordType === 'food') {
+                record.rating = parseInt(document.getElementById('input-rating').value);
+                record.price = parseFloat(document.getElementById('input-price').value) || null;
+            }
             try {
                 const saved = state.editingId
                     ? await apiFetch(`/api/records/${state.editingId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) })
@@ -1896,10 +1785,13 @@
 
         function viewRecord(id) {
             const r = state.records.find(r => r.id === id); if (!r) return;
+            const isLove = !!(r.is_couple || r.mode === 'love');
             showFeatureModal(r.title, `
                 <div style="margin-bottom:16px"><img src="${resolveAssetUrl(r.images[0]||'')}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px"></div>
                 ${r.description?`<p style="margin-bottom:12px;color:var(--text-sec)">${r.description}</p>`:''}
                 <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-muted);margin-bottom:18px">
+                    <span>${r.mode === 'food' ? '🍜 美食' : (r.mode === 'love' ? '💕 回忆' : '✈️ 旅行')}</span>
+                    ${isLove && r.mode !== 'love' ? '<span style="color:#EC4899;font-weight:600">💕 专属回忆</span>' : ''}
                     ${r.location?`<span>📍 ${r.location}</span>`:''}
                     ${r.date?`<span>📅 ${r.date}</span>`:''}
                     ${r.rating?`<span>⭐ ${r.rating}分</span>`:''}
@@ -1932,7 +1824,17 @@
         // ========== Modal ==========
         function openModal(type) {
             document.getElementById(`modal-${type}`).classList.add('active');
-            if (type === 'add' && !state.editingId) document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+            if (type === 'add') {
+                if (!state.editingId) {
+                    document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
+                    selectRecordType(state.filter === 'food' ? 'food' : 'travel');
+                    if (document.getElementById('input-is-couple')) {
+                        document.getElementById('input-is-couple').checked = (state.filter === 'love');
+                    }
+                }
+                const tagEl = document.getElementById('group-couple-tag');
+                if (tagEl) tagEl.style.display = state.coupleMode ? 'block' : 'none';
+            }
             if (type === 'guide') { state.guideStep = 0; renderGuideStep(); }
         }
         function closeModal(type) {
@@ -2008,7 +1910,7 @@
 
         // ========== Features ==========
         function handleFeature(action) {
-            const filtered = state.records.filter(r => r.mode === state.mode);
+            const filtered = getFilteredRecords();
             const totalPhotos = filtered.reduce((s,r) => s + (r.images?.length||0), 0);
             const located = filtered.filter(hasCoordinates);
             const locationSet = new Set(filtered.filter(r => r.location).map(r => r.location));
@@ -2162,7 +2064,7 @@
                                     <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--primary)">${formatMonth(month)}</div>
                                     ${grouped[month].map(r => {
                                         let anniversaryBadge = '';
-                                        if (togetherDate && state.mode === 'love' && r.date) {
+                                        if (togetherDate && (state.coupleMode || state.mode === 'love') && r.date) {
                                             const startDate = new Date(togetherDate);
                                             const recordDate = new Date(r.date);
                                             const dayNum = Math.floor((recordDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
@@ -2215,7 +2117,7 @@
                         <div style="margin-bottom:24px">
                             <div class="stats-grid">
                                 <div class="stat-card">
-                                    <div class="stat-card-icon">${MODES[state.mode].icon}</div>
+                                    <div class="stat-card-icon">${MODES[state.filter]?.icon || '👣'}</div>
                                     <div class="stat-card-num">${filtered.length}</div>
                                     <div class="stat-card-label">总记录</div>
                                 </div>
@@ -2394,8 +2296,28 @@
                     break;
 
                 case 'globe':
-                    showFeatureModal('🌍 3D 地球', '<div id="modal-body-globe"></div>');
-                    GlobeModule.render();
+                    if (window.GlobeConquest) {
+                        GlobeConquest.open();
+                    } else {
+                        showFeatureModal('🌍 3D 地球', '<div id="modal-body-globe"></div>');
+                        GlobeModule.render();
+                    }
+                    break;
+
+                case 'passport':
+                    PassportModule.open();
+                    break;
+
+                case 'badges':
+                    BadgesModule.open();
+                    break;
+
+                case 'packing':
+                    PackingListModule.open();
+                    break;
+
+                case 'capsule':
+                    LoveCapsuleModule.open();
                     break;
 
                 case 'share-poster':
@@ -2415,7 +2337,7 @@
         }
 
         function getLocatedRecords() {
-            return state.records.filter(r => r.mode === state.mode && hasCoordinates(r));
+            return getFilteredRecords().filter(hasCoordinates);
         }
 
         function initMainMap() {
@@ -2501,7 +2423,80 @@
                 return;
             }
 
-            // Fallback: show list only
+            // Leaflet & MarkerCluster Engine (高可用开箱即用引擎)
+            if (typeof L !== 'undefined') {
+                if (window.leafletMapInstance) {
+                    try { window.leafletMapInstance.remove(); } catch(e) {}
+                    window.leafletMapInstance = null;
+                }
+                const map = L.map(el, {
+                    zoomControl: true,
+                    attributionControl: false
+                }).setView([located[0].latitude, located[0].longitude], 5);
+                window.leafletMapInstance = map;
+
+                L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+                    subdomains: ['1', '2', '3', '4'],
+                    minZoom: 3,
+                    maxZoom: 18
+                }).addTo(map);
+
+                let cluster = null;
+                if (typeof L.markerClusterGroup === 'function') {
+                    cluster = L.markerClusterGroup({
+                        showCoverageOnHover: false,
+                        maxClusterRadius: 42,
+                        spiderfyOnMaxZoom: true,
+                        iconCreateFunction: function (c) {
+                            const count = c.getChildCount();
+                            let cls = 'marker-cluster-small';
+                            if (count > 20) cls = 'marker-cluster-large';
+                            else if (count > 5) cls = 'marker-cluster-medium';
+                            return L.divIcon({
+                                html: `<div><span>${count}</span></div>`,
+                                className: `marker-cluster ${cls}`,
+                                iconSize: L.point(40, 40)
+                            });
+                        }
+                    });
+                    map.addLayer(cluster);
+                }
+
+                const bounds = L.latLngBounds();
+                located.forEach((r, i) => {
+                    const isCouple = !!(r.is_couple || r.mode === 'love');
+                    let pinBg = 'background:linear-gradient(135deg,#3B82F6,#06B6D4)';
+                    let emoji = '✈️';
+                    if (isCouple) {
+                        pinBg = 'background:linear-gradient(135deg,#EC4899,#8B5CF6)';
+                        emoji = '💕';
+                    } else if (r.mode === 'food') {
+                        pinBg = 'background:linear-gradient(135deg,#F59E0B,#EF4444)';
+                        emoji = '🍜';
+                    }
+
+                    const customIcon = L.divIcon({
+                        className: 'custom-pin-wrap',
+                        html: `<div style="${pinBg};color:white;border:2px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer"><span style="transform:rotate(45deg);font-size:16px;line-height:1">${emoji}</span></div>`,
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36],
+                        popupAnchor: [0, -34]
+                    });
+
+                    const marker = L.marker([r.latitude, r.longitude], { icon: customIcon });
+                    marker.on('click', () => viewRecord(r.id));
+                    if (cluster) cluster.addLayer(marker);
+                    else marker.addTo(map);
+                    bounds.extend([r.latitude, r.longitude]);
+                });
+
+                if (located.length > 1 && bounds.isValid()) {
+                    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                }
+                return;
+            }
+
+            // Fallback: show info only if Leaflet is somehow absent
             el.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);padding:20px;text-align:center">地图 SDK 未加载。请在设置中保存地图 API Key。</div>';
         }
 
@@ -2579,6 +2574,65 @@
                     return marker;
                 });
                 if (markers.length > 1) map.setFitView(markers);
+                return;
+            }
+
+            if (typeof L !== 'undefined') {
+                if (window.modalLeafletMapInstance) {
+                    try { window.modalLeafletMapInstance.remove(); } catch(e) {}
+                    window.modalLeafletMapInstance = null;
+                }
+                const modalMap = L.map(el, {
+                    zoomControl: true,
+                    attributionControl: false
+                }).setView([located[0].latitude, located[0].longitude], 5);
+                window.modalLeafletMapInstance = modalMap;
+
+                L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+                    subdomains: ['1', '2', '3', '4'],
+                    minZoom: 3,
+                    maxZoom: 18
+                }).addTo(modalMap);
+
+                let modalCluster = null;
+                if (typeof L.markerClusterGroup === 'function') {
+                    modalCluster = L.markerClusterGroup({
+                        showCoverageOnHover: false,
+                        maxClusterRadius: 40
+                    });
+                    modalMap.addLayer(modalCluster);
+                }
+
+                const bounds = L.latLngBounds();
+                located.forEach((r, i) => {
+                    const isCouple = !!(r.is_couple || r.mode === 'love');
+                    let pinBg = 'background:linear-gradient(135deg,#3B82F6,#06B6D4)';
+                    let emoji = '✈️';
+                    if (isCouple) {
+                        pinBg = 'background:linear-gradient(135deg,#EC4899,#8B5CF6)';
+                        emoji = '💕';
+                    } else if (r.mode === 'food') {
+                        pinBg = 'background:linear-gradient(135deg,#F59E0B,#EF4444)';
+                        emoji = '🍜';
+                    }
+
+                    const customIcon = L.divIcon({
+                        className: 'custom-pin-wrap',
+                        html: `<div style="${pinBg};color:white;border:2px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);width:32px;height:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.35)"><span style="transform:rotate(45deg);font-size:14px;line-height:1">${emoji}</span></div>`,
+                        iconSize: [32, 32],
+                        iconAnchor: [16, 32]
+                    });
+
+                    const marker = L.marker([r.latitude, r.longitude], { icon: customIcon });
+                    marker.on('click', () => viewRecord(r.id));
+                    if (modalCluster) modalCluster.addLayer(marker);
+                    else marker.addTo(modalMap);
+                    bounds.extend([r.latitude, r.longitude]);
+                });
+
+                if (located.length > 1 && bounds.isValid()) {
+                    modalMap.fitBounds(bounds, { padding: [30, 30] });
+                }
                 return;
             }
 
@@ -2852,10 +2906,13 @@
             state.imageMeta = [...(record.metadata?.images || [])];
             renderPreview();
             
-            // 设置模式
-            state.mode = record.mode;
-            applyMode();
-            render();
+            // 设置类型与情侣标记
+            selectRecordType(record.mode === 'food' ? 'food' : 'travel');
+            if (document.getElementById('input-is-couple')) {
+                document.getElementById('input-is-couple').checked = !!(record.is_couple || record.mode === 'love');
+            }
+            const tagEl = document.getElementById('group-couple-tag');
+            if (tagEl) tagEl.style.display = state.coupleMode ? 'block' : 'none';
             
             // 标记为编辑状态
             state.editingId = id;
@@ -2866,24 +2923,36 @@
 
         // ========== Feature Helpers ==========
         function confirmDelete(cb, name) { if (confirm(`确定删除${name}吗？`)) { cb(); toast('已删除'); } }
-        function addPlan() { const input=document.getElementById('plan-input'); const t=input.value.trim(); if(!t){toast('请输入行程');return;} const plans=JSON.parse(localStorage.getItem('travel_plans')||'[]'); plans.push({title:t,date:new Date().toLocaleDateString()}); localStorage.setItem('travel_plans',JSON.stringify(plans)); input.value=''; handleFeature('plan'); toast('✅ 已添加'); }
-        function removePlan(i) { confirmDelete(()=>{ const p=JSON.parse(localStorage.getItem('travel_plans')||'[]'); p.splice(i,1); localStorage.setItem('travel_plans',JSON.stringify(p)); handleFeature('plan'); },'行程'); }
-        function addWish() { const input=document.getElementById('wish-input'); const t=input.value.trim(); if(!t){toast('请输入愿望');return;} const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('wishes',JSON.stringify(w)); input.value=''; handleFeature('wishlist'); toast('❤️ 已添加'); }
-        function toggleWish(i) { const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w[i].done=!w[i].done; localStorage.setItem('wishes',JSON.stringify(w)); handleFeature('wishlist'); }
-        function removeWish(i) { confirmDelete(()=>{ const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w.splice(i,1); localStorage.setItem('wishes',JSON.stringify(w)); handleFeature('wishlist'); },'愿望'); }
-        function addIngredient() { const input=document.getElementById('ingredient-input'); const n=input.value.trim(); if(!n){toast('请输入食材');return;} const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); if(ing.includes(n)){toast('已存在');return;} ing.push(n); localStorage.setItem('ingredients',JSON.stringify(ing)); input.value=''; handleFeature('ingredients'); toast('🥬 已添加'); }
-        function quickAddIngredient(n) { const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); if(ing.includes(n)){toast('已存在');return;} ing.push(n); localStorage.setItem('ingredients',JSON.stringify(ing)); handleFeature('ingredients'); toast('🥬 已添加'); }
-        function removeIngredient(i) { confirmDelete(()=>{ const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); ing.splice(i,1); localStorage.setItem('ingredients',JSON.stringify(ing)); handleFeature('ingredients'); },'食材'); }
-        function addAnniversary() { const name=document.getElementById('anniversary-name').value.trim(); const date=document.getElementById('anniversary-date').value; if(!name||!date){toast('请填写完整');return;} const a=JSON.parse(localStorage.getItem('anniversaries')||'[]'); a.push({name,date}); localStorage.setItem('anniversaries',JSON.stringify(a)); document.getElementById('anniversary-name').value=''; document.getElementById('anniversary-date').value=''; handleFeature('anniversary'); toast('📅 已添加'); }
-        function removeAnniversary(i) { confirmDelete(()=>{ const a=JSON.parse(localStorage.getItem('anniversaries')||'[]'); a.splice(i,1); localStorage.setItem('anniversaries',JSON.stringify(a)); handleFeature('anniversary'); },'纪念日'); }
-        function addLoveNote() { const input=document.getElementById('love-note-input'); const c=input.value.trim(); if(!c){toast('请输入内容');return;} const n=JSON.parse(localStorage.getItem('love_notes')||'[]'); n.unshift({content:c,date:new Date().toLocaleString()}); localStorage.setItem('love_notes',JSON.stringify(n)); input.value=''; handleFeature('notes'); toast('💌 已保存'); }
-        function removeLoveNote(i) { confirmDelete(()=>{ const n=JSON.parse(localStorage.getItem('love_notes')||'[]'); n.splice(i,1); localStorage.setItem('love_notes',JSON.stringify(n)); handleFeature('notes'); },'笔记'); }
-        function addDatePlan() { const title=document.getElementById('date-plan-title').value.trim(); const date=document.getElementById('date-plan-date').value; const loc=document.getElementById('date-plan-location').value.trim(); const desc=document.getElementById('date-plan-desc').value.trim(); if(!title){toast('请输入主题');return;} const p=JSON.parse(localStorage.getItem('date_plans')||'[]'); p.unshift({title,date,location:loc,desc}); localStorage.setItem('date_plans',JSON.stringify(p)); document.getElementById('date-plan-title').value=''; document.getElementById('date-plan-date').value=''; document.getElementById('date-plan-location').value=''; document.getElementById('date-plan-desc').value=''; handleFeature('date'); toast('💑 已添加'); }
-        function removeDatePlan(i) { confirmDelete(()=>{ const p=JSON.parse(localStorage.getItem('date_plans')||'[]'); p.splice(i,1); localStorage.setItem('date_plans',JSON.stringify(p)); handleFeature('date'); },'计划'); }
-        function addCoupleTask() { const input=document.getElementById('couple-task-input'); const t=input.value.trim(); if(!t){toast('请输入任务');return;} const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('couple_tasks',JSON.stringify(ct)); input.value=''; handleFeature('tasks'); toast('✅ 已添加'); }
-        function quickAddTask(t) { const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('couple_tasks',JSON.stringify(ct)); handleFeature('tasks'); toast('✅ 已添加'); }
-        function toggleCoupleTask(i) { const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct[i].done=!ct[i].done; localStorage.setItem('couple_tasks',JSON.stringify(ct)); handleFeature('tasks'); }
-        function removeCoupleTask(i) { confirmDelete(()=>{ const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.splice(i,1); localStorage.setItem('couple_tasks',JSON.stringify(ct)); handleFeature('tasks'); },'任务'); }
+        function addPlan() { const input=document.getElementById('plan-input'); const t=input.value.trim(); if(!t){toast('请输入行程');return;} const plans=JSON.parse(localStorage.getItem('travel_plans')||'[]'); plans.push({title:t,date:new Date().toLocaleDateString()}); localStorage.setItem('travel_plans',JSON.stringify(plans)); syncFeatureToCloud('travel_plans', plans); input.value=''; handleFeature('plan'); toast('✅ 已添加'); }
+        function removePlan(i) { confirmDelete(()=>{ const p=JSON.parse(localStorage.getItem('travel_plans')||'[]'); p.splice(i,1); localStorage.setItem('travel_plans',JSON.stringify(p)); syncFeatureToCloud('travel_plans', p); handleFeature('plan'); },'行程'); }
+        function addWish() { const input=document.getElementById('wish-input'); const t=input.value.trim(); if(!t){toast('请输入愿望');return;} const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('wishes',JSON.stringify(w)); syncFeatureToCloud('wishes', w); input.value=''; handleFeature('wishlist'); toast('❤️ 已添加'); }
+        function toggleWish(i) { const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w[i].done=!w[i].done; localStorage.setItem('wishes',JSON.stringify(w)); syncFeatureToCloud('wishes', w); handleFeature('wishlist'); }
+        function removeWish(i) { confirmDelete(()=>{ const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w.splice(i,1); localStorage.setItem('wishes',JSON.stringify(w)); syncFeatureToCloud('wishes', w); handleFeature('wishlist'); },'愿望'); }
+        function addIngredient() { const input=document.getElementById('ingredient-input'); const n=input.value.trim(); if(!n){toast('请输入食材');return;} const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); if(ing.includes(n)){toast('已存在');return;} ing.push(n); localStorage.setItem('ingredients',JSON.stringify(ing)); syncFeatureToCloud('ingredients', ing); input.value=''; handleFeature('ingredients'); toast('🥬 已添加'); }
+        function quickAddIngredient(n) { const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); if(ing.includes(n)){toast('已存在');return;} ing.push(n); localStorage.setItem('ingredients',JSON.stringify(ing)); syncFeatureToCloud('ingredients', ing); handleFeature('ingredients'); toast('🥬 已添加'); }
+        function removeIngredient(i) { confirmDelete(()=>{ const ing=JSON.parse(localStorage.getItem('ingredients')||'[]'); ing.splice(i,1); localStorage.setItem('ingredients',JSON.stringify(ing)); syncFeatureToCloud('ingredients', ing); handleFeature('ingredients'); },'食材'); }
+        function addAnniversary() { const name=document.getElementById('anniversary-name').value.trim(); const date=document.getElementById('anniversary-date').value; if(!name||!date){toast('请填写完整');return;} const a=JSON.parse(localStorage.getItem('anniversaries')||'[]'); a.push({name,date}); localStorage.setItem('anniversaries',JSON.stringify(a)); syncFeatureToCloud('anniversaries', a); document.getElementById('anniversary-name').value=''; document.getElementById('anniversary-date').value=''; handleFeature('anniversary'); toast('📅 已添加'); }
+        function removeAnniversary(i) { confirmDelete(()=>{ const a=JSON.parse(localStorage.getItem('anniversaries')||'[]'); a.splice(i,1); localStorage.setItem('anniversaries',JSON.stringify(a)); syncFeatureToCloud('anniversaries', a); handleFeature('anniversary'); },'纪念日'); }
+        function addLoveNote() { const input=document.getElementById('love-note-input'); const c=input.value.trim(); if(!c){toast('请输入内容');return;} const n=JSON.parse(localStorage.getItem('love_notes')||'[]'); n.unshift({content:c,date:new Date().toLocaleString()}); localStorage.setItem('love_notes',JSON.stringify(n)); syncFeatureToCloud('love_notes', n); input.value=''; handleFeature('notes'); toast('💌 已保存'); }
+        function removeLoveNote(i) { confirmDelete(()=>{ const n=JSON.parse(localStorage.getItem('love_notes')||'[]'); n.splice(i,1); localStorage.setItem('love_notes',JSON.stringify(n)); syncFeatureToCloud('love_notes', n); handleFeature('notes'); },'笔记'); }
+        function addDatePlan() { const title=document.getElementById('date-plan-title').value.trim(); const date=document.getElementById('date-plan-date').value; const loc=document.getElementById('date-plan-location').value.trim(); const desc=document.getElementById('date-plan-desc').value.trim(); if(!title){toast('请输入主题');return;} const p=JSON.parse(localStorage.getItem('date_plans')||'[]'); p.unshift({title,date,location:loc,desc}); localStorage.setItem('date_plans',JSON.stringify(p)); syncFeatureToCloud('date_plans', p); document.getElementById('date-plan-title').value=''; document.getElementById('date-plan-date').value=''; document.getElementById('date-plan-location').value=''; document.getElementById('date-plan-desc').value=''; handleFeature('date'); toast('💑 已添加'); }
+        function removeDatePlan(i) { confirmDelete(()=>{ const p=JSON.parse(localStorage.getItem('date_plans')||'[]'); p.splice(i,1); localStorage.setItem('date_plans',JSON.stringify(p)); syncFeatureToCloud('date_plans', p); handleFeature('date'); },'计划'); }
+        function addCoupleTask() { const input=document.getElementById('couple-task-input'); const t=input.value.trim(); if(!t){toast('请输入任务');return;} const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('couple_tasks',JSON.stringify(ct)); syncFeatureToCloud('couple_tasks', ct); input.value=''; handleFeature('tasks'); toast('✅ 已添加'); }
+        function quickAddTask(t) { const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('couple_tasks',JSON.stringify(ct)); syncFeatureToCloud('couple_tasks', ct); handleFeature('tasks'); toast('✅ 已添加'); }
+        function toggleCoupleTask(i) { 
+            const ct = JSON.parse(localStorage.getItem('couple_tasks') || '[]'); 
+            ct[i].done = !ct[i].done; 
+            localStorage.setItem('couple_tasks', JSON.stringify(ct)); 
+            syncFeatureToCloud('couple_tasks', ct); 
+            if (ct[i].done) {
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 60, spread: 70, origin: { y: 0.65 }, colors: ['#EC4899', '#F472B6', '#8B5CF6', '#F43F5E', '#FFFFFF'] });
+                }
+                toast('🎉 太棒啦！又达成了一个甜蜜愿望！');
+            }
+            handleFeature('tasks'); 
+        }
+        function removeCoupleTask(i) { confirmDelete(()=>{ const ct=JSON.parse(localStorage.getItem('couple_tasks')||'[]'); ct.splice(i,1); localStorage.setItem('couple_tasks',JSON.stringify(ct)); syncFeatureToCloud('couple_tasks', ct); handleFeature('tasks'); },'任务'); }
         async function queryWeather() { const city=document.getElementById('weather-city').value.trim(); if(!city){toast('请输入城市');return;} const el=document.getElementById('weather-result'); el.innerHTML='<div style="padding:20px">查询中...</div>'; try { const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`); const data=await res.json(); const c=data.current_condition[0]; el.innerHTML=`<div style="margin-bottom:20px"><div style="font-size:64px;margin-bottom:8px">🌤️</div><div style="font-size:36px;font-weight:700;color:var(--primary)">${c.temp_C}°C</div><div style="font-size:14px;color:var(--text-sec)">${c.lang_zh?.[0]?.value||c.weatherDesc?.[0]?.value||''}</div></div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"><div class="stat-card"><div style="font-size:20px">🌡️</div><div style="font-size:14px;margin-top:4px">体感</div><div style="font-size:16px;font-weight:600">${c.FeelsLikeC}°C</div></div><div class="stat-card"><div style="font-size:20px">💧</div><div style="font-size:14px;margin-top:4px">湿度</div><div style="font-size:16px;font-weight:600">${c.humidity}%</div></div><div class="stat-card"><div style="font-size:20px">💨</div><div style="font-size:14px;margin-top:4px">风速</div><div style="font-size:16px;font-weight:600">${c.windspeedKmph}km/h</div></div><div class="stat-card"><div style="font-size:20px">👁️</div><div style="font-size:14px;margin-top:4px">能见度</div><div style="font-size:16px;font-weight:600">${c.visibility}km</div></div></div>`; } catch(e) { el.innerHTML=`<div style="padding:20px;color:#EF4444">查询失败: ${e.message}</div>`; } }
 
         // ========== Utils ==========
@@ -2929,5 +2998,6 @@
         // ========== Start ==========
         window.onload = async () => { await init(); };
     </script>
+    <script src="features.js"></script>
 </body>
 </html>

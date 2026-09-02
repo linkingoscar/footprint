@@ -76,6 +76,13 @@ temp/
 .coverage
 htmlcov/
 .pytest_cache/
+.pytest_temp/
+
+# Secrets & Local runtime data
+*.jwt_secret
+.jwt_secret
+backend/features.json
+backend/users.json
 
 # Docker
 .docker/

@@ -520,6 +520,32 @@ class TestConfigAPI:
         )
         assert response.status_code == 401
 
+    def test_save_couple_mode_config(self, client, auth_header):
+        """测试保存情侣模式配置 (coupleMode, togetherDate, partnerName)"""
+        response = client.post(
+            '/api/config',
+            data=json.dumps({
+                'coupleMode': True,
+                'togetherDate': '2024-05-20',
+                'partnerName': '小明'
+            }),
+            content_type='application/json',
+            headers=auth_header
+        )
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data['config']['coupleMode'] is True
+        assert data['config']['togetherDate'] == '2024-05-20'
+        assert data['config']['partnerName'] == '小明'
+
+        # GET config to verify persistence
+        get_resp = client.get('/api/config', headers=auth_header)
+        assert get_resp.status_code == 200
+        get_data = json.loads(get_resp.data)
+        assert get_data['coupleMode'] is True
+        assert get_data['togetherDate'] == '2024-05-20'
+        assert get_data['partnerName'] == '小明'
+
 
 class TestBulkDataAPI:
     """批量数据管理测试"""

@@ -16,6 +16,7 @@ services:
       - DB_NAME=/app/data/footprint.db
       - STORAGE_PROVIDER=local
       - AMAP_KEY=${AMAP_KEY:-}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-footprint_prod_secret_fixed_key_change_me}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]

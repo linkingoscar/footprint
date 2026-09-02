@@ -1,0 +1,2159 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>足迹 Footprint · 网页管理后台</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧭</text></svg>">
+    <style>
+        :root {
+            --primary: #3B82F6;
+            --primary-rgb: 59, 130, 246;
+            --primary-hover: #2563EB;
+            --love: #EC4899;
+            --love-rgb: 236, 72, 153;
+            --food: #F59E0B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --bg: #0B0F19;
+            --bg-elevated: #131B2E;
+            --bg-card: rgba(19, 27, 46, 0.7);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.16);
+            --text: #F8FAFC;
+            --text-sec: #94A3B8;
+            --text-muted: #64748B;
+            --sidebar-width: 240px;
+            --radius-lg: 16px;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-full: 9999px;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg: #F1F5F9;
+            --bg-elevated: #FFFFFF;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --border: rgba(0, 0, 0, 0.08);
+            --border-hover: rgba(0, 0, 0, 0.15);
+            --text: #0F172A;
+            --text-sec: #475569;
+            --text-muted: #94A3B8;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Background */
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .ambient-blob {
+            position: absolute;
+            filter: blur(120px);
+            opacity: 0.15;
+            border-radius: 50%;
+        }
+        .blob-1 { width: 500px; height: 500px; background: #3B82F6; top: -100px; left: -100px; }
+        .blob-2 { width: 450px; height: 450px; background: #EC4899; bottom: -100px; right: -100px; }
+
+        /* App Layout */
+        .admin-layout {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 20;
+            transition: var(--transition);
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        .sidebar-logo {
+            font-size: 26px;
+            line-height: 1;
+        }
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3B82F6, #8B5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .sidebar-menu {
+            flex: 1;
+            padding: 16px 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-group-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 10px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            color: var(--text-sec);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+        }
+        .nav-item:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: var(--border);
+        }
+        .nav-item.active {
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+            font-weight: 600;
+        }
+        .nav-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .top-navbar {
+            height: 64px;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .page-header-title {
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .content-area {
+            padding: 28px 32px;
+            flex: 1;
+        }
+
+        /* Tabs Content Container */
+        .tab-panel {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Bento Grid & Cards */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 1200px) {
+            .bento-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            .bento-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        .card:hover {
+            border-color: var(--border-hover);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Stat Card */
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+        }
+        .stat-icon.love { background: rgba(236, 72, 153, 0.1); color: var(--love); }
+        .stat-icon.food { background: rgba(245, 158, 11, 0.1); color: var(--food); }
+        .stat-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .stat-number {
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Buttons & Forms */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid transparent;
+            text-decoration: none;
+            background: var(--bg-elevated);
+            color: var(--text);
+        }
+        .btn:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #FFFFFF;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+        .btn-love {
+            background: var(--love);
+            color: #FFFFFF;
+        }
+        .btn-ghost {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--text-sec);
+        }
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .btn-danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        .form-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 13px;
+            transition: var(--transition);
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+        .form-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        @media (max-width: 640px) {
+            .form-grid-2 { grid-template-columns: 1fr; }
+        }
+
+        /* Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            vertical-align: middle;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--border);
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider.love { background-color: var(--love); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        /* Tables */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+        .data-table th {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px 16px;
+            font-weight: 600;
+            color: var(--text-sec);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .data-table tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            border-radius: var(--radius-full);
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-travel { background: rgba(59, 130, 246, 0.15); color: #60A5FA; }
+        .badge-food { background: rgba(245, 158, 11, 0.15); color: #FBBF24; }
+        .badge-love { background: rgba(236, 72, 153, 0.15); color: #F472B6; }
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #34D399; }
+        .badge-danger { background: rgba(239, 68, 68, 0.15); color: #F87171; }
+
+        /* Pill Features Selector */
+        .feature-toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .feature-toggle-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            font-size: 13px;
+            cursor: pointer;
+            user-select: none;
+            transition: var(--transition);
+        }
+        .feature-toggle-chip.active {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 600px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: modalPop 0.25s ease;
+        }
+        @keyframes modalPop {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-body {
+            padding: 20px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        /* Toast */
+        #admin-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 12px 20px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 200;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+        #admin-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-bg">
+        <div class="ambient-blob blob-1"></div>
+        <div class="ambient-blob blob-2"></div>
+    </div>
+
+    <div class="admin-layout">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">🧭</div>
+                <div>
+                    <div class="sidebar-title">足迹管理后台</div>
+                    <div class="sidebar-subtitle">Footprint Admin Suite</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-menu">
+                <div class="nav-group-title">仪表与排版</div>
+                <div class="nav-item active" onclick="switchTab('overview')">
+                    <span class="nav-icon">📊</span>
+                    <span>系统总览</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('layout')">
+                    <span class="nav-icon">🎨</span>
+                    <span>前台排版与布局</span>
+                </div>
+
+                <div class="nav-group-title">内容与数据</div>
+                <div class="nav-item" onclick="switchTab('footprints')">
+                    <span class="nav-icon">📸</span>
+                    <span>足迹记录管理</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('love-features')">
+                    <span class="nav-icon">💑</span>
+                    <span>情侣回忆与数据</span>
+                </div>
+
+                <div class="nav-group-title">后端与连接脚手架</div>
+                <div class="nav-item" onclick="switchTab('database')">
+                    <span class="nav-icon">🗄️</span>
+                    <span>数据库脚手架</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('storage')">
+                    <span class="nav-icon">☁️</span>
+                    <span>图床与对象存储</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('wechat')">
+                    <span class="nav-icon">📱</span>
+                    <span>微信小程序支持</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-pill">
+                    <span style="font-size:16px">👤</span>
+                    <span id="sidebar-username">管理员</span>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="logout()" title="退出登录">🚪</button>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <main class="main-wrapper">
+            <!-- Top Navbar -->
+            <header class="top-navbar">
+                <div class="page-header-title" id="page-header-title">
+                    <span>📊</span>
+                    <span>系统总览</span>
+                </div>
+                <div class="navbar-actions">
+                    <button class="btn btn-ghost btn-sm" onclick="location.href='index.html'" target="_blank">
+                        <span>🏠</span><span>访问前台首页</span>
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="location.href='settings.html'">
+                        <span>⚙️</span><span>个人偏好设置</span>
+                    </button>
+                    <button class="btn btn-ghost btn-sm" onclick="toggleTheme()" id="theme-btn">🌙</button>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <div class="content-area">
+                <!-- Tab 1: Overview -->
+                <section class="tab-panel active" id="tab-overview">
+                    <div class="bento-grid">
+                        <div class="card stat-card">
+                            <div class="stat-icon">🌟</div>
+                            <div>
+                                <div class="stat-number" id="stat-total-records">0</div>
+                                <div class="stat-label">总足迹记录</div>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon">✈️</div>
+                            <div>
+                                <div class="stat-number" id="stat-travel-records">0</div>
+                                <div class="stat-label">旅行探索</div>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon food">🍜</div>
+                            <div>
+                                <div class="stat-number" id="stat-food-records">0</div>
+                                <div class="stat-label">美食打卡</div>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon love">💕</div>
+                            <div>
+                                <div class="stat-number" id="stat-love-records">0</div>
+                                <div class="stat-label">情侣专属回忆</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:24px">
+                        <!-- System Engine Info -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <div class="card-title">⚙️ 系统引擎状态</div>
+                                    <div class="card-desc">当前运行的数据存储与基础设施服务</div>
+                                </div>
+                                <button class="btn btn-ghost btn-sm" onclick="loadOverviewData()">🔄 刷新状态</button>
+                            </div>
+                            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+                                <div style="padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                                    <div style="font-size:12px;color:var(--text-muted)">当前数据库引擎</div>
+                                    <div style="font-size:16px;font-weight:700;margin-top:4px" id="sys-db-type">SQLite (Local)</div>
+                                    <div style="font-size:11px;color:var(--success);margin-top:4px">● 连接健康正常</div>
+                                </div>
+                                <div style="padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                                    <div style="font-size:12px;color:var(--text-muted)">当前活动图床驱动</div>
+                                    <div style="font-size:16px;font-weight:700;margin-top:4px" id="sys-storage-provider">本地上传 (Local)</div>
+                                    <div style="font-size:11px;color:var(--text-sec);margin-top:4px" id="sys-upload-disk">文件: 0 个 · 0 MB</div>
+                                </div>
+                                <div style="padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                                    <div style="font-size:12px;color:var(--text-muted)">情侣模式运行状态</div>
+                                    <div style="font-size:16px;font-weight:700;margin-top:4px" id="sys-couple-status">未启用</div>
+                                    <div style="font-size:11px;color:var(--text-sec);margin-top:4px">顶层可插拔增强层</div>
+                                </div>
+                                <div style="padding:14px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                                    <div style="font-size:12px;color:var(--text-muted)">前台地图提供商</div>
+                                    <div style="font-size:16px;font-weight:700;margin-top:4px" id="sys-map-provider">高德地图 (AMap)</div>
+                                    <div style="font-size:11px;color:var(--text-sec);margin-top:4px">支持自适应坐标定位</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="card-title">⚡ 快捷运维操作</div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:10px">
+                                <button class="btn btn-ghost" style="justify-content:flex-start" onclick="downloadBackup()">
+                                    <span>📦</span><span>一键下载系统全量快照</span>
+                                </button>
+                                <button class="btn btn-ghost" style="justify-content:flex-start" onclick="switchTab('layout')">
+                                    <span>🎨</span><span>调整前台页面排版</span>
+                                </button>
+                                <button class="btn btn-ghost" style="justify-content:flex-start" onclick="switchTab('storage')">
+                                    <span>☁️</span><span>测试图床与存储连通性</span>
+                                </button>
+                                <button class="btn btn-ghost" style="justify-content:flex-start" onclick="switchTab('wechat')">
+                                    <span>📱</span><span>配置微信小程序对接</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 2: Layout Customizer -->
+                <section class="tab-panel" id="tab-layout">
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">🎨 前台页面排版与视觉定制</div>
+                                <div class="card-desc">配置前台主页（index.html）的排版结构、展示模块与功能开关</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveLayoutConfig()">💾 保存排版设置</button>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">站点主标题</label>
+                                <input type="text" class="form-input" id="layout-site-title" placeholder="足迹">
+                                <div class="form-hint">前台顶部 Header 和浏览器标题</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">站点 Logo 图标 (Emoji)</label>
+                                <input type="text" class="form-input" id="layout-logo-emoji" placeholder="✈️">
+                                <div class="form-hint">例如 ✈️、👣、🏔️、🚀</div>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">前台默认选中的筛选 Tab</label>
+                                <select class="form-select" id="layout-default-filter">
+                                    <option value="all">🌟 全部足迹 (旅行 + 美食)</option>
+                                    <option value="travel">✈️ 旅行探索</option>
+                                    <option value="food">🍜 美食寻味</option>
+                                    <option value="love">💕 专属回忆 (仅情侣模式有效)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">足迹卡片列表排版方式</label>
+                                <select class="form-select" id="layout-card-layout">
+                                    <option value="grid">标准网格布局 (Grid 3列)</option>
+                                    <option value="dense">高密度网格 (Grid 4列)</option>
+                                    <option value="masonry">自适应瀑布流 (Masonry)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">前台快捷功能长条 (Quick Feature Bar) 展示项目</label>
+                            <div class="form-hint" style="margin-bottom:8px">点击勾选在前台快捷栏中保留的功能按钮</div>
+                            <div class="feature-toggle-grid" id="layout-features-selector">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">前台地图模块默认高度</label>
+                                <select class="form-select" id="layout-map-height">
+                                    <option value="360px">标准适中 (360px)</option>
+                                    <option value="460px">开阔全景 (460px)</option>
+                                    <option value="260px">精致精简 (260px)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">地图默认缩放级别 (Zoom)</label>
+                                <select class="form-select" id="layout-map-zoom">
+                                    <option value="5">全国全景 (Zoom 5)</option>
+                                    <option value="8">省际大区 (Zoom 8)</option>
+                                    <option value="12">城市级 (Zoom 12)</option>
+                                    <option value="15">街区级 (Zoom 15)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 3: Footprints CMS -->
+                <section class="tab-panel" id="tab-footprints">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">📸 足迹内容管理</div>
+                                <div class="card-desc">维护旅行与美食足迹记录，支持批量管理与筛选</div>
+                            </div>
+                            <div style="display:flex;gap:8px">
+                                <button class="btn btn-ghost btn-sm" onclick="exportRecordsJson()">📥 导出数据</button>
+                                <button class="btn btn-primary btn-sm" onclick="openAddRecordModal()">➕ 添加新足迹</button>
+                            </div>
+                        </div>
+
+                        <!-- Filter Bar -->
+                        <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                            <input type="text" class="form-input" id="cms-search-input" placeholder="🔍 搜索标题、地点或描述..." style="max-width:280px" oninput="debounceFilterFootprints()">
+                            <select class="form-select" id="cms-mode-filter" style="max-width:160px" onchange="filterFootprints()">
+                                <option value="all">全部类型</option>
+                                <option value="travel">✈️ 旅行探索</option>
+                                <option value="food">🍜 美食寻味</option>
+                                <option value="love">💕 专属回忆</option>
+                            </select>
+                            <div style="display:flex;gap:6px;margin-left:auto">
+                                <button class="btn btn-ghost btn-sm" onclick="batchTagCouple(true)">💕 批量标记情侣</button>
+                                <button class="btn btn-ghost btn-sm" onclick="batchTagCouple(false)">❌ 批量取消标记</button>
+                                <button class="btn btn-danger btn-sm" onclick="batchDeleteRecords()">🗑️ 批量删除</button>
+                            </div>
+                        </div>
+
+                        <!-- Records Table -->
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:36px"><input type="checkbox" id="check-all-records" onchange="toggleSelectAllRecords(this)"></th>
+                                        <th style="width:60px">缩略图</th>
+                                        <th>标题</th>
+                                        <th>分类与标记</th>
+                                        <th>打卡地点</th>
+                                        <th>日期</th>
+                                        <th>评分/人均</th>
+                                        <th style="text-align:right">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cms-records-tbody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 4: Love & Features CMS -->
+                <section class="tab-panel" id="tab-love-features">
+                    <!-- Couple Mode Global Toggle Card -->
+                    <div class="card" style="border:1px solid rgba(236,72,153,0.3);background:linear-gradient(180deg, rgba(236,72,153,0.05) 0%, transparent 100%);margin-bottom:20px">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title" style="color:var(--love)">💑 情侣模式 (Couple Mode) 专属增强层</div>
+                                <div class="card-desc">在后台一键开启/关闭。开启后前台主页融入浪漫组件；关闭后主页纯净呈现旅行+美食足迹，数据完好保留。</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <label class="switch">
+                                    <input type="checkbox" id="admin-couple-toggle" onchange="toggleCoupleModeFromAdmin()">
+                                    <span class="slider love"></span>
+                                </label>
+                                <button class="btn btn-love btn-sm" onclick="saveCoupleModeFromAdmin()">💾 保存情侣配置</button>
+                            </div>
+                        </div>
+                        <div class="form-grid-2" style="margin-top:10px">
+                            <div class="form-group">
+                                <label class="form-label">💕 在一起相恋纪念日</label>
+                                <input type="date" class="form-input" id="admin-together-date">
+                                <div class="form-hint">前台在一起横幅将以此日期计算相爱天数与重要周年</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">💌 伴侣昵称 / 专属寄语</label>
+                                <input type="text" class="form-input" id="admin-partner-name" placeholder="例如: 亲爱的宝贝 / 属于我们的小天地">
+                                <div class="form-hint">展示于情侣工具箱与纪念手账</div>
+                            </div>
+                        </div>
+
+                        <!-- 双人空间配对协同卡片 -->
+                        <div id="couple-pair-card-container"></div>
+                    </div>
+
+                    <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px">
+                        <button class="btn btn-primary btn-sm feature-subtab-btn" data-feature="love_notes" onclick="switchFeatureSubtab('love_notes')">💌 恋爱手账</button>
+                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="anniversaries" onclick="switchFeatureSubtab('anniversaries')">📅 纪念日</button>
+                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="date_plans" onclick="switchFeatureSubtab('date_plans')">💑 约会计划</button>
+                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="wishes" onclick="switchFeatureSubtab('wishes')">❤️ 甜蜜心愿任务</button>
+                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="travel_plans" onclick="switchFeatureSubtab('travel_plans')">🗺️ 旅行行程</button>
+                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="ingredients" onclick="switchFeatureSubtab('ingredients')">🥬 美食食材</button>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title" id="feature-subtab-title">💌 恋爱手账管理</div>
+                            <button class="btn btn-primary btn-sm" onclick="openAddFeatureItemModal()">➕ 新增内容</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table">
+                                <thead>
+                                    <tr id="feature-table-thead">
+                                        <!-- Header dynamically populated -->
+                                    </tr>
+                                </thead>
+                                <tbody id="feature-table-tbody">
+                                    <!-- Items dynamically populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 5: Database Scaffolding -->
+                <section class="tab-panel" id="tab-database">
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">🗄️ 数据库连接与管理脚手架</div>
+                                <div class="card-desc">检测当前运行数据库、连接 PostgreSQL / Supabase 云数据库</div>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" onclick="checkDatabaseStatus()">🔄 检测状态</button>
+                        </div>
+
+                        <!-- Current DB Status -->
+                        <div style="padding:16px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border);margin-bottom:20px">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                                <span style="font-weight:600">当前活跃数据源：<span id="db-stat-driver" style="color:var(--primary)">SQLite</span></span>
+                                <span class="badge badge-success" id="db-stat-health">● 健康在线</span>
+                            </div>
+                            <div style="font-size:12px;color:var(--text-sec)" id="db-stat-details">
+                                存储路径: backend/footprint.db · 往返延迟: 1.2ms · 包含足迹记录: 0 条
+                            </div>
+                        </div>
+
+                        <!-- DB Switcher & Tester Scaffolding -->
+                        <div class="form-group">
+                            <label class="form-label">切换远程数据库 (PostgreSQL / Supabase)</label>
+                            <input type="text" class="form-input" id="input-db-url" placeholder="postgresql://postgres:password@db.supabase.co:5432/postgres">
+                            <div class="form-hint">支持 Supabase、Neon、Railway、AWS RDS 等任何兼容 PostgreSQL 的连接串</div>
+                        </div>
+
+                        <div style="display:flex;gap:12px">
+                            <button class="btn btn-primary" onclick="testDatabaseConnection()">🔌 测试连接连通性</button>
+                            <button class="btn btn-ghost" onclick="saveDatabaseConfig()">💾 保存并切换数据库配置</button>
+                        </div>
+
+                        <div id="db-test-result" style="margin-top:14px;display:none;padding:12px;border-radius:var(--radius-sm);font-size:13px"></div>
+                    </div>
+
+                    <!-- Backup & Snapshot Card -->
+                    <div class="card" style="max-width:900px">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">📦 全库数据备份与迁移</div>
+                                <div class="card-desc">将所有足迹记录、情侣手账、纪念日及配置打包备份或恢复</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:12px">
+                            <button class="btn btn-ghost" onclick="downloadBackup()">📥 下载全库 JSON 快照</button>
+                            <button class="btn btn-ghost" onclick="document.getElementById('restore-file-input').click()">📤 恢复 JSON 快照</button>
+                            <input type="file" id="restore-file-input" style="display:none" accept=".json" onchange="handleRestoreFile(event)">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 6: Storage & Image Hosting -->
+                <section class="tab-panel" id="tab-storage">
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">☁️ 图床与对象存储平台脚手架</div>
+                                <div class="card-desc">配置图片存放位置，支持本地存储与主流云图床无缝切换</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveStorageConfig()">💾 保存存储配置</button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">活动存储提供商</label>
+                            <select class="form-select" id="storage-provider-select" onchange="toggleStorageProviderFields()">
+                                <option value="local">📁 本地磁盘存储 (/uploads/ 目录)</option>
+                                <option value="aliyun">🟠 阿里云 OSS (Aliyun Object Storage)</option>
+                                <option value="tencent">🔵 腾讯云 COS (Tencent Cloud COS)</option>
+                                <option value="qiniu">🟢 七牛云 Kodo (Qiniu Storage)</option>
+                                <option value="aws">🟡 AWS S3 / Cloudflare R2 / MinIO</option>
+                            </select>
+                        </div>
+
+                        <!-- Aliyun Fields -->
+                        <div id="storage-fields-aliyun" class="storage-fields" style="display:none">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">AccessKey ID</label>
+                                    <input type="text" class="form-input" id="cfg-aliyun-ak" placeholder="LTAI...">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">AccessKey Secret</label>
+                                    <input type="password" class="form-input" id="cfg-aliyun-sk" placeholder="••••••••">
+                                </div>
+                            </div>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Bucket 名称</label>
+                                    <input type="text" class="form-input" id="cfg-aliyun-bucket" placeholder="my-footprint">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Endpoint</label>
+                                    <input type="text" class="form-input" id="cfg-aliyun-endpoint" placeholder="oss-cn-hangzhou.aliyuncs.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tencent Fields -->
+                        <div id="storage-fields-tencent" class="storage-fields" style="display:none">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">SecretId</label>
+                                    <input type="text" class="form-input" id="cfg-tencent-id" placeholder="AKID...">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">SecretKey</label>
+                                    <input type="password" class="form-input" id="cfg-tencent-key" placeholder="••••••••">
+                                </div>
+                            </div>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Bucket (格式: name-appid)</label>
+                                    <input type="text" class="form-input" id="cfg-tencent-bucket" placeholder="footprint-1250000000">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Region (所属地域)</label>
+                                    <input type="text" class="form-input" id="cfg-tencent-region" placeholder="ap-guangzhou">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Qiniu Fields -->
+                        <div id="storage-fields-qiniu" class="storage-fields" style="display:none">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">AccessKey</label>
+                                    <input type="text" class="form-input" id="cfg-qiniu-ak">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">SecretKey</label>
+                                    <input type="password" class="form-input" id="cfg-qiniu-sk">
+                                </div>
+                            </div>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Bucket</label>
+                                    <input type="text" class="form-input" id="cfg-qiniu-bucket">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">CDN 绑定域名</label>
+                                    <input type="text" class="form-input" id="cfg-qiniu-domain" placeholder="https://cdn.example.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AWS S3 / Cloudflare R2 Fields -->
+                        <div id="storage-fields-aws" class="storage-fields" style="display:none">
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Access Key</label>
+                                    <input type="text" class="form-input" id="cfg-aws-ak">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Secret Key</label>
+                                    <input type="password" class="form-input" id="cfg-aws-sk">
+                                </div>
+                            </div>
+                            <div class="form-grid-2">
+                                <div class="form-group">
+                                    <label class="form-label">Bucket</label>
+                                    <input type="text" class="form-input" id="cfg-aws-bucket">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Region / 自定义 Endpoint (如 R2)</label>
+                                    <input type="text" class="form-input" id="cfg-aws-endpoint" placeholder="https://<account>.r2.cloudflarestorage.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Test Button -->
+                        <div style="margin-top:16px">
+                            <button class="btn btn-ghost" onclick="testStorageConnection()">🧪 在线测试图床连通性</button>
+                            <div id="storage-test-result" style="margin-top:12px;display:none;padding:12px;border-radius:var(--radius-sm);font-size:13px"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Tab 7: WeChat MiniApp -->
+                <section class="tab-panel" id="tab-wechat">
+                    <div class="card" style="max-width:900px;margin-bottom:24px">
+                        <div class="card-header">
+                            <div>
+                                <div class="card-title">📱 微信小程序对接与支持</div>
+                                <div class="card-desc">保留小程序支持，配置微信 AppID 与原生登录桥接能力</div>
+                            </div>
+                            <button class="btn btn-primary" onclick="saveWeChatConfig()">💾 保存小程序设置</button>
+                        </div>
+
+                        <div class="form-group">
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg-elevated);border-radius:var(--radius-sm);border:1px solid var(--border)">
+                                <div>
+                                    <div style="font-weight:600">无缝沙盒体验模式 (Mock Mode)</div>
+                                    <div style="font-size:12px;color:var(--text-muted)">开启后在未填写微信 AppSecret 时允许一键体验与调试</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="cfg-wechat-mock" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">小程序 AppID</label>
+                                <input type="text" class="form-input" id="cfg-wechat-appid" placeholder="wx1234567890abcdef">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">小程序 AppSecret</label>
+                                <input type="password" class="form-input" id="cfg-wechat-secret" placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <!-- Miniapp Guidance -->
+                        <div style="padding:16px;background:rgba(59, 130, 246, 0.05);border-radius:var(--radius-sm);border:1px solid rgba(59, 130, 246, 0.2);margin-top:16px">
+                            <div style="font-weight:600;font-size:14px;color:var(--primary);margin-bottom:8px">💡 微信小程序开发与连接指引</div>
+                            <ol style="font-size:12px;color:var(--text-sec);line-height:1.8;padding-left:18px">
+                                <li>微信小程序端完整工程源码位于项目根目录下的 <code>miniapp/</code> 目录中；</li>
+                                <li>使用微信开发者工具打开 <code>miniapp/</code> 即可进行预览与编译调试；</li>
+                                <li>在小程序 <code>miniapp/utils/api.js</code> 中已配置向本服务的 <code>/api/wechat/login</code> 及 <code>/api/records</code> 传输足迹；</li>
+                                <li>若在局域网测试真机调试，请在小程序中设置 API Base 为电脑本地内网 IP。</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Record Modal -->
+    <div class="modal-overlay" id="modal-edit-record">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div style="font-weight:700" id="modal-record-title">编辑足迹记录</div>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-edit-record')">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="edit-record-id">
+                <div class="form-group">
+                    <label class="form-label">分类类型</label>
+                    <select class="form-select" id="edit-record-mode">
+                        <option value="travel">✈️ 旅行探索</option>
+                        <option value="food">🍜 美食寻味</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                        <input type="checkbox" id="edit-record-couple" style="accent-color:#EC4899;width:16px;height:16px">
+                        <span style="font-size:13px;font-weight:600;color:var(--love)">💕 标记为情侣专属回忆</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">标题</label>
+                    <input type="text" class="form-input" id="edit-record-title">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">打卡地点</label>
+                    <input type="text" class="form-input" id="edit-record-location">
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">纬度 (Latitude)</label>
+                        <input type="number" step="any" class="form-input" id="edit-record-lat">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">经度 (Longitude)</label>
+                        <input type="number" step="any" class="form-input" id="edit-record-lng">
+                    </div>
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group">
+                        <label class="form-label">日期</label>
+                        <input type="date" class="form-input" id="edit-record-date">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">评分 / 人均</label>
+                        <input type="number" class="form-input" id="edit-record-rating" placeholder="评分(1-5)或人均">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">描述感悟</label>
+                    <textarea class="form-textarea" id="edit-record-desc" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('modal-edit-record')">取消</button>
+                <button class="btn btn-primary" onclick="saveEditedRecord()">💾 保存更改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Feature Item Modal -->
+    <div class="modal-overlay" id="modal-add-feature">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div style="font-weight:700" id="modal-feature-title">添加项目</div>
+                <button class="btn btn-ghost btn-sm" onclick="closeModal('modal-add-feature')">✕</button>
+            </div>
+            <div class="modal-body" id="modal-feature-body">
+                <!-- Dynamically populated per feature type -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" onclick="closeModal('modal-add-feature')">取消</button>
+                <button class="btn btn-primary" onclick="submitFeatureItem()">💾 保存添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="admin-toast">通知提示</div>
+
+    <script>
+        // ========== Admin State ==========
+        let adminState = {
+            token: localStorage.getItem('footprint_token') || '',
+            user: JSON.parse(localStorage.getItem('footprint_user') || 'null'),
+            records: [],
+            features: {},
+            activeTab: 'overview',
+            activeFeatureSubtab: 'love_notes',
+            layoutConfig: {},
+            selectedRecordIds: new Set()
+        };
+
+        const AVAILABLE_FEATURES = [
+            { key: 'map', name: '🗺️ 足迹地图' },
+            { key: 'replay', name: '🛤️ 轨迹回放' },
+            { key: 'timeline', name: '📅 时光轨迹' },
+            { key: 'cities', name: '🏙️ 城市点亮' },
+            { key: 'ai-story', name: '✨ AI游记' },
+            { key: 'expense', name: '💰 花费账单' },
+            { key: 'ingredients', name: '🥬 美食食材' },
+            { key: 'stats', name: '📊 足迹报告' },
+            { key: 'globe', name: '🌍 3D地球' },
+            { key: 'export', name: '📦 数据导出' }
+        ];
+
+        // ========== Auth & API Helper ==========
+        function checkAuth() {
+            if (!adminState.token) {
+                location.href = 'index.html';
+                return false;
+            }
+            if (adminState.user) {
+                document.getElementById('sidebar-username').textContent = adminState.user.username || '管理员';
+            }
+            return true;
+        }
+
+        async function api(path, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminState.token}`,
+                ...(options.headers || {})
+            };
+            try {
+                const resp = await fetch(path, { ...options, headers });
+                if (resp.status === 401) {
+                    toast('登录会话已失效，请重新登录');
+                    setTimeout(() => location.href = 'index.html', 1000);
+                    throw new Error('Unauthorized');
+                }
+                const data = await resp.json().catch(() => ({}));
+                if (!resp.ok) {
+                    throw new Error(data.error || data.message || `HTTP ${resp.status}`);
+                }
+                return data;
+            } catch (err) {
+                // 本地脱机伪应用模式兜底：从 localStorage 读取与写入
+                console.log('[Admin] 云端不可用，走本地存储:', path);
+                const method = (options.method || 'GET').toUpperCase();
+                const body = options.body ? (typeof options.body === 'string' ? JSON.parse(options.body) : options.body) : {};
+
+                if (path === '/api/config') {
+                    if (method === 'GET') return JSON.parse(localStorage.getItem('footprint_config') || '{}');
+                    const cur = JSON.parse(localStorage.getItem('footprint_config') || '{}');
+                    const merged = { ...cur, ...body };
+                    localStorage.setItem('footprint_config', JSON.stringify(merged));
+                    return { success: true, config: merged };
+                }
+                if (path === '/api/features') {
+                    return { features: JSON.parse(localStorage.getItem('footprint_features') || '{}') };
+                }
+                if (path.startsWith('/api/features/')) {
+                    const key = path.replace('/api/features/', '');
+                    const feats = JSON.parse(localStorage.getItem('footprint_features') || '{}');
+                    if (method === 'GET') return { feature_key: key, data: feats[key] || [] };
+                    feats[key] = body.data !== undefined ? body.data : body;
+                    localStorage.setItem('footprint_features', JSON.stringify(feats));
+                    return { success: true, feature_key: key };
+                }
+                if (path.startsWith('/api/records')) {
+                    return JSON.parse(localStorage.getItem('footprint_data') || '[]');
+                }
+                if (path === '/api/admin/overview') {
+                    const recs = JSON.parse(localStorage.getItem('footprint_data') || '[]');
+                    return {
+                        total_records: recs.length,
+                        total_users: 1,
+                        storage_type: 'Local (本机离线存储)',
+                        couple_mode: (JSON.parse(localStorage.getItem('footprint_config') || '{}')).coupleMode || false
+                    };
+                }
+                throw err;
+            }
+        }
+
+        function toast(msg) {
+            const el = document.getElementById('admin-toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2800);
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            document.getElementById('theme-btn').textContent = next === 'dark' ? '🌙' : '☀️';
+        }
+
+        function logout() {
+            localStorage.removeItem('footprint_token');
+            localStorage.removeItem('footprint_user');
+            location.href = 'index.html';
+        }
+
+        // ========== Tab Navigation ==========
+        function switchTab(tabKey) {
+            adminState.activeTab = tabKey;
+            document.querySelectorAll('.nav-item').forEach(el => {
+                const clickAttr = el.getAttribute('onclick') || '';
+                el.classList.toggle('active', clickAttr.includes(`'${tabKey}'`));
+            });
+            document.querySelectorAll('.tab-panel').forEach(el => {
+                el.classList.toggle('active', el.id === `tab-${tabKey}`);
+            });
+
+            const titles = {
+                overview: '📊 系统总览',
+                layout: '🎨 前台排版与布局配置',
+                footprints: '📸 足迹内容管理',
+                'love-features': '💑 情侣回忆与扩展数据',
+                database: '🗄️ 数据库引擎脚手架',
+                storage: '☁️ 图床与对象存储平台',
+                wechat: '📱 微信小程序对接与管理'
+            };
+            document.getElementById('page-header-title').innerHTML = titles[tabKey] || '管理后台';
+
+            // Lazy fetch data for tabs
+            if (tabKey === 'footprints') loadFootprints();
+            if (tabKey === 'love-features') loadFeaturesData();
+            if (tabKey === 'database') checkDatabaseStatus();
+            if (tabKey === 'storage') loadStorageStatus();
+        }
+
+        // ========== Overview Logic ==========
+        async function loadOverviewData() {
+            try {
+                const data = await api('/api/admin/overview');
+                document.getElementById('stat-total-records').textContent = data.records.total;
+                document.getElementById('stat-travel-records').textContent = data.records.travel;
+                document.getElementById('stat-food-records').textContent = data.records.food;
+                document.getElementById('stat-love-records').textContent = data.records.love;
+
+                document.getElementById('sys-db-type').textContent = data.system.db_type.toUpperCase();
+                document.getElementById('sys-storage-provider').textContent = data.system.storage_provider;
+                document.getElementById('sys-upload-disk').textContent = `文件: ${data.system.upload_files} 个 · ${data.system.upload_size_mb} MB`;
+                document.getElementById('sys-couple-status').textContent = data.system.couple_mode ? '💕 已开启' : '关闭';
+                document.getElementById('sys-map-provider').textContent = data.system.map_provider;
+            } catch (e) {
+                console.error('Failed to load overview:', e);
+            }
+        }
+
+        // ========== Layout Customizer Logic ==========
+        async function loadLayoutConfig() {
+            try {
+                const resp = await api('/api/admin/layout');
+                const layout = resp.layout || {};
+                adminState.layoutConfig = layout;
+
+                document.getElementById('layout-site-title').value = layout.siteTitle || '足迹';
+                document.getElementById('layout-logo-emoji').value = layout.logoEmoji || '✈️';
+                document.getElementById('layout-default-filter').value = layout.defaultFilter || 'all';
+                document.getElementById('layout-card-layout').value = layout.cardLayout || 'grid';
+                document.getElementById('layout-map-height').value = layout.mapHeight || '360px';
+                document.getElementById('layout-map-zoom').value = layout.mapZoom || '5';
+
+                renderFeatureSelector(layout.visibleFeatures || AVAILABLE_FEATURES.map(f => f.key));
+            } catch (e) {
+                renderFeatureSelector(AVAILABLE_FEATURES.map(f => f.key));
+            }
+        }
+
+        function renderFeatureSelector(activeKeys = []) {
+            const container = document.getElementById('layout-features-selector');
+            const activeSet = new Set(activeKeys);
+            container.innerHTML = AVAILABLE_FEATURES.map(f => `
+                <div class="feature-toggle-chip ${activeSet.has(f.key) ? 'active' : ''}" onclick="toggleFeaturePill('${f.key}', this)">
+                    <span>${f.name}</span>
+                </div>
+            `).join('');
+        }
+
+        function toggleFeaturePill(key, el) {
+            el.classList.toggle('active');
+        }
+
+        async function saveLayoutConfig() {
+            const activePills = Array.from(document.querySelectorAll('#layout-features-selector .feature-toggle-chip.active'))
+                .map(el => {
+                    const text = el.textContent.trim();
+                    const match = AVAILABLE_FEATURES.find(f => f.name.includes(text) || text.includes(f.name));
+                    return match ? match.key : null;
+                }).filter(Boolean);
+
+            const layoutData = {
+                siteTitle: document.getElementById('layout-site-title').value.trim() || '足迹',
+                logoEmoji: document.getElementById('layout-logo-emoji').value.trim() || '✈️',
+                defaultFilter: document.getElementById('layout-default-filter').value,
+                cardLayout: document.getElementById('layout-card-layout').value,
+                visibleFeatures: activePills,
+                mapHeight: document.getElementById('layout-map-height').value,
+                mapZoom: document.getElementById('layout-map-zoom').value
+            };
+
+            try {
+                await api('/api/admin/layout', { method: 'POST', body: JSON.stringify({ layout: layoutData }) });
+                toast('✅ 排版布局配置已保存！刷新前台首页即刻生效');
+            } catch (e) {
+                toast('❌ 保存排版失败: ' + e.message);
+            }
+        }
+
+        // ========== Footprints Content CMS ==========
+        async function loadFootprints() {
+            try {
+                const records = await api('/api/records');
+                adminState.records = records || [];
+                renderFootprintsTable(adminState.records);
+            } catch (e) {
+                toast('加载足迹列表失败: ' + e.message);
+            }
+        }
+
+        function renderFootprintsTable(records) {
+            const tbody = document.getElementById('cms-records-tbody');
+            if (!records.length) {
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">暂无符合条件的足迹记录</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = records.map(r => {
+                const isCouple = !!(r.is_couple || r.mode === 'love');
+                const badgeClass = r.mode === 'food' ? 'badge-food' : (r.mode === 'love' ? 'badge-love' : 'badge-travel');
+                const badgeLabel = r.mode === 'food' ? '🍜 美食' : (r.mode === 'love' ? '💕 情侣' : '✈️ 旅行');
+                const hasGps = (r.latitude !== null && r.latitude !== undefined && r.longitude !== null && r.longitude !== undefined);
+                const thumb = r.images && r.images[0] ? r.images[0] : '';
+
+                return `
+                    <tr>
+                        <td><input type="checkbox" class="record-chk" value="${r.id}" onchange="toggleRecordSelect('${r.id}', this.checked)"></td>
+                        <td>
+                            <img src="${thumb}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;background:var(--border)" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23222%22 width=%22100%22 height=%22100%22/><text y=%2255%22 x=%2250%22 text-anchor=%22middle%22 font-size=%2220%22 fill=%22%23888%22>No</text></svg>'">
+                        </td>
+                        <td style="font-weight:600">${r.title || '无标题'}</td>
+                        <td>
+                            <span class="badge ${badgeClass}">${badgeLabel}</span>
+                            ${isCouple && r.mode !== 'love' ? '<span class="badge badge-love">💕 专属回忆</span>' : ''}
+                        </td>
+                        <td>
+                            <span>${r.location || '-'}</span>
+                            ${hasGps ? '<span title="包含定位坐标" style="cursor:help">📍</span>' : ''}
+                        </td>
+                        <td style="color:var(--text-muted)">${r.date || '-'}</td>
+                        <td>${r.rating ? `⭐ ${r.rating}` : (r.price ? `¥${r.price}` : '-')}</td>
+                        <td style="text-align:right">
+                            <button class="btn btn-ghost btn-sm" onclick="editRecord('${r.id}')">编辑</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteRecord('${r.id}')">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterFootprints() {
+            const query = (document.getElementById('cms-search-input').value || '').trim().toLowerCase();
+            const mode = document.getElementById('cms-mode-filter').value;
+
+            const filtered = adminState.records.filter(r => {
+                if (mode === 'travel' && r.mode !== 'travel') return false;
+                if (mode === 'food' && r.mode !== 'food') return false;
+                if (mode === 'love' && !(r.is_couple || r.mode === 'love')) return false;
+
+                if (query) {
+                    const matchTitle = (r.title || '').toLowerCase().includes(query);
+                    const matchLoc = (r.location || '').toLowerCase().includes(query);
+                    const matchDesc = (r.description || '').toLowerCase().includes(query);
+                    if (!matchTitle && !matchLoc && !matchDesc) return false;
+                }
+                return true;
+            });
+
+            renderFootprintsTable(filtered);
+        }
+
+        let debounceTimer = null;
+        function debounceFilterFootprints() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(filterFootprints, 250);
+        }
+
+        function toggleSelectAllRecords(master) {
+            document.querySelectorAll('.record-chk').forEach(chk => {
+                chk.checked = master.checked;
+                toggleRecordSelect(chk.value, master.checked);
+            });
+        }
+
+        function toggleRecordSelect(id, isSelected) {
+            if (isSelected) adminState.selectedRecordIds.add(id);
+            else adminState.selectedRecordIds.delete(id);
+        }
+
+        async function batchDeleteRecords() {
+            const ids = Array.from(adminState.selectedRecordIds);
+            if (!ids.length) { toast('请先勾选要操作的记录'); return; }
+            if (!confirm(`确定批量删除选中的 ${ids.length} 条足迹吗？`)) return;
+
+            for (const id of ids) {
+                await api(`/api/records/${id}`, { method: 'DELETE' }).catch(() => {});
+            }
+            adminState.selectedRecordIds.clear();
+            toast('✅ 批量删除完成');
+            await loadFootprints();
+            await loadOverviewData();
+        }
+
+        async function batchTagCouple(tagValue) {
+            const ids = Array.from(adminState.selectedRecordIds);
+            if (!ids.length) { toast('请先勾选要操作的记录'); return; }
+
+            for (const id of ids) {
+                const r = adminState.records.find(item => item.id === id);
+                if (r) {
+                    r.is_couple = tagValue;
+                    await api(`/api/records/${id}`, { method: 'PUT', body: JSON.stringify(r) }).catch(() => {});
+                }
+            }
+            toast(tagValue ? '💕 已批量标记为情侣回忆' : '已取消情侣标记');
+            await loadFootprints();
+            await loadOverviewData();
+        }
+
+        function editRecord(id) {
+            const r = adminState.records.find(item => item.id === id);
+            if (!r) return;
+
+            document.getElementById('edit-record-id').value = r.id;
+            document.getElementById('edit-record-mode').value = r.mode === 'food' ? 'food' : 'travel';
+            document.getElementById('edit-record-couple').checked = !!(r.is_couple || r.mode === 'love');
+            document.getElementById('edit-record-title').value = r.title || '';
+            document.getElementById('edit-record-location').value = r.location || '';
+            document.getElementById('edit-record-lat').value = r.latitude ?? '';
+            document.getElementById('edit-record-lng').value = r.longitude ?? '';
+            document.getElementById('edit-record-date').value = r.date || '';
+            document.getElementById('edit-record-rating').value = r.rating || r.price || '';
+            document.getElementById('edit-record-desc').value = r.description || '';
+
+            document.getElementById('modal-record-title').textContent = '编辑足迹记录';
+            openModal('modal-edit-record');
+        }
+
+        function openAddRecordModal() {
+            document.getElementById('edit-record-id').value = '';
+            document.getElementById('edit-record-mode').value = 'travel';
+            document.getElementById('edit-record-couple').checked = false;
+            document.getElementById('edit-record-title').value = '';
+            document.getElementById('edit-record-location').value = '';
+            document.getElementById('edit-record-lat').value = '';
+            document.getElementById('edit-record-lng').value = '';
+            document.getElementById('edit-record-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('edit-record-rating').value = '';
+            document.getElementById('edit-record-desc').value = '';
+
+            document.getElementById('modal-record-title').textContent = '添加新足迹记录';
+            openModal('modal-edit-record');
+        }
+
+        async function saveEditedRecord() {
+            const id = document.getElementById('edit-record-id').value;
+            const title = document.getElementById('edit-record-title').value.trim();
+            if (!title) { toast('标题不能为空'); return; }
+
+            const mode = document.getElementById('edit-record-mode').value;
+            const isCouple = document.getElementById('edit-record-couple').checked;
+            const latVal = parseFloat(document.getElementById('edit-record-lat').value);
+            const lngVal = parseFloat(document.getElementById('edit-record-lng').value);
+
+            const payload = {
+                id: id || ('rec_' + Date.now()),
+                title,
+                mode,
+                is_couple: isCouple,
+                location: document.getElementById('edit-record-location').value.trim(),
+                latitude: isNaN(latVal) ? null : latVal,
+                longitude: isNaN(lngVal) ? null : lngVal,
+                date: document.getElementById('edit-record-date').value,
+                description: document.getElementById('edit-record-desc').value.trim(),
+                images: []
+            };
+
+            const existing = id ? adminState.records.find(r => r.id === id) : null;
+            if (existing) {
+                payload.images = existing.images || [];
+                payload.metadata = existing.metadata || {};
+            }
+
+            try {
+                if (id) {
+                    await api(`/api/records/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+                    toast('✅ 足迹已更新');
+                } else {
+                    await api('/api/records', { method: 'POST', body: JSON.stringify(payload) });
+                    toast('✅ 新足迹已创建');
+                }
+                closeModal('modal-edit-record');
+                await loadFootprints();
+                await loadOverviewData();
+            } catch (e) {
+                toast('❌ 保存失败: ' + e.message);
+            }
+        }
+
+        async function deleteRecord(id) {
+            if (!confirm('确定删除该足迹记录吗？')) return;
+            try {
+                await api(`/api/records/${id}`, { method: 'DELETE' });
+                toast('已删除');
+                await loadFootprints();
+                await loadOverviewData();
+            } catch (e) {
+                toast('删除失败: ' + e.message);
+            }
+        }
+
+        function exportRecordsJson() {
+            const blob = new Blob([JSON.stringify(adminState.records, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `footprints_export_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // ========== Love & Features CMS ==========
+        async function loadFeaturesData() {
+            try {
+                const resp = await api('/api/features');
+                adminState.features = resp.features || {};
+                renderFeatureSubtabContent();
+            } catch (e) {
+                console.error('Failed to load features:', e);
+            }
+        }
+
+        function switchFeatureSubtab(subtabKey) {
+            adminState.activeFeatureSubtab = subtabKey;
+            document.querySelectorAll('.feature-subtab-btn').forEach(btn => {
+                btn.classList.toggle('btn-primary', btn.dataset.feature === subtabKey);
+                btn.classList.toggle('btn-ghost', btn.dataset.feature !== subtabKey);
+            });
+            renderFeatureSubtabContent();
+        }
+
+        function renderFeatureSubtabContent() {
+            const key = adminState.activeFeatureSubtab;
+            const items = adminState.features[key] || [];
+            const thead = document.getElementById('feature-table-thead');
+            const tbody = document.getElementById('feature-table-tbody');
+
+            const titles = {
+                love_notes: '💌 恋爱手账',
+                anniversaries: '📅 纪念日',
+                date_plans: '💑 约会计划',
+                wishes: '❤️ 甜蜜心愿任务',
+                travel_plans: '🗺️ 旅行行程清单',
+                ingredients: '🥬 美食食材库'
+            };
+            document.getElementById('feature-subtab-title').textContent = (titles[key] || key) + ` (${items.length})`;
+
+            if (key === 'love_notes') {
+                thead.innerHTML = `<th>内容</th><th>记录时间</th><th style="text-align:right">操作</th>`;
+                tbody.innerHTML = items.length ? items.map((it, idx) => `
+                    <tr>
+                        <td>${it.content || ''}</td>
+                        <td style="color:var(--text-muted)">${it.date || '-'}</td>
+                        <td style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteFeatureItem(${idx})">删除</button></td>
+                    </tr>
+                `).join('') : `<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">暂无笔记</td></tr>`;
+            } else if (key === 'anniversaries') {
+                thead.innerHTML = `<th>纪念日名称</th><th>日期</th><th style="text-align:right">操作</th>`;
+                tbody.innerHTML = items.length ? items.map((it, idx) => `
+                    <tr>
+                        <td style="font-weight:600">${it.name || ''}</td>
+                        <td>${it.date || ''}</td>
+                        <td style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteFeatureItem(${idx})">删除</button></td>
+                    </tr>
+                `).join('') : `<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">暂无纪念日</td></tr>`;
+            } else if (key === 'wishes') {
+                thead.innerHTML = `<th>状态</th><th>心愿/任务</th><th>添加日期</th><th style="text-align:right">操作</th>`;
+                tbody.innerHTML = items.length ? items.map((it, idx) => `
+                    <tr>
+                        <td><input type="checkbox" ${it.done ? 'checked' : ''} onchange="toggleWishStatus(${idx})"></td>
+                        <td style="${it.done ? 'text-decoration:line-through;color:var(--text-muted)' : 'font-weight:600'}">${it.title || ''}</td>
+                        <td style="color:var(--text-muted)">${it.date || '-'}</td>
+                        <td style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteFeatureItem(${idx})">删除</button></td>
+                    </tr>
+                `).join('') : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">暂无心愿</td></tr>`;
+            } else if (key === 'ingredients') {
+                thead.innerHTML = `<th>食材名称</th><th style="text-align:right">操作</th>`;
+                tbody.innerHTML = items.length ? items.map((it, idx) => `
+                    <tr>
+                        <td style="font-weight:600">🥬 ${it}</td>
+                        <td style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteFeatureItem(${idx})">删除</button></td>
+                    </tr>
+                `).join('') : `<tr><td colspan="2" style="text-align:center;color:var(--text-muted)">暂无食材</td></tr>`;
+            } else {
+                thead.innerHTML = `<th>标题 / 计划</th><th>日期</th><th style="text-align:right">操作</th>`;
+                tbody.innerHTML = items.length ? items.map((it, idx) => `
+                    <tr>
+                        <td style="font-weight:600">${it.title || it.content || it}</td>
+                        <td style="color:var(--text-muted)">${it.date || '-'}</td>
+                        <td style="text-align:right"><button class="btn btn-danger btn-sm" onclick="deleteFeatureItem(${idx})">删除</button></td>
+                    </tr>
+                `).join('') : `<tr><td colspan="3" style="text-align:center;color:var(--text-muted)">暂无项目</td></tr>`;
+            }
+        }
+
+        function openAddFeatureItemModal() {
+            const key = adminState.activeFeatureSubtab;
+            const body = document.getElementById('modal-feature-body');
+            document.getElementById('modal-feature-title').textContent = '新增项目';
+
+            if (key === 'love_notes') {
+                body.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">手账内容 / 给TA的留言</label>
+                        <textarea class="form-textarea" id="f-input-content" rows="4" placeholder="写下一刻的心动..."></textarea>
+                    </div>
+                `;
+            } else if (key === 'anniversaries') {
+                body.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">纪念日名称</label>
+                        <input type="text" class="form-input" id="f-input-name" placeholder="例如: 在一起纪念日、恋爱一周年">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">日期</label>
+                        <input type="date" class="form-input" id="f-input-date" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                `;
+            } else if (key === 'ingredients') {
+                body.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">食材名称</label>
+                        <input type="text" class="form-input" id="f-input-item" placeholder="例如: 澳洲和牛、黑松露">
+                    </div>
+                `;
+            } else {
+                body.innerHTML = `
+                    <div class="form-group">
+                        <label class="form-label">标题 / 事项</label>
+                        <input type="text" class="form-input" id="f-input-title" placeholder="输入事项内容">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">日期 (可选)</label>
+                        <input type="date" class="form-input" id="f-input-date" value="${new Date().toISOString().split('T')[0]}">
+                    </div>
+                `;
+            }
+
+            openModal('modal-add-feature');
+        }
+
+        async function submitFeatureItem() {
+            const key = adminState.activeFeatureSubtab;
+            const items = adminState.features[key] || [];
+
+            if (key === 'love_notes') {
+                const c = document.getElementById('f-input-content').value.trim();
+                if (!c) { toast('内容不能为空'); return; }
+                items.unshift({ content: c, date: new Date().toLocaleString() });
+            } else if (key === 'anniversaries') {
+                const name = document.getElementById('f-input-name').value.trim();
+                const date = document.getElementById('f-input-date').value;
+                if (!name || !date) { toast('请填写完整'); return; }
+                items.push({ name, date });
+            } else if (key === 'ingredients') {
+                const item = document.getElementById('f-input-item').value.trim();
+                if (!item) { toast('食材不能为空'); return; }
+                if (items.includes(item)) { toast('已存在'); return; }
+                items.push(item);
+            } else {
+                const title = document.getElementById('f-input-title').value.trim();
+                const date = document.getElementById('f-input-date')?.value || '';
+                if (!title) { toast('事项不能为空'); return; }
+                items.push({ title, done: false, date });
+            }
+
+            try {
+                await api(`/api/features/${key}`, { method: 'PUT', body: JSON.stringify({ data: items }) });
+                adminState.features[key] = items;
+                localStorage.setItem('footprint_features', JSON.stringify(adminState.features));
+                closeModal('modal-add-feature');
+                toast('✅ 已成功添加');
+                renderFeatureSubtabContent();
+            } catch (e) {
+                toast('❌ 保存失败: ' + e.message);
+            }
+        }
+
+        async function deleteFeatureItem(idx) {
+            const key = adminState.activeFeatureSubtab;
+            const items = adminState.features[key] || [];
+            items.splice(idx, 1);
+            try {
+                await api(`/api/features/${key}`, { method: 'PUT', body: JSON.stringify({ data: items }) });
+                adminState.features[key] = items;
+                localStorage.setItem('footprint_features', JSON.stringify(adminState.features));
+                renderFeatureSubtabContent();
+                toast('已删除');
+            } catch (e) {
+                toast('删除失败: ' + e.message);
+            }
+        }
+
+        async function toggleWishStatus(idx) {
+            const key = 'wishes';
+            const items = adminState.features[key] || [];
+            if (items[idx]) {
+                items[idx].done = !items[idx].done;
+                await api(`/api/features/${key}`, { method: 'PUT', body: JSON.stringify({ data: items }) });
+                adminState.features[key] = items;
+                localStorage.setItem('footprint_features', JSON.stringify(adminState.features));
+                renderFeatureSubtabContent();
+            }
+        }
+
+        // ========== Database Scaffolding ==========
+        async function checkDatabaseStatus() {
+            try {
+                const data = await api('/api/admin/db/status');
+                document.getElementById('db-stat-driver').textContent = `${data.type.toUpperCase()} (${data.driver})`;
+                const healthEl = document.getElementById('db-stat-health');
+                healthEl.textContent = data.healthy ? '● 健康在线' : '● 连接异常';
+                healthEl.className = data.healthy ? 'badge badge-success' : 'badge badge-danger';
+
+                document.getElementById('db-stat-details').textContent =
+                    `记录总数: ${data.records_count} 条 · 往返延迟: ${data.latency_ms}ms · 路径: ${data.file_path || '云端服务'} ${data.file_size_kb ? `(${data.file_size_kb} KB)` : ''}`;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function testDatabaseConnection() {
+            const dbUrl = document.getElementById('input-db-url').value.trim();
+            const resEl = document.getElementById('db-test-result');
+            resEl.style.display = 'block';
+            resEl.style.background = 'rgba(59, 130, 246, 0.1)';
+            resEl.style.color = 'var(--text)';
+            resEl.textContent = '⏳ 正在建立连接握手，请稍候...';
+
+            try {
+                const resp = await api('/api/admin/db/test', { method: 'POST', body: JSON.stringify({ dbUrl }) });
+                resEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                resEl.style.color = 'var(--success)';
+                resEl.textContent = '✅ ' + resp.message;
+            } catch (e) {
+                resEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                resEl.style.color = 'var(--danger)';
+                resEl.textContent = '❌ ' + e.message;
+            }
+        }
+
+        async function saveDatabaseConfig() {
+            const dbUrl = document.getElementById('input-db-url').value.trim();
+            try {
+                await api('/api/config', { method: 'POST', body: JSON.stringify({ dbUrl }) });
+                toast('✅ 数据库配置已保存');
+            } catch (e) {
+                toast('❌ 保存失败: ' + e.message);
+            }
+        }
+
+        async function downloadBackup() {
+            try {
+                const data = await api('/api/admin/backup');
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `footprint_full_backup_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                toast('✅ 全量快照已开始下载');
+            } catch (e) {
+                toast('下载快照失败: ' + e.message);
+            }
+        }
+
+        function handleRestoreFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (parsed.records && Array.isArray(parsed.records)) {
+                        await api('/api/records/import', { method: 'POST', body: JSON.stringify({ records: parsed.records }) });
+                    }
+                    if (parsed.features) {
+                        for (const [k, v] of Object.entries(parsed.features)) {
+                            await api(`/api/features/${k}`, { method: 'PUT', body: JSON.stringify({ data: v }) });
+                        }
+                    }
+                    toast('✅ 数据快照恢复成功！');
+                    await loadOverviewData();
+                } catch (err) {
+                    toast('❌ 快照解析失败: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ========== Storage & Image Hosting ==========
+        async function loadStorageStatus() {
+            try {
+                const resp = await api('/api/admin/storage/status');
+                document.getElementById('storage-provider-select').value = resp.active_provider || 'local';
+                toggleStorageProviderFields();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function toggleStorageProviderFields() {
+            const p = document.getElementById('storage-provider-select').value;
+            document.querySelectorAll('.storage-fields').forEach(el => el.style.display = 'none');
+            const target = document.getElementById(`storage-fields-${p}`);
+            if (target) target.style.display = 'block';
+        }
+
+        async function testStorageConnection() {
+            const provider = document.getElementById('storage-provider-select').value;
+            const resEl = document.getElementById('storage-test-result');
+            resEl.style.display = 'block';
+            resEl.style.background = 'rgba(59, 130, 246, 0.1)';
+            resEl.style.color = 'var(--text)';
+            resEl.textContent = '⏳ 正在进行存储探针测试...';
+
+            try {
+                const resp = await api('/api/admin/storage/test', { method: 'POST', body: JSON.stringify({ provider }) });
+                resEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                resEl.style.color = 'var(--success)';
+                resEl.textContent = '✅ ' + resp.message;
+            } catch (e) {
+                resEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                resEl.style.color = 'var(--danger)';
+                resEl.textContent = '❌ ' + e.message;
+            }
+        }
+
+        async function saveStorageConfig() {
+            const provider = document.getElementById('storage-provider-select').value;
+            const payload = { storageProvider: provider };
+
+            if (provider === 'aliyun') {
+                payload.aliyunAccessKey = document.getElementById('cfg-aliyun-ak').value.trim();
+                payload.aliyunSecretKey = document.getElementById('cfg-aliyun-sk').value.trim();
+                payload.aliyunBucket = document.getElementById('cfg-aliyun-bucket').value.trim();
+                payload.aliyunEndpoint = document.getElementById('cfg-aliyun-endpoint').value.trim();
+            } else if (provider === 'tencent') {
+                payload.tencentSecretId = document.getElementById('cfg-tencent-id').value.trim();
+                payload.tencentSecretKey = document.getElementById('cfg-tencent-key').value.trim();
+                payload.tencentBucket = document.getElementById('cfg-tencent-bucket').value.trim();
+                payload.tencentRegion = document.getElementById('cfg-tencent-region').value.trim();
+            } else if (provider === 'qiniu') {
+                payload.qiniuAccessKey = document.getElementById('cfg-qiniu-ak').value.trim();
+                payload.qiniuSecretKey = document.getElementById('cfg-qiniu-sk').value.trim();
+                payload.qiniuBucket = document.getElementById('cfg-qiniu-bucket').value.trim();
+                payload.qiniuDomain = document.getElementById('cfg-qiniu-domain').value.trim();
+            } else if (provider === 'aws') {
+                payload.awsAccessKey = document.getElementById('cfg-aws-ak').value.trim();
+                payload.awsSecretKey = document.getElementById('cfg-aws-sk').value.trim();
+                payload.awsBucket = document.getElementById('cfg-aws-bucket').value.trim();
+                payload.awsEndpoint = document.getElementById('cfg-aws-endpoint').value.trim();
+            }
+
+            try {
+                await api('/api/config', { method: 'POST', body: JSON.stringify(payload) });
+                toast('✅ 存储与图床配置已保存');
+            } catch (e) {
+                toast('❌ 保存失败: ' + e.message);
+            }
+        }
+
+        // ========== WeChat Mini Program ==========
+        async function loadWeChatConfig() {
+            try {
+                const data = await api('/api/wechat/config');
+                document.getElementById('cfg-wechat-mock').checked = !!data.mock_enabled;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function saveWeChatConfig() {
+            const payload = {
+                wechatMockLogin: document.getElementById('cfg-wechat-mock').checked,
+                wechatAppId: document.getElementById('cfg-wechat-appid').value.trim(),
+                wechatAppSecret: document.getElementById('cfg-wechat-secret').value.trim()
+            };
+
+            try {
+                await api('/api/config', { method: 'POST', body: JSON.stringify(payload) });
+                toast('✅ 微信小程序配置已保存');
+            } catch (e) {
+                toast('❌ 保存失败: ' + e.message);
+            }
+        }
+
+        // ========== Couple Mode Config ==========
+        async function loadCoupleConfig() {
+            try {
+                const config = await api('/api/config');
+                if (config) {
+                    document.getElementById('admin-couple-toggle').checked = !!config.coupleMode;
+                    document.getElementById('admin-together-date').value = config.togetherDate || '';
+                    document.getElementById('admin-partner-name').value = config.partnerName || '';
+                }
+                if (window.CouplePair) {
+                    await CouplePair.fetchStatus();
+                    CouplePair.renderCard('couple-pair-card-container');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function toggleCoupleModeFromAdmin() {
+            const isEnabled = document.getElementById('admin-couple-toggle').checked;
+            toast(isEnabled ? '💕 已开启情侣模式，请点击保存生效' : '已关闭情侣模式，请点击保存生效');
+        }
+
+        async function saveCoupleModeFromAdmin() {
+            const payload = {
+                coupleMode: document.getElementById('admin-couple-toggle').checked,
+                togetherDate: document.getElementById('admin-together-date').value,
+                partnerName: document.getElementById('admin-partner-name').value.trim()
+            };
+            try {
+                await api('/api/config', { method: 'POST', body: JSON.stringify(payload) });
+                toast('✅ 情侣模式配置已保存！刷新前台即刻生效');
+                await loadOverviewData();
+            } catch (e) {
+                toast('❌ 保存情侣配置失败: ' + e.message);
+            }
+        }
+
+        // ========== Modal Utilities ==========
+        function openModal(modalId) {
+            document.getElementById(modalId)?.classList.add('active');
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId)?.classList.remove('active');
+        }
+
+        // ========== Initialization ==========
+        async function initAdmin() {
+            if (!checkAuth()) return;
+            const theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+            document.getElementById('theme-btn').textContent = theme === 'dark' ? '🌙' : '☀️';
+
+            await loadOverviewData();
+            await loadLayoutConfig();
+            await loadCoupleConfig();
+            await loadWeChatConfig();
+        }
+
+        window.addEventListener('DOMContentLoaded', initAdmin);
+    </script>
+    <script src="js/couple-pair.js"></script>
+    <script src="js/icons.js"></script>
+</body>
+</html>

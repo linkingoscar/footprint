@@ -16,14 +16,35 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # ========== 配置 ==========
 
 def _get_secret_key() -> str:
-    """从环境变量读取 JWT 密钥；未配置时生成随机密钥并打印警告。"""
-    key = os.environ.get('JWT_SECRET_KEY', '')
+    """从环境变量读取 JWT 密钥；未配置时优先从持久化文件读取或生成并保存，防止服务重启后 Token 失效。"""
+    key = os.environ.get('JWT_SECRET_KEY', '').strip()
     if key:
         return key
+
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    data_dir = os.path.join(os.path.dirname(base_dir), 'data')
+    target_dir = data_dir if os.path.exists(data_dir) else base_dir
+    secret_file = os.path.join(target_dir, '.jwt_secret')
+
+    if os.path.exists(secret_file):
+        try:
+            with open(secret_file, 'r', encoding='utf-8') as f:
+                saved = f.read().strip()
+                if saved:
+                    return saved
+        except OSError:
+            pass
+
     fallback = secrets.token_hex(32)
+    try:
+        with open(secret_file, 'w', encoding='utf-8') as f:
+            f.write(fallback)
+    except OSError:
+        pass
+
     print(
-        "[WARNING] JWT_SECRET_KEY 环境变量未设置，已自动生成随机密钥。"
-        "请在生产环境中设置固定密钥，否则重启后所有 Token 将失效。"
+        "[WARNING] JWT_SECRET_KEY 环境变量未设置，已自动生成持久化密钥。"
+        "生产环境建议通过环境变量显式配置固定的 JWT_SECRET_KEY。"
     )
     return fallback
 

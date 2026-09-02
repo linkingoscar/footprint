@@ -1,0 +1,163 @@
+/* ==========================================================================
+   Footprint - Couple Mode CSS (Romantic Theme, Banners, Tools, Animations)
+   ========================================================================== */
+
+/* Active Couple Theme Overlay */
+body.couple-mode-active {
+    --primary: #EC4899;
+    --primary-rgb: 236, 72, 153;
+}
+
+body.couple-mode-active .app::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #EC4899, #8B5CF6, #F43F5E);
+    z-index: 1000;
+}
+
+/* Dual Avatar Header in Love Mode */
+.love-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.love-avatar {
+    font-size: 24px;
+}
+
+.love-connector {
+    font-size: 16px;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+/* Together Days Banner */
+.together-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15));
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.1);
+}
+
+.together-heart {
+    font-size: 36px;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+}
+
+.together-text {
+    text-align: center;
+}
+
+.together-label {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.together-days {
+    font-size: 30px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #EC4899, #8B5CF6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+.anniversary-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #EC4899, #8B5CF6);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+}
+
+/* Couple Tools Section */
+.couple-tools-section {
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.06), rgba(139, 92, 246, 0.06));
+    border: 1px solid rgba(236, 72, 153, 0.25);
+    border-radius: var(--radius);
+}
+
+.couple-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #EC4899;
+    margin-bottom: 12px;
+}
+
+.couple-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+@media (max-width: 768px) {
+    .couple-tools-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.couple-tool-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.couple-tool-card:hover {
+    border-color: #EC4899;
+    transform: translateY(-2px);
+    background: rgba(236, 72, 153, 0.08);
+}
+
+.couple-tool-icon {
+    font-size: 22px;
+    line-height: 1;
+}
+
+.couple-tool-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.couple-tool-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Confetti Container */
+#confetti-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+}

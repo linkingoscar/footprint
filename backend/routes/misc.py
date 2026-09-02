@@ -11,7 +11,8 @@ from backend.auth import login_required
 from backend.helpers import (
     get_record_store, load_records, get_storage_provider,
     get_map_provider, map_key_configured, allowed_file,
-    save_upload_file, normalize_record_payload, DB_TYPE
+    save_upload_file, normalize_record_payload, DB_TYPE,
+    get_runtime_config
 )
 
 misc_bp = Blueprint('misc', __name__)
@@ -84,25 +85,7 @@ def get_cities():
     })
 
 
-@misc_bp.route('/api/ai/story', methods=['POST'])
-@login_required
-def generate_story():
-    """基于记录生成旅行故事（模板方式）"""
-    data = request.get_json() or {}
-    record_ids = data.get('record_ids', [])
-    style = data.get('style', 'travel')
-    
-    store = get_record_store()
-    owner_id = g.current_user['user_id']
-    if record_ids:
-        records = [store.get(rid, owner_id) for rid in record_ids]
-        records = [r for r in records if r]
-    else:
-        records = load_records(owner_id=owner_id)[:10]
-    
-    if not records:
-        return jsonify({'error': '没有记录'}), 400
-    
+def _generate_template_story(records, style):
     story_parts = []
     places = [r.get('location', '') for r in records if r.get('location')]
     dates = [r.get('date', '') for r in records if r.get('date')]
@@ -134,7 +117,114 @@ def generate_story():
                 story_parts.append(f'🍽️ {r.get("title")} {rating} {price}')
                 story_parts.append(f'   {r.get("description", "")}\n')
     
-    return jsonify({'story': '\n'.join(story_parts)})
+    return '\n'.join(story_parts)
+
+
+def _generate_llm_story(records, style, api_key, api_base, model):
+    import requests
+    base_url = (api_base or 'https://api.openai.com/v1').rstrip('/')
+    url = f"{base_url}/chat/completions"
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json'
+    }
+    
+    summary_items = []
+    for r in records[:15]:
+        item_str = f"时间: {r.get('date', '未知')}, 地点: {r.get('location', '未知')}, 标题: {r.get('title', '')}"
+        if r.get('description'):
+            item_str += f", 描述: {r.get('description')}"
+        if r.get('rating'):
+            item_str += f", 评分: {r.get('rating')}星"
+        if r.get('price'):
+            item_str += f", 价格: ¥{r.get('price')}"
+        summary_items.append(item_str)
+    
+    context = "\n".join(summary_items)
+    
+    style_prompts = {
+        'travel': "请以游记作家细腻生动的笔触，根据以下旅行足迹创作一篇富有画面感、文学色彩与人文温度的游记散文。篇幅约300-500字，适度使用emoji点缀。",
+        'romantic': "请以深情、浪漫、温馨的笔触，根据以下情侣足迹创作一段记录两人美好回忆的恋爱纪念故事。篇幅约300-500字，适度使用💕等emoji。",
+        'foodie': "请以资深老饕与美食专栏作者的视角，根据以下美食记录创作一篇色香味俱全的美食鉴赏日志。篇幅约300-500字，适度使用🍜🍽️等emoji。"
+    }
+    instruction = style_prompts.get(style, style_prompts['travel'])
+    
+    messages = [
+        {"role": "system", "content": "你是一位富有才华的旅行生活记录作家，善于把生活足迹串联成真挚优美的故事。"},
+        {"role": "user", "content": f"{instruction}\n\n记录清单：\n{context}"}
+    ]
+    
+    resp = requests.post(url, headers=headers, json={
+        "model": model or "deepseek-chat",
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 1000
+    }, timeout=20)
+    
+    if resp.status_code == 200:
+        data = resp.json()
+        return data['choices'][0]['message']['content'].strip()
+    return None
+
+
+@misc_bp.route('/api/ai/story', methods=['POST'])
+@login_required
+def generate_story():
+    """基于记录生成旅行故事（支持真实 LLM 创作与内置模板平滑降级）"""
+    data = request.get_json(silent=True) or {}
+    record_ids = data.get('record_ids', [])
+    style = data.get('style', 'travel')
+    
+    store = get_record_store()
+    owner_id = g.current_user['user_id']
+    if record_ids:
+        records = [store.get(rid, owner_id) for rid in record_ids]
+        records = [r for r in records if r]
+    else:
+        records = load_records(owner_id=owner_id)[:10]
+    
+    if not records:
+        return jsonify({'error': '没有记录'}), 400
+
+    runtime_config = get_runtime_config()
+    api_key = (
+        data.get('api_key') or
+        runtime_config.get('aiApiKey') or
+        os.environ.get('AI_API_KEY') or
+        os.environ.get('OPENAI_API_KEY')
+    )
+    api_base = (
+        data.get('api_base') or
+        runtime_config.get('aiApiBase') or
+        os.environ.get('AI_API_BASE') or
+        os.environ.get('OPENAI_API_BASE') or
+        'https://api.openai.com/v1'
+    )
+    model = (
+        data.get('model') or
+        runtime_config.get('aiModel') or
+        os.environ.get('AI_MODEL') or
+        'deepseek-chat'
+    )
+
+    story = None
+    is_llm = False
+    if api_key:
+        try:
+            story = _generate_llm_story(records, style, api_key, api_base, model)
+            if story:
+                is_llm = True
+        except Exception:
+            story = None
+
+    if not story:
+        story = _generate_template_story(records, style)
+
+    return jsonify({
+        'story': story,
+        'mode': 'ai' if is_llm else 'template',
+        'has_ai_key': bool(api_key)
+    })
 
 
 @misc_bp.route('/api/upload/batch-photos', methods=['POST'])

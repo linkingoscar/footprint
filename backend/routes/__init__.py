@@ -13,6 +13,10 @@ def register_blueprints(app: Flask):
     from .export import export_bp
     from .expenses import expenses_bp
     from .misc import misc_bp
+    from .features import features_bp
+    from .admin import admin_bp
+    from .wechat import wechat_bp
+    from .couple import couple_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(records_bp)
@@ -22,3 +26,7 @@ def register_blueprints(app: Flask):
     app.register_blueprint(export_bp)
     app.register_blueprint(expenses_bp)
     app.register_blueprint(misc_bp)
+    app.register_blueprint(features_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(wechat_bp)
+    app.register_blueprint(couple_bp)

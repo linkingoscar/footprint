@@ -721,6 +721,114 @@
 
 ---
 
+## 情侣空间与双人配对
+
+### POST /api/couple/invite
+生成一个有效期为 24 小时的 6 位浪漫配对邀请码。
+
+**请求头:** `Authorization: Bearer <token>`
+
+**响应 (200):**
+```json
+{
+    "code": "829104",
+    "expires_at": "2026-09-04T12:00:00"
+}
+```
+
+### POST /api/couple/pair
+输入对方生成的 6 位邀请码，建立双人浪漫配对空间。绑定后双方的情侣手账、纪念日、心愿单将自动双向同步。
+
+**请求头:** `Authorization: Bearer <token>`
+
+**请求体:**
+```json
+{
+    "code": "829104"
+}
+```
+
+**响应 (200):**
+```json
+{
+    "success": true,
+    "message": "配对成功！已进入双人专属空间",
+    "couple_space_id": "space_9b83f0d2",
+    "partner": {
+        "id": "user_partner_id",
+        "username": "小李"
+    }
+}
+```
+
+### GET /api/couple/status
+获取当前登录用户的情侣配对状态。
+
+**请求头:** `Authorization: Bearer <token>`
+
+**响应 (200):**
+```json
+{
+    "paired": true,
+    "couple_space_id": "space_9b83f0d2",
+    "partner": {
+        "id": "user_partner_id",
+        "username": "小李"
+    }
+}
+```
+
+### POST /api/couple/unbind
+解除当前情侣空间的绑定。
+
+**请求头:** `Authorization: Bearer <token>`
+
+**响应 (200):**
+```json
+{
+    "success": true,
+    "message": "已解除双人情侣空间绑定"
+}
+```
+
+---
+
+## 网页管理后台 (Admin CMS)
+
+### GET /api/admin/overview
+获取系统全局健康度、记录数、存储模式与情侣模式状态。
+
+**请求头:** `Authorization: Bearer <token>`
+
+**响应 (200):**
+```json
+{
+    "total_records": 48,
+    "total_users": 2,
+    "storage_type": "Local (本地持久化存储)",
+    "couple_mode": true
+}
+```
+
+### GET /api/admin/layout
+获取前台排版与站点个性化配置。
+
+**响应 (200):**
+```json
+{
+    "siteTitle": "足迹 Footprint",
+    "featureOrder": ["map", "replay", "timeline", "globe", "passport", "badges"],
+    "heroSubtitle": "探索大千世界，寻味人间烟火"
+}
+```
+
+### POST /api/admin/layout
+保存前台排版与个性化配置。
+
+**请求头:** `Authorization: Bearer <token>`
+
+---
+
 ## 错误响应
 
 所有错误响应格式:

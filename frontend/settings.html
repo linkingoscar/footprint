@@ -250,6 +250,14 @@
             border: 1px solid var(--border);
         }
 
+        /* Switch Toggle */
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border); transition: .3s; border-radius: 26px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background: linear-gradient(135deg, #ec4899, #8b5cf6); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
         .feature-icon {
             font-size: 20px;
             width: 24px;
@@ -531,7 +539,10 @@
             <div class="logo-icon">📍</div>
             <div class="logo-text">足迹</div>
         </a>
-        <a href="index.html" class="back-btn">← 返回首页</a>
+        <div style="display:flex;align-items:center;gap:10px">
+            <a href="admin.html" class="back-btn" style="background:rgba(59,130,246,0.12);color:var(--primary);border-color:rgba(59,130,246,0.3)">📊 管理后台</a>
+            <a href="index.html" class="back-btn">← 返回首页</a>
+        </div>
     </header>
 
     <!-- Main -->
@@ -541,47 +552,70 @@
             <button class="theme-btn" onclick="toggleTheme()">🌙</button>
         </div>
 
-        <!-- Mode Selection -->
+        <!-- Core Footprint Focus -->
         <div class="card">
             <div class="card-header">
-                <div class="card-title">🎯 记录模式</div>
-                <span class="badge badge-required">必选</span>
+                <div class="card-title">🎯 足迹核心定位</div>
+                <span class="badge" style="background:rgba(59,130,246,0.15);color:var(--primary)">旅行 + 美食 双主线</span>
             </div>
             <div class="card-body">
-                <div class="mode-grid">
-                    <div class="mode-card selected" data-mode="travel" onclick="selectMode('travel')">
-                        <div class="mode-icon">✈️</div>
-                        <div class="mode-name">旅行记录</div>
-                        <div class="mode-desc">记录每一次旅行</div>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:12px;">
+                    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px">
+                        <div style="font-size:32px">✈️</div>
+                        <div>
+                            <div style="font-weight:600;font-size:15px;margin-bottom:4px">旅行探索</div>
+                            <div style="font-size:12px;color:var(--text-sec)">路线、景点、城市足迹、打卡相册</div>
+                        </div>
                     </div>
-                    <div class="mode-card" data-mode="food" onclick="selectMode('food')">
-                        <div class="mode-icon">🍜</div>
-                        <div class="mode-name">美食打卡</div>
-                        <div class="mode-desc">发现美食，留下记忆</div>
-                    </div>
-                    <div class="mode-card" data-mode="love" onclick="selectMode('love')">
-                        <div class="mode-icon">💕</div>
-                        <div class="mode-name">情侣足迹</div>
-                        <div class="mode-desc">记录甜蜜时光</div>
+                    <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px">
+                        <div style="font-size:32px">🍜</div>
+                        <div>
+                            <div style="font-weight:600;font-size:15px;margin-bottom:4px">美食寻味</div>
+                            <div style="font-size:12px;color:var(--text-sec)">餐厅、探店、评分、价格、风味清单</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="card-footer">
-                <span style="font-size:12px;color:var(--text-muted)">切换模式后首页UI完全适配</span>
-                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
-                    <input type="checkbox" id="lock-mode" onchange="toggleLockMode()" style="accent-color:var(--primary)">
-                    🔒 锁定模式（前台不显示切换器）
-                </label>
+                <div style="font-size:13px;color:var(--text-sec);line-height:1.6">
+                    💡 足迹（Footprint）聚焦于记录生活中的山川湖海与人间烟火。首页默认融合呈现旅行与美食足迹，两者天然共存不冲突。
+                </div>
             </div>
         </div>
 
-        <!-- Mode Features -->
-        <div class="card" id="features-card">
+        <!-- Couple Mode Overlay Card -->
+        <div class="card" style="border:1px solid rgba(236,72,153,0.35);background:linear-gradient(180deg, rgba(236,72,153,0.03) 0%, transparent 100%)">
             <div class="card-header">
-                <div class="card-title">✨ 模式功能</div>
+                <div class="card-title" style="display:flex;align-items:center;gap:8px">
+                    <span>💑</span><span>情侣模式 (Couple Mode) 专属增强层</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="couple-mode-toggle" onchange="toggleCoupleModeSettings()">
+                    <span class="slider"></span>
+                </label>
             </div>
             <div class="card-body">
-                <div class="features-list" id="features-list"></div>
+                <div id="couple-mode-content">
+                    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px">
+                        <div class="form-group">
+                            <label class="form-label">💕 相恋纪念日</label>
+                            <input type="date" class="form-input" id="together-date-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">💌 伴侣昵称 / 专属寄语</label>
+                            <input type="text" class="form-input" id="partner-name-input" placeholder="例如: 亲爱的TA / 记录我们的浪漫时光">
+                        </div>
+                    </div>
+                    <div style="background:rgba(236,72,153,0.08);border:1px dashed rgba(236,72,153,0.3);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--text);line-height:1.6">
+                        ✨ <b>开启后</b>：首页将注入专属浪漫光晕主题色彩、“在一起的时光”甜蜜天数横幅、专属情侣工具箱（纪念日、恋爱手账、约会计划、情侣任务），并在发布和筛选时增加情侣回忆通道。<br>
+                        🔒 <b>数据安全独立</b>：关闭模式后，首页立即恢复纯粹的个人足迹，<b>情侣数据在云端与本地依然完整独立保留</b>，重新开启即秒级还原。
+                    </div>
+
+                    <!-- 双人空间配对协同卡片 -->
+                    <div id="couple-pair-card-container"></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:12px;color:var(--text-muted)">情侣数据物理独立隔离，开关随心</span>
+                <button class="btn btn-primary" onclick="saveCoupleSettings()" style="background:linear-gradient(135deg, #ec4899, #8b5cf6);border:none">保存情侣模式设置</button>
             </div>
         </div>
 
@@ -966,6 +1000,34 @@
             </div>
         </div>
 
+        <!-- AI Settings -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">🤖 AI 故事创作 (LLM)</div>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <label class="form-label">API Base URL</label>
+                    <input type="text" class="form-input" id="ai-api-base" placeholder="例如: https://api.deepseek.com/v1 或 https://api.openai.com/v1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API Key</label>
+                    <input type="password" class="form-input" id="ai-api-key" placeholder="sk-...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">模型名称 (Model)</label>
+                    <input type="text" class="form-input" id="ai-model" placeholder="例如: deepseek-chat 或 gpt-4o-mini">
+                </div>
+                <div style="font-size:13px;color:var(--text-sec);line-height:1.6;margin-top:8px;">
+                    💡 提示：支持 DeepSeek、Moonshot、OpenAI、SiliconFlow 等 OpenAI 兼容接口。配置后在主页点击“AI故事生成”时，系统将结合照片时间、地点与体验细节生成文学游记；未配置时自动降级为内置精选模板。
+                </div>
+            </div>
+            <div class="card-footer">
+                <span style="font-size:12px;color:var(--text-muted)">兼容所有 OpenAI 格式大模型服务商</span>
+                <button class="btn btn-primary" onclick="saveAIConfig()">保存 AI 配置</button>
+            </div>
+        </div>
+
         <!-- Data Management -->
         <div class="card">
             <div class="card-header">
@@ -1053,12 +1115,16 @@
         };
 
         // ========== Init ==========
-        function init() {
+        async function init() {
             loadTheme();
             loadConfig();
             loadLockMode();
             renderFeatures();
             initSettingsUpload();
+            if (window.CouplePair) {
+                await CouplePair.fetchStatus();
+                CouplePair.renderCard('couple-pair-card-container');
+            }
         }
 
         // ========== Theme ==========
@@ -1129,6 +1195,20 @@
             if (config.azureAccountName) document.getElementById('azure-account-name').value = config.azureAccountName;
             if (config.azureAccountKey) document.getElementById('azure-account-key').value = config.azureAccountKey;
             if (config.azureContainer) document.getElementById('azure-container').value = config.azureContainer;
+
+            // AI 配置
+            if (document.getElementById('ai-api-base')) {
+                document.getElementById('ai-api-base').value = config.aiApiBase || '';
+                document.getElementById('ai-api-key').value = config.aiApiKey || '';
+                document.getElementById('ai-model').value = config.aiModel || '';
+            }
+
+            // 情侣模式配置
+            if (document.getElementById('couple-mode-toggle')) {
+                document.getElementById('couple-mode-toggle').checked = !!config.coupleMode;
+                document.getElementById('together-date-input').value = config.togetherDate || '';
+                document.getElementById('partner-name-input').value = config.partnerName || '';
+            }
         }
 
         function getConfig() {
@@ -1458,6 +1538,35 @@
             toast('☁️ 云存储配置已保存');
         }
 
+        async function saveAIConfig() {
+            const config = getConfig();
+            config.aiApiBase = document.getElementById('ai-api-base').value.trim();
+            config.aiApiKey = document.getElementById('ai-api-key').value.trim();
+            config.aiModel = document.getElementById('ai-model').value.trim();
+            saveConfig(config);
+            await syncBackendConfig(config);
+            toast('🤖 AI 配置已保存');
+        }
+
+        async function saveCoupleSettings() {
+            const config = getConfig();
+            config.coupleMode = document.getElementById('couple-mode-toggle').checked;
+            config.togetherDate = document.getElementById('together-date-input').value;
+            config.partnerName = document.getElementById('partner-name-input').value.trim();
+            saveConfig(config);
+            await syncBackendConfig(config);
+            toast(config.coupleMode ? '💕 情侣模式配置已保存' : '🍃 已切换为纯净足迹模式');
+        }
+
+        async function toggleCoupleModeSettings() {
+            const toggle = document.getElementById('couple-mode-toggle');
+            const config = getConfig();
+            config.coupleMode = toggle.checked;
+            saveConfig(config);
+            await syncBackendConfig(config);
+            toast(toggle.checked ? '💕 情侣模式已开启' : '🍃 已恢复纯净足迹模式');
+        }
+
         // ========== Data ==========
         async function exportData() {
             let records = null;
@@ -1532,5 +1641,7 @@
         // ========== Start ==========
         window.onload = init;
     </script>
+    <script src="js/couple-pair.js"></script>
+    <script src="js/icons.js"></script>
 </body>
 </html>

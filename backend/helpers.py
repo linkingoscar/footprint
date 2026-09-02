@@ -39,9 +39,14 @@ CONFIG_KEYS = {
     'aliyunAccessKey', 'aliyunSecretKey', 'aliyunBucket', 'aliyunEndpoint', 'aliyunDomain',
     'tencentSecretId', 'tencentSecretKey', 'tencentBucket', 'tencentRegion', 'tencentDomain',
     'qiniuAccessKey', 'qiniuSecretKey', 'qiniuBucket', 'qiniuDomain',
-    'awsAccessKey', 'awsSecretKey', 'awsBucket', 'awsRegion', 'awsDomain',
+    'awsAccessKey', 'awsSecretKey', 'awsBucket', 'awsRegion', 'awsDomain', 'awsEndpoint',
     'gcpProjectId', 'gcpBucket', 'gcpCredentials',
     'azureAccountName', 'azureAccountKey', 'azureContainer',
+    'aiApiKey', 'aiApiBase', 'aiModel',
+    'coupleMode', 'togetherDate', 'partnerName',
+    'layoutConfig',
+    'wechatAppId', 'wechatAppSecret', 'wechatMockLogin',
+    'dbUrl', 'databaseType',
 }
 
 SECRET_KEYS = {
@@ -52,6 +57,9 @@ SECRET_KEYS = {
     'awsAccessKey', 'awsSecretKey',
     'gcpCredentials',
     'azureAccountKey',
+    'aiApiKey',
+    'wechatAppSecret',
+    'dbUrl',
 }
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -223,9 +231,15 @@ def delete_record_assets(record):
 def normalize_record_payload(data, record_id=None):
     """把前端/导入数据规范化为记录存储结构。"""
     now = datetime.now().isoformat()
+    metadata = data.get('metadata', {}) or {}
+    is_couple = bool(data.get('is_couple', False) or metadata.get('is_couple', False) or data.get('mode') == 'love')
+    if is_couple:
+        metadata['is_couple'] = True
+
     return {
         'id': record_id or data.get('id') or uuid.uuid4().hex,
         'mode': data.get('mode', 'travel'),
+        'is_couple': is_couple,
         'title': data.get('title', '未命名记录'),
         'description': data.get('description', ''),
         'location': data.get('location'),
@@ -236,7 +250,7 @@ def normalize_record_payload(data, record_id=None):
         'rating': parse_int(data.get('rating')),
         'price': parse_float(data.get('price')),
         'tags': data.get('tags', []),
-        'metadata': data.get('metadata', {}),
+        'metadata': metadata,
         'createdAt': data.get('createdAt') or now,
         'updatedAt': data.get('updatedAt')
     }

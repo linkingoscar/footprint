@@ -1,0 +1,181 @@
+/* ==========================================================================
+   Footprint - Base CSS (Design Tokens, Reset, Layout & Ambient)
+   ========================================================================== */
+
+:root {
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --radius: 20px;
+    --radius-sm: 14px;
+    --radius-full: 9999px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+    --bg: #0B0E14;
+    --bg-elevated: #151A24;
+    --bg-card: #121620;
+    --text: #F8FAFC;
+    --text-sec: #94A3B8;
+    --text-muted: #64748B;
+    --border: rgba(255, 255, 255, 0.08);
+    --glass: rgba(18, 22, 32, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="light"] {
+    --bg: #F8F6F0;
+    --bg-elevated: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --text: #1E293B;
+    --text-sec: #64748B;
+    --text-muted: #94A3B8;
+    --border: rgba(0, 0, 0, 0.08);
+    --glass: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.08);
+}
+
+[data-mode="travel"] {
+    --primary: #0D9488;
+    --glow: rgba(13, 148, 136, 0.25);
+    --gradient: linear-gradient(135deg, #0D9488, #2563EB);
+    --mode-bg: rgba(13, 148, 136, 0.08);
+}
+
+[data-mode="food"] {
+    --primary: #D97706;
+    --glow: rgba(217, 119, 6, 0.25);
+    --gradient: linear-gradient(135deg, #D97706, #EA580C);
+    --mode-bg: rgba(217, 119, 6, 0.08);
+}
+
+[data-mode="love"] {
+    --primary: #E11D48;
+    --glow: rgba(225, 29, 72, 0.25);
+    --gradient: linear-gradient(135deg, #E11D48, #9333EA);
+    --mode-bg: rgba(225, 29, 72, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
+}
+
+.glass {
+    background: var(--glass);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+}
+
+/* Ambient Floating Background */
+.dynamic-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.bg-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.08;
+    animation: blobFloat 20s ease-in-out infinite;
+}
+
+.bg-blob-1 {
+    width: 400px;
+    height: 400px;
+    background: var(--primary);
+    top: -100px;
+    left: -100px;
+}
+
+.bg-blob-2 {
+    width: 350px;
+    height: 350px;
+    background: #06B6D4;
+    bottom: -100px;
+    right: -100px;
+    animation-delay: -7s;
+}
+
+@keyframes blobFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(30px, 30px) scale(1.1); }
+}
+
+.app {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   SVG Vector Icon System (Lucide Aesthetic Standards)
+   ========================================================================== */
+.svg-icon {
+    display: inline-block;
+    width: 1.15em;
+    height: 1.15em;
+    stroke-width: 1.85;
+    stroke: currentColor;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.18em;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, stroke 0.2s ease;
+}
+
+.svg-icon.icon-sm {
+    width: 14px;
+    height: 14px;
+    stroke-width: 2;
+}
+
+.svg-icon.icon-md {
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.85;
+}
+
+.svg-icon.icon-lg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 1.75;
+}
+
+.svg-icon.icon-xl {
+    width: 28px;
+    height: 28px;
+    stroke-width: 1.65;
+}
+
+.btn:hover .svg-icon,
+.feature-pill-btn:hover .svg-icon {
+    transform: translateY(-1px);
+}
+

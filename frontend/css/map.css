@@ -1,0 +1,219 @@
+/* ==========================================================================
+   Footprint - Map CSS (Leaflet Container, Markers, Clusters, Popups)
+   ========================================================================== */
+
+.map-section {
+    width: 100%;
+    height: 60vh;
+    min-height: 300px;
+    max-height: 600px;
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.footprint-map {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+}
+
+.map-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-elevated);
+    border-radius: var(--radius);
+    border: 2px dashed var(--border);
+    color: var(--text-muted);
+}
+
+.map-empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    animation: float 3s ease-in-out infinite;
+}
+
+/* Custom Leaflet Map Controls */
+.leaflet-container {
+    background: var(--bg) !important;
+    font-family: var(--font) !important;
+}
+
+[data-theme="dark"] .leaflet-tile-pane {
+    filter: brightness(0.85) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+/* Custom Marker Pin Styles */
+.custom-map-pin {
+    width: 38px;
+    height: 38px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+    border: 2px solid white;
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-map-pin:hover {
+    transform: rotate(-45deg) scale(1.2);
+    z-index: 999 !important;
+}
+
+.custom-map-pin.pin-travel {
+    background: linear-gradient(135deg, #3B82F6, #06B6D4);
+}
+
+.custom-map-pin.pin-food {
+    background: linear-gradient(135deg, #F59E0B, #EF4444);
+}
+
+.custom-map-pin.pin-love {
+    background: linear-gradient(135deg, #EC4899, #8B5CF6);
+}
+
+.pin-icon {
+    transform: rotate(45deg);
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Marker Cluster Styles (Leaflet.markercluster) */
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: white;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    transition: var(--transition);
+}
+
+.marker-cluster-small {
+    background-color: rgba(59, 130, 246, 0.6);
+    border: 3px solid #3B82F6;
+}
+
+.marker-cluster-medium {
+    background-color: rgba(245, 158, 11, 0.6);
+    border: 3px solid #F59E0B;
+}
+
+.marker-cluster-large {
+    background-color: rgba(236, 72, 153, 0.6);
+    border: 3px solid #EC4899;
+}
+
+.marker-cluster div {
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    text-align: center;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modern Leaflet Popup */
+.leaflet-popup-content-wrapper {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--text) !important;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm) !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4) !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.leaflet-popup-tip {
+    background: var(--bg-card) !important;
+}
+
+.popup-card {
+    padding: 12px 14px;
+    min-width: 180px;
+    max-width: 240px;
+}
+
+.popup-thumb {
+    width: 100%;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.popup-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.popup-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Map Type Filter Pills in Map Corner */
+.map-filter-overlay {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 500;
+    display: flex;
+    gap: 6px;
+    background: var(--glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 4px;
+}
+
+.map-filter-chip {
+    padding: 5px 12px;
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    background: transparent;
+    color: var(--text-sec);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.map-filter-chip:hover {
+    color: var(--text);
+}
+
+.map-filter-chip.active {
+    background: var(--gradient);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .map-section {
+        height: 45vh;
+        min-height: 240px;
+    }
+}
