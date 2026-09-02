@@ -355,13 +355,59 @@ var ReplayEnhanced = {
 var CityModule = {
     cities: [],
 
+    _extractFromLocal: function() {
+        // 从本地记录中提取城市统计（与后端 /api/cities 逻辑一致）
+        var records = [];
+        try {
+            // 优先使用全局 state.records（index.html 中的主数据）
+            if (typeof state !== 'undefined' && state.records && state.records.length > 0) {
+                records = state.records;
+            } else {
+                records = JSON.parse(localStorage.getItem('footprint_data') || '[]');
+            }
+        } catch (e) { records = []; }
+
+        var cityMap = {};
+        records.forEach(function(r) {
+            var loc = r.location || '';
+            if (!loc) return;
+            var city = loc;
+            var seps = ['市', '省', '区', '县', '镇'];
+            for (var i = 0; i < seps.length; i++) {
+                var idx = loc.indexOf(seps[i]);
+                if (idx > 0) {
+                    city = loc.substring(0, idx + 1);
+                    break;
+                }
+            }
+            // 进一步清洗：取「·」或「 」前的部分作为城市
+            if (city.indexOf('·') > 0) city = city.split('·')[0].trim();
+            if (city.indexOf(' ') > 0 && city.indexOf('·') < 0) city = city.split(' ')[0].trim();
+            if (city) {
+                cityMap[city] = (cityMap[city] || 0) + 1;
+            }
+        });
+
+        var result = [];
+        for (var k in cityMap) {
+            result.push({ name: k, count: cityMap[k] });
+        }
+        result.sort(function(a, b) { return b.count - a.count; });
+        return result;
+    },
+
     load: function(callback) {
         var self = this;
         featureFetch('/api/cities').then(function(r) { return r.json(); }).then(function(data) {
             self.cities = data.cities || [];
+            // 如果后端返回空但本地有数据，也用本地兜底
+            if (self.cities.length === 0) {
+                self.cities = self._extractFromLocal();
+            }
             if (callback) callback();
         }).catch(function() {
-            self.cities = [];
+            // 后端不可用，从本地记录提取城市数据
+            self.cities = self._extractFromLocal();
             if (callback) callback();
         });
     },
@@ -371,18 +417,31 @@ var CityModule = {
         if (!container) return;
         var totalCities = this.cities.length;
 
+        if (totalCities === 0) {
+            container.innerHTML = '' +
+                '<div style="text-align:center;padding:40px 0">' +
+                '  <div style="font-size:48px;margin-bottom:12px">🏙️</div>' +
+                '  <div style="font-size:16px;font-weight:600;margin-bottom:8px">暂无城市数据</div>' +
+                '  <div style="font-size:13px;color:var(--text-muted);line-height:1.6">' +
+                '    添加足迹记录时填写「地点」字段（如"浙江杭州 · 西湖"），<br>系统将自动提取城市并生成排行榜。' +
+                '  </div>' +
+                '</div>';
+            return;
+        }
+
         container.innerHTML = '' +
             '<div style="text-align:center;padding:20px 0">' +
             '  <div style="font-size:48px;margin-bottom:8px">🏙️</div>' +
             '  <div style="font-size:42px;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent">' + totalCities + '</div>' +
-            '  <div style="font-size:14px;color:var(--text-muted)">已探索城市</div>' +
+            '  <div style="font-size:14px;color:var(--text-muted)">已点亮城市</div>' +
             '</div>' +
-            '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:16px">' +
-            this.cities.map(function(c) {
-                return '<div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;transition:var(--transition)">' +
-                    '<div style="font-size:24px;margin-bottom:4px">📍</div>' +
-                    '<div style="font-size:13px;font-weight:600">' + c.name + '</div>' +
-                    '<div style="font-size:11px;color:var(--text-muted)">' + c.count + ' 次到访</div>' +
+            '<div style="display:flex;flex-direction:column;gap:8px;margin-top:16px">' +
+            this.cities.map(function(c, i) {
+                var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '<span style="display:inline-block;width:24px;text-align:center;font-size:13px;font-weight:700;color:var(--text-muted)">' + (i + 1) + '</span>';
+                return '<div style="display:flex;align-items:center;gap:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:12px 16px">' +
+                    '<div style="font-size:20px;min-width:28px;text-align:center">' + medal + '</div>' +
+                    '<div style="flex:1;font-size:14px;font-weight:600">' + c.name + '</div>' +
+                    '<div style="font-size:13px;color:var(--primary);font-weight:700">' + c.count + ' 次</div>' +
                     '</div>';
             }).join('') +
             '</div>' +
@@ -485,25 +544,69 @@ var ExportModule = {
             '</div>';
     },
 
+    _getLocalRecords: function() {
+        if (typeof state !== 'undefined' && state.records && state.records.length > 0) return state.records;
+        return JSON.parse(localStorage.getItem('footprint_data') || '[]');
+    },
+
     exportGPX: function() {
         featureFetch('/api/export/gpx').then(function(r) { return r.blob(); }).then(function(blob) {
             downloadBlob(blob, '足迹_' + new Date().toISOString().slice(0, 10) + '.gpx');
             toast('✅ GPX 已导出');
-        }).catch(function(e) { toast('❌ 导出失败'); });
+        }).catch(function() {
+            // 本地生成 GPX
+            var records = ExportModule._getLocalRecords();
+            var gpx = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Footprint">\n';
+            records.forEach(function(r) {
+                if (r.latitude && r.longitude) {
+                    gpx += '  <wpt lat="' + r.latitude + '" lon="' + r.longitude + '">\n';
+                    gpx += '    <name>' + (r.title || '').replace(/[<>&]/g, '') + '</name>\n';
+                    if (r.description) gpx += '    <desc>' + r.description.replace(/[<>&]/g, '') + '</desc>\n';
+                    if (r.date) gpx += '    <time>' + r.date + 'T00:00:00Z</time>\n';
+                    gpx += '  </wpt>\n';
+                }
+            });
+            gpx += '</gpx>';
+            downloadFile(gpx, '足迹_' + new Date().toISOString().slice(0, 10) + '.gpx', 'application/gpx+xml');
+            toast('✅ GPX 已导出（本地）');
+        });
     },
 
     exportGeoJSON: function() {
         featureFetch('/api/export/geojson').then(function(r) { return r.blob(); }).then(function(blob) {
             downloadBlob(blob, '足迹_' + new Date().toISOString().slice(0, 10) + '.geojson');
             toast('✅ GeoJSON 已导出');
-        }).catch(function(e) { toast('❌ 导出失败'); });
+        }).catch(function() {
+            var records = ExportModule._getLocalRecords();
+            var geojson = {
+                type: 'FeatureCollection',
+                features: records.filter(function(r) { return r.latitude && r.longitude; }).map(function(r) {
+                    return {
+                        type: 'Feature',
+                        geometry: { type: 'Point', coordinates: [r.longitude, r.latitude] },
+                        properties: { title: r.title, location: r.location, date: r.date, mode: r.mode, rating: r.rating }
+                    };
+                })
+            };
+            downloadFile(JSON.stringify(geojson, null, 2), '足迹_' + new Date().toISOString().slice(0, 10) + '.geojson', 'application/geo+json');
+            toast('✅ GeoJSON 已导出（本地）');
+        });
     },
 
     exportCSV: function() {
         featureFetch('/api/export/csv').then(function(r) { return r.blob(); }).then(function(blob) {
             downloadBlob(blob, '足迹_' + new Date().toISOString().slice(0, 10) + '.csv');
             toast('✅ CSV 已导出');
-        }).catch(function(e) { toast('❌ 导出失败'); });
+        }).catch(function() {
+            var records = ExportModule._getLocalRecords();
+            var csv = '标题,地点,日期,模式,纬度,经度,评分,人均\n';
+            records.forEach(function(r) {
+                csv += '"' + (r.title || '') + '","' + (r.location || '') + '","' + (r.date || '') + '","' + (r.mode || '') + '",' +
+                       (r.latitude || '') + ',' + (r.longitude || '') + ',' + (r.rating || '') + ',' + (r.price || '') + '\n';
+            });
+            downloadFile(csv, '足迹_' + new Date().toISOString().slice(0, 10) + '.csv', 'text/csv');
+            toast('✅ CSV 已导出（本地）');
+        });
     },
 
     exportJSON: function() {
@@ -748,9 +851,14 @@ var ExpenseModule = {
             self.expenses = data || [];
             if (callback) callback();
         }).catch(function() {
-            self.expenses = [];
+            // 离线模式：从 localStorage 读取
+            self.expenses = JSON.parse(localStorage.getItem('footprint_expenses') || '[]');
             if (callback) callback();
         });
+    },
+
+    _saveLocal: function() {
+        localStorage.setItem('footprint_expenses', JSON.stringify(this.expenses));
     },
 
     add: function(data, callback) {
@@ -761,8 +869,17 @@ var ExpenseModule = {
             body: JSON.stringify(data)
         }).then(function(r) { return r.json(); }).then(function(expense) {
             self.expenses.unshift(expense);
+            self._saveLocal();
             if (callback) callback();
             toast('✅ 已添加');
+        }).catch(function() {
+            // 离线模式：本地生成记录
+            data.id = 'exp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+            data.date = data.date || new Date().toISOString().slice(0, 10);
+            self.expenses.unshift(data);
+            self._saveLocal();
+            if (callback) callback();
+            toast('✅ 已添加（本地）');
         });
     },
 
@@ -770,8 +887,14 @@ var ExpenseModule = {
         var self = this;
         featureFetch('/api/expenses/' + id, { method: 'DELETE' }).then(function() {
             self.expenses = self.expenses.filter(function(e) { return e.id !== id; });
+            self._saveLocal();
             self.render();
             toast('已删除');
+        }).catch(function() {
+            self.expenses = self.expenses.filter(function(e) { return e.id !== id; });
+            self._saveLocal();
+            self.render();
+            toast('已删除（本地）');
         });
     },
 
