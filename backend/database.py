@@ -15,6 +15,10 @@ RUNTIME_CONFIG_FILE = os.environ.get(
     'FOOTPRINT_CONFIG_FILE',
     os.path.join(os.path.dirname(__file__), 'runtime_config.json')
 )
+RUNTIME_SECRETS_FILE = os.environ.get(
+    'FOOTPRINT_SECRETS_FILE',
+    os.path.join(os.path.dirname(RUNTIME_CONFIG_FILE), 'runtime_secrets.json')
+)
 
 # ========== 数据库配置 ==========
 DB_CONFIG = {
@@ -105,6 +109,15 @@ class RecordStore:
     def unbind_couple_space(self, user_id: str) -> bool:
         raise NotImplementedError
 
+    # ---- Media Assets Ownership ----
+    def register_media_asset(self, filename: str, owner_id: str) -> None:
+        """登记媒体文件的属主。"""
+        raise NotImplementedError
+
+    def check_media_access(self, filename: str, user_id: str) -> bool:
+        """检查用户对媒体文件的访问授权。"""
+        raise NotImplementedError
+
 
 def _atomic_json_write(filepath: str, data: Any):
     """安全原子化写入 JSON 文件（写入临时文件 -> fsync 刷盘 -> 平台级原子重命名），避免进程意外退出导致文件损坏。"""
@@ -182,6 +195,7 @@ class JsonRecordStore(RecordStore):
         record = dict(record)
         if owner_id:
             record['owner_id'] = owner_id
+        record['revision'] = record.get('revision') or 1
         records = self._load()
         records.insert(0, record)
         self._save(records)
@@ -191,9 +205,17 @@ class JsonRecordStore(RecordStore):
         records = self._load()
         for i, existing in enumerate(records):
             if existing.get('id') == record_id and (not owner_id or existing.get('owner_id') == owner_id):
+                current_rev = existing.get('revision', 1)
+                expected_rev = record.get('revision')
+                if expected_rev is not None and expected_rev < current_rev:
+                    conflict_rec = dict(record)
+                    conflict_rec['_conflict'] = True
+                    conflict_rec['_current_revision'] = current_rev
+                    return conflict_rec
                 record = dict(record)
                 if owner_id:
                     record['owner_id'] = owner_id
+                record['revision'] = current_rev + 1
                 records[i] = record
                 self._save(records)
                 return record
@@ -262,14 +284,22 @@ class JsonRecordStore(RecordStore):
             amount = float(e.get('amount') or 0)
             total_amount += amount
             cat = e.get('category', '其他')
-            by_category[cat] = by_category.get(cat, 0) + amount
+            if cat not in by_category:
+                by_category[cat] = {'count': 0, 'amount': 0.0}
+            by_category[cat]['count'] += 1
+            by_category[cat]['amount'] += amount
+
             mode = e.get('mode', 'travel')
-            by_mode[mode] = by_mode.get(mode, 0) + amount
+            if mode not in by_mode:
+                by_mode[mode] = {'count': 0, 'amount': 0.0}
+            by_mode[mode]['count'] += 1
+            by_mode[mode]['amount'] += amount
+
         return {
             'total_count': len(expenses),
             'total_amount': total_amount,
-            'by_category': [{'category': k, 'count': v, 'amount': v} for k, v in by_category.items()],
-            'by_mode': [{'mode': k, 'count': v, 'amount': v} for k, v in by_mode.items()],
+            'by_category': [{'category': k, 'count': v['count'], 'amount': v['amount']} for k, v in by_category.items()],
+            'by_mode': [{'mode': k, 'count': v['count'], 'amount': v['amount']} for k, v in by_mode.items()],
         }
 
     # ---- Users ----
@@ -445,6 +475,68 @@ class JsonRecordStore(RecordStore):
                 u['couple_space_id'] = ''
         self._save_users(users)
         return True
+
+    def _get_media_assets_file(self) -> str:
+        return os.path.join(os.path.dirname(self.metadata_file), 'media_assets.json')
+
+    def _load_media_assets(self) -> dict:
+        path = self._get_media_assets_file()
+        if not os.path.exists(path):
+            return {}
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return {}
+
+    def _save_media_assets(self, data: dict):
+        _atomic_json_write(self._get_media_assets_file(), data)
+
+    def register_media_asset(self, filename: str, owner_id: str) -> None:
+        if not filename or not owner_id:
+            return
+        filename = os.path.basename(filename)
+        assets = self._load_media_assets()
+        assets[filename] = {
+            'owner_id': owner_id,
+            'created_at': datetime.now().isoformat()
+        }
+        self._save_media_assets(assets)
+
+    def check_media_access(self, filename: str, user_id: str) -> bool:
+        if not filename or not user_id:
+            return False
+        filename = os.path.basename(filename)
+        assets = self._load_media_assets()
+        if filename in assets:
+            owner_id = assets[filename].get('owner_id')
+            if owner_id == user_id:
+                return True
+            status = self.get_couple_status(user_id)
+            if status.get('paired') and status.get('partner') and status['partner'].get('id') == owner_id:
+                return True
+            return False
+
+        users = self._load_users()
+        if not users:
+            return True
+
+        status = self.get_couple_status(user_id)
+        partner_id = status['partner'].get('id') if (status.get('paired') and status.get('partner')) else None
+        target_owners = {user_id}
+        if partner_id:
+            target_owners.add(partner_id)
+
+        records = self._load_records()
+        for r in records:
+            if r.get('owner_id') in target_owners:
+                images = r.get('images', [])
+                if any(filename in str(img) for img in images):
+                    return True
+                meta_images = r.get('metadata', {}).get('images', [])
+                if any(filename in str(m) for m in meta_images):
+                    return True
+        return False
 
 
 class SQLiteRecordStore(RecordStore):
@@ -665,8 +757,16 @@ class SQLiteRecordStore(RecordStore):
                     created_at TEXT NOT NULL
                 )
             """)
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS media_assets (
+                    filename TEXT PRIMARY KEY,
+                    owner_id TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+            """)
             conn.execute("CREATE INDEX IF NOT EXISTS idx_couple_invites_owner ON couple_invites(owner_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_couple_spaces_users ON couple_spaces(user_a_id, user_b_id)")
+            self._ensure_column(conn, 'records', 'revision', "revision INTEGER DEFAULT 1")
 
     def _migrate_json_once(self):
         if not self.metadata_file or not os.path.exists(self.metadata_file):
@@ -687,6 +787,7 @@ class SQLiteRecordStore(RecordStore):
     # ---- Record helpers ----
     def _row_to_record(self, row) -> Dict[str, Any]:
         meta = json.loads(row['metadata']) if row['metadata'] else {}
+        d = dict(row)
         return {
             'id': row['id'],
             'mode': row['mode'],
@@ -702,6 +803,7 @@ class SQLiteRecordStore(RecordStore):
             'tags': json.loads(row['tags']) if row['tags'] else [],
             'metadata': meta,
             'images': json.loads(row['images']) if row['images'] else [],
+            'revision': d.get('revision') or 1,
             'createdAt': row['created_at'],
             'updatedAt': row['updated_at'],
         }
@@ -713,10 +815,30 @@ class SQLiteRecordStore(RecordStore):
         created_at = record.get('createdAt') or record.get('created_at') or datetime.now().isoformat()
         updated_at = record.get('updatedAt') or record.get('updated_at') or datetime.now().isoformat()
         owner = owner_id or record.get('owner_id') or ''
+
+        # 乐观锁版本检查
+        existing = None
+        if record.get('id'):
+            with self._connect() as conn:
+                existing_row = conn.execute("SELECT * FROM records WHERE id = ?", (record['id'],)).fetchone()
+                if existing_row:
+                    existing = self._row_to_record(existing_row)
+
+        expected_rev = record.get('revision')
+        current_rev = existing.get('revision', 1) if existing else 1
+        if existing and expected_rev is not None and expected_rev < current_rev:
+            conflict_rec = dict(record)
+            conflict_rec['_conflict'] = True
+            conflict_rec['_current_revision'] = current_rev
+            return conflict_rec
+
+        new_rev = (current_rev + 1) if existing else 1
+        record['revision'] = new_rev
+
         with self._connect() as conn:
             conn.execute("""
-                INSERT INTO records (id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, owner_id, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO records (id, mode, title, description, location, latitude, longitude, date, rating, price, tags, metadata, images, owner_id, revision, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     mode=excluded.mode,
                     title=excluded.title,
@@ -730,6 +852,7 @@ class SQLiteRecordStore(RecordStore):
                     tags=excluded.tags,
                     metadata=excluded.metadata,
                     images=excluded.images,
+                    revision=excluded.revision,
                     updated_at=excluded.updated_at
             """, (
                 record['id'],
@@ -746,6 +869,7 @@ class SQLiteRecordStore(RecordStore):
                 json.dumps(metadata, ensure_ascii=False),
                 json.dumps(images, ensure_ascii=False),
                 owner,
+                new_rev,
                 created_at,
                 updated_at
             ))
@@ -1005,6 +1129,48 @@ class SQLiteRecordStore(RecordStore):
                 conn.execute("UPDATE users SET partner_id = '', couple_space_id = '' WHERE id = ?", (partner_id,))
             conn.commit()
             return True
+
+    def register_media_asset(self, filename: str, owner_id: str) -> None:
+        if not filename or not owner_id:
+            return
+        filename = os.path.basename(filename)
+        with self._connect() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO media_assets (filename, owner_id, created_at) VALUES (?, ?, ?)",
+                (filename, owner_id, datetime.now().isoformat())
+            )
+            conn.commit()
+
+    def check_media_access(self, filename: str, user_id: str) -> bool:
+        if not filename or not user_id:
+            return False
+        filename = os.path.basename(filename)
+        with self._connect() as conn:
+            row = conn.execute("SELECT owner_id FROM media_assets WHERE filename = ?", (filename,)).fetchone()
+            if row:
+                owner_id = row['owner_id']
+                if owner_id == user_id:
+                    return True
+                status = self.get_couple_status(user_id)
+                if status.get('paired') and status.get('partner') and status['partner'].get('id') == owner_id:
+                    return True
+                return False
+
+            user_count = conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+            if user_count == 0:
+                return True
+
+            status = self.get_couple_status(user_id)
+            partner_id = status['partner'].get('id') if (status.get('paired') and status.get('partner')) else None
+            target_ids = [user_id]
+            if partner_id:
+                target_ids.append(partner_id)
+
+            pattern = f"%{filename}%"
+            placeholders = ','.join(['?'] * len(target_ids))
+            query = f"SELECT id FROM records WHERE owner_id IN ({placeholders}) AND (images LIKE ? OR metadata LIKE ?)"
+            match = conn.execute(query, target_ids + [pattern, pattern]).fetchone()
+            return match is not None
 
 
 class PostgresRecordStore(RecordStore):
@@ -1488,6 +1654,53 @@ class PostgresRecordStore(RecordStore):
                 )
             conn.commit()
 
+    def register_media_asset(self, filename: str, owner_id: str) -> None:
+        if not filename or not owner_id:
+            return
+        filename = os.path.basename(filename)
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO media_assets (filename, owner_id, created_at)
+                    VALUES (%s, %s, CURRENT_TIMESTAMP)
+                    ON CONFLICT (filename) DO UPDATE SET owner_id = EXCLUDED.owner_id
+                """, (filename, owner_id))
+            conn.commit()
+
+    def check_media_access(self, filename: str, user_id: str) -> bool:
+        if not filename or not user_id:
+            return False
+        filename = os.path.basename(filename)
+        with self._connect() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT owner_id FROM media_assets WHERE filename = %s", (filename,))
+                row = cursor.fetchone()
+                if row:
+                    owner_id = row[0]
+                    if owner_id == user_id:
+                        return True
+                    status = self.get_couple_status(user_id)
+                    if status.get('paired') and status.get('partner') and status['partner'].get('id') == owner_id:
+                        return True
+                    return False
+
+                cursor.execute("SELECT COUNT(*) FROM users")
+                user_count = cursor.fetchone()[0]
+                if user_count == 0:
+                    return True
+
+                status = self.get_couple_status(user_id)
+                partner_id = status['partner'].get('id') if (status.get('paired') and status.get('partner')) else None
+                target_ids = [user_id]
+                if partner_id:
+                    target_ids.append(partner_id)
+
+                pattern = f"%{filename}%"
+                placeholders = ','.join(['%s'] * len(target_ids))
+                query = f"SELECT id FROM records WHERE owner_id IN ({placeholders}) AND (images::text LIKE %s OR metadata::text LIKE %s)"
+                cursor.execute(query, tuple(target_ids) + (pattern, pattern))
+                return cursor.fetchone() is not None
+
 
 
 
@@ -1569,22 +1782,66 @@ STORAGE_CONFIG = {
 }
 
 
+SECRET_CONFIG_KEYS = {
+    'amapKey', 'baiduKey', 'tencentKey', 'bingKey',
+    'aliyunAccessKey', 'aliyunSecretKey',
+    'tencentSecretId', 'tencentSecretKey',
+    'qiniuAccessKey', 'qiniuSecretKey',
+    'awsAccessKey', 'awsSecretKey',
+    'gcpCredentials',
+    'azureAccountKey',
+    'aiApiKey',
+    'wechatAppSecret',
+    'dbUrl',
+}
+
+
+def _get_secrets_file() -> str:
+    return RUNTIME_SECRETS_FILE
+
+
 def load_runtime_config() -> Dict[str, Any]:
-    """读取设置页保存的运行时配置。"""
-    if not os.path.exists(RUNTIME_CONFIG_FILE):
-        return {}
-    try:
-        with open(RUNTIME_CONFIG_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError):
-        return {}
+    """读取设置页保存的运行时配置（合并非机密偏好与独立权限的机密配置文件）。"""
+    config = {}
+    if os.path.exists(RUNTIME_CONFIG_FILE):
+        try:
+            with open(RUNTIME_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                config.update(json.load(f))
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    sec_file = _get_secrets_file()
+    if os.path.exists(sec_file):
+        try:
+            with open(sec_file, 'r', encoding='utf-8') as f:
+                config.update(json.load(f))
+        except (OSError, json.JSONDecodeError):
+            pass
+
+    return config
 
 
 def save_runtime_config(config: Dict[str, Any]) -> Dict[str, Any]:
-    """保存设置页同步过来的运行时配置（临时文件 + 原子重命名）。"""
+    """保存设置页配置：分离普通偏好写入 runtime_config.json，敏感机密写入独立的 runtime_secrets.json。"""
     current = load_runtime_config()
     current.update(config)
-    _atomic_json_write(RUNTIME_CONFIG_FILE, current)
+
+    preferences = {}
+    secrets = {}
+    for k, v in current.items():
+        if k in SECRET_CONFIG_KEYS:
+            secrets[k] = v
+        else:
+            preferences[k] = v
+
+    _atomic_json_write(RUNTIME_CONFIG_FILE, preferences)
+    sec_file = _get_secrets_file()
+    _atomic_json_write(sec_file, secrets)
+    try:
+        os.chmod(sec_file, 0o600)
+    except Exception:
+        pass
+
     return current
 
 

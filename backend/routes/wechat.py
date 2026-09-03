@@ -14,13 +14,24 @@ from backend.helpers import get_record_store, get_runtime_config
 wechat_bp = Blueprint('wechat', __name__)
 
 
+def _is_mock_login_enabled(config: dict) -> bool:
+    """计算是否允许微信沙盒 Mock 登录（生产环境默认禁用，开发环境默认启用）。"""
+    is_prod = os.environ.get('FLASK_ENV') == 'production'
+    env_val = os.environ.get('WECHAT_MOCK_LOGIN')
+    if env_val is not None:
+        return env_val.lower() in ('true', '1', 'yes')
+    if 'wechatMockLogin' in config:
+        return bool(config['wechatMockLogin'])
+    return not is_prod
+
+
 @wechat_bp.route('/api/wechat/config', methods=['GET'])
 def wechat_config():
     """获取小程序端公开配置状态"""
     config = get_runtime_config()
     app_id = config.get('wechatAppId') or os.environ.get('WECHAT_APP_ID') or os.environ.get('WECHAT_APPID')
     app_secret = config.get('wechatAppSecret') or os.environ.get('WECHAT_APP_SECRET') or os.environ.get('WECHAT_SECRET')
-    mock_login = config.get('wechatMockLogin', True)  # 默认在无 Key 时允许沙盒体验
+    mock_login = _is_mock_login_enabled(config)
 
     return jsonify({
         'success': True,
@@ -42,7 +53,7 @@ def wechat_login():
     config = get_runtime_config()
     app_id = config.get('wechatAppId') or os.environ.get('WECHAT_APP_ID') or os.environ.get('WECHAT_APPID')
     app_secret = config.get('wechatAppSecret') or os.environ.get('WECHAT_APP_SECRET') or os.environ.get('WECHAT_SECRET')
-    mock_login = config.get('wechatMockLogin', True)
+    mock_login = _is_mock_login_enabled(config)
 
     store = get_record_store()
 

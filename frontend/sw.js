@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'footprint-v5';
+const CACHE_NAME = 'footprint-v6';
 const APP_SHELL = [
     './',
     './index.html',
@@ -51,8 +51,13 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const request = event.request;
     const url = new URL(request.url);
+    const scopePath = self.registration ? new URL(self.registration.scope).pathname : '/';
 
-    if (url.pathname.startsWith('/api/') || request.method !== 'GET') {
+    // 动态判断当前作用域下的 API 及媒体上传请求，避免 SW 缓存动态业务接口与二进制媒体
+    const isApi = url.pathname.includes('/api/') || url.pathname.startsWith(scopePath + 'api/');
+    const isUpload = url.pathname.includes('/uploads/') || url.pathname.startsWith(scopePath + 'uploads/');
+
+    if (isApi || isUpload || request.method !== 'GET') {
         return;
     }
 

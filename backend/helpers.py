@@ -13,6 +13,13 @@ from werkzeug.utils import secure_filename
 from backend.exif_extractor import extract_gps_from_image, get_image_info, extract_datetime_from_image
 from backend.database import create_storage, create_record_store, get_storage_config, load_runtime_config, save_runtime_config
 
+# HEIC / HEIF 动态解码支持（如运行环境中已安装 pillow-heif 则自动注册）
+try:
+    import pillow_heif
+    pillow_heif.register_heif_opener()
+except ImportError:
+    pass
+
 # ────────────────── 常量 ──────────────────
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -174,6 +181,9 @@ def save_upload_file(file):
         from PIL import Image
         Image.MAX_IMAGE_PIXELS = 80_000_000
         with Image.open(filepath) as img:
+            w, h = img.size
+            if w and h and (w * h > 80_000_000):
+                raise ValueError(f'图片分辨率超过安全上限 80MP ({w}x{h}={w*h} 像素)')
             img.verify()
     except Exception as e:
         if os.path.exists(filepath):

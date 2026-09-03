@@ -198,11 +198,17 @@ class TestAuthRequired:
         # 不带 token 访问 -> 401
         assert_unauthorized(client.get(url))
 
-        # 带 ?token=<jwt> 查询参数 -> 200(send_from_directory 需要文件真实存在)
-        token = auth_header['Authorization'].split(' ')[1]
-        assert client.get(f'{url}?token={token}').status_code == 200
+        # 主 JWT 禁止直接通过 ?token= 传递 -> 401（防止 URL 泄露主凭据）
+        master_token = auth_header['Authorization'].split(' ')[1]
+        assert client.get(f'{url}?token={master_token}').status_code == 401
 
-        # 带 Authorization header -> 200
+        # 换取受限短期的 media token，通过 ?token= 查询参数 -> 200
+        media_resp = client.get('/api/auth/media-token', headers=auth_header)
+        assert media_resp.status_code == 200
+        media_token = media_resp.get_json()['media_token']
+        assert client.get(f'{url}?token={media_token}').status_code == 200
+
+        # 带 Authorization header (主凭证) -> 200
         assert client.get(url, headers=auth_header).status_code == 200
 
 

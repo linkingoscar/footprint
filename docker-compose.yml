@@ -14,12 +14,13 @@ services:
       - ./backend/uploads:/app/backend/uploads
       - ./data:/app/data
     environment:
-      - FLASK_ENV=production
-      - DB_TYPE=sqlite
-      - DB_NAME=/app/data/footprint.db
-      - STORAGE_PROVIDER=local
+      - FLASK_ENV=${FLASK_ENV:-production}
+      - DB_TYPE=${DB_TYPE:-sqlite}
+      - DB_NAME=${DB_NAME:-/app/data/footprint.db}
+      - STORAGE_PROVIDER=${STORAGE_PROVIDER:-local}
       - AMAP_KEY=${AMAP_KEY:-}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
+      - BEHIND_PROXY=${BEHIND_PROXY:-true}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]

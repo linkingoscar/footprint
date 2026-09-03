@@ -166,8 +166,17 @@ def update_record(record_id):
             else:
                 record[key] = data[key]
     
+    if 'revision' in data:
+        record['revision'] = data['revision']
+
     record['updatedAt'] = datetime.now().isoformat()
-    store.update(record_id, record, owner_id)
+    result = store.update(record_id, record, owner_id)
+    if result and result.get('_conflict'):
+        return jsonify({
+            'error': '记录版本冲突：该记录已被其他设备修改',
+            'code': 409,
+            'current_revision': result.get('_current_revision')
+        }), 409
     
     return jsonify(record)
 

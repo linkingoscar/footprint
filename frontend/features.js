@@ -24,6 +24,17 @@ function featureFetch(url, options) {
     return fetch(fullUrl, options);
 }
 
+function safeEscape(s) {
+    if (typeof escapeHtml === 'function') return escapeHtml(s);
+    if (s == null) return '';
+    return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function resolveAsset(url) {
     if (typeof resolveAssetUrl === 'function') return resolveAssetUrl(url);
     return url;
@@ -160,8 +171,8 @@ var ReplayEnhanced = {
         var infoEl = document.getElementById('replay-step-info');
         if (infoEl) {
             var r = this.records[this.currentIndex];
-            infoEl.innerHTML = '<div style="font-weight:600">' + (r.title || '未命名') + '</div>' +
-                '<div style="font-size:12px;color:var(--text-muted)">' + (r.location || '') + ' · ' + (r.date || '') + '</div>';
+            infoEl.innerHTML = '<div style="font-weight:600">' + safeEscape(r.title || '未命名') + '</div>' +
+                '<div style="font-size:12px;color:var(--text-muted)">' + safeEscape(r.location || '') + ' · ' + safeEscape(r.date || '') + '</div>';
         }
     },
 
@@ -440,7 +451,7 @@ var CityModule = {
                 var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '<span style="display:inline-block;width:24px;text-align:center;font-size:13px;font-weight:700;color:var(--text-muted)">' + (i + 1) + '</span>';
                 return '<div style="display:flex;align-items:center;gap:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:12px 16px">' +
                     '<div style="font-size:20px;min-width:28px;text-align:center">' + medal + '</div>' +
-                    '<div style="flex:1;font-size:14px;font-weight:600">' + c.name + '</div>' +
+                    '<div style="flex:1;font-size:14px;font-weight:600">' + safeEscape(c.name) + '</div>' +
                     '<div style="font-size:13px;color:var(--primary);font-weight:700">' + c.count + ' 次</div>' +
                     '</div>';
             }).join('') +
@@ -938,7 +949,7 @@ var ExpenseModule = {
             Object.keys(byCategory).map(function(cat) {
                 return '<div class="stat-card"><div style="font-size:20px">' + (self.categoryIcons[cat] || '📦') + '</div>' +
                     '<div style="font-size:16px;font-weight:700;color:var(--primary);margin-top:4px">¥' + byCategory[cat].toFixed(0) + '</div>' +
-                    '<div style="font-size:11px;color:var(--text-muted)">' + cat + '</div></div>';
+                    '<div style="font-size:11px;color:var(--text-muted)">' + safeEscape(cat) + '</div></div>';
             }).join('') +
             '</div>' +
             '<div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:16px">' +
@@ -946,7 +957,7 @@ var ExpenseModule = {
             '  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
             '    <input type="number" class="form-input" id="expense-amount" placeholder="金额">' +
             '    <select class="form-select" id="expense-category">' +
-            this.categories.map(function(c) { return '<option value="' + c + '">' + (self.categoryIcons[c] || '') + ' ' + c + '</option>'; }).join('') +
+            this.categories.map(function(c) { return '<option value="' + safeEscape(c) + '">' + (self.categoryIcons[c] || '') + ' ' + safeEscape(c) + '</option>'; }).join('') +
             '    </select>' +
             '  </div>' +
             '  <input type="text" class="form-input" id="expense-desc" placeholder="备注" style="margin-top:8px">' +
@@ -957,10 +968,10 @@ var ExpenseModule = {
             this.expenses.map(function(e) {
                 return '<div class="list-item">' +
                     '<div class="list-icon">' + (self.categoryIcons[e.category] || '📦') + '</div>' +
-                    '<div class="list-content"><div class="list-title">' + (e.description || e.category) + '</div>' +
-                    '<div class="list-desc">' + e.category + ' · ' + (e.date || '') + '</div></div>' +
+                    '<div class="list-content"><div class="list-title">' + safeEscape(e.description || e.category) + '</div>' +
+                    '<div class="list-desc">' + safeEscape(e.category) + ' · ' + safeEscape(e.date || '') + '</div></div>' +
                     '<div style="font-size:15px;font-weight:600;color:var(--primary)">¥' + (e.amount || 0).toFixed(2) + '</div>' +
-                    '<div class="list-action" onclick="ExpenseModule.remove(\'' + e.id + '\')">✕</div></div>';
+                    '<div class="list-action" onclick="ExpenseModule.remove(\'' + safeEscape(e.id) + '\')">✕</div></div>';
             }).join('')) +
             '</div>';
     }

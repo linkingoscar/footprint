@@ -14,3 +14,7 @@ psycopg2-binary==2.9.9
 
 # 百度OCR
 baidu-aip==4.16.13
+
+# HEIC / HEIF 图片格式支持
+pillow-heif>=0.14.0
+

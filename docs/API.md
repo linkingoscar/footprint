@@ -43,12 +43,14 @@
 - Token 有效期默认 24 小时，可通过环境变量 `JWT_EXPIRY_HOURS` 调整
 - 签名密钥来自环境变量 `JWT_SECRET_KEY`（生产环境必须设置固定值；未设置时每次启动随机生成，重启后所有 Token 失效）
 
-**受保护图片:**
+**受保护图片与媒体鉴权:**
 
-`GET /uploads/<filename>` 提供上传的图片，同样受保护，支持两种认证方式：
+`GET /uploads/<filename>` 提供上传的图片，具备严格的 Owner 级访问控制：
 
-- `Authorization: Bearer <token>` 请求头
-- `?token=<jwt>` 查询参数（供前端 `<img>` 标签等无法携带请求头的场景使用）
+- **权限范围**: 仅允许图片上传者、包含该图片的足迹拥有者或情侣空间伴侣访问；未授权访问返回 `403 Forbidden`。
+- **认证方式**:
+  - `Authorization: Bearer <token>` 请求头（支持主凭证）；
+  - `?token=<media_token>` 查询参数：**仅限使用受限短期的 media token**（通过 `GET /api/auth/media-token` 换取），主登录 JWT 禁止在 URL 中传递（直接拦截返回 `401 Unauthorized`），以防浏览器历史与服务端访问日志泄露主凭证。
 
 **数据隔离:**
 
@@ -56,18 +58,18 @@
 
 ### POST /api/auth/register
 
-注册新用户，成功后直接返回 Token。
+注册新用户，成功后直接返回 Token。支持通过环境变量 `ALLOW_REGISTRATION=false` 关闭公开注册。
 
 **请求体:**
 ```json
 {
     "username": "traveller",
-    "password": "secret123"
+    "password": "secret1234"
 }
 ```
 
 - `username`: 必填，3-32 个字符
-- `password`: 必填，至少 6 个字符
+- `password`: 必填，至少 8 个字符
 
 **响应:** `201 Created`
 ```json
@@ -82,7 +84,8 @@
 ```
 
 **错误情况:**
-- `400`: 用户名/密码为空、用户名长度不符合要求、密码少于 6 位
+- `400`: 用户名/密码为空、用户名长度不符合要求、密码少于 8 位
+- `403`: 系统已关闭公开注册
 - `409`: 用户名已存在
 
 ### POST /api/auth/login
@@ -122,6 +125,20 @@
 
 **错误情况:**
 - `401`: 未认证或 Token 无效
+
+### GET /api/auth/media-token
+
+为当前登录用户换取用于图片 URL 访问的专用受限只读 Token（`scope=media`）。有效期默认 1 小时。
+
+**请求头:** `Authorization: Bearer <token>`
+
+**响应:**
+```json
+{
+    "media_token": "<jwt>",
+    "expires_in": 3600
+}
+```
 
 ---
 
@@ -211,11 +228,21 @@
 
 ### PUT /api/records/:id
 
-更新记录。
+更新记录。支持多设备版本冲突检测 (Optimistic Concurrency Control)。
 
-**请求体:** 同创建，所有字段可选
+**请求体:** 同创建，所有字段可选。
+- `revision`: 可选（整数），客户端持有的当前记录版本号。若传入且小于服务器现有版本号，服务端将拦截覆盖并返回 `409 Conflict`。
 
-**响应:** 200 OK
+**响应:** `200 OK`
+
+**冲突响应 (409 Conflict):**
+```json
+{
+    "error": "该记录已被其他设备修改，请刷新后重试",
+    "code": 409,
+    "current_revision": 3
+}
+```
 
 ### DELETE /api/records/:id
 
@@ -620,6 +647,39 @@
 - **响应类型**: `text/csv`
 - **文件名**: `footprint_YYYYMMDD.csv`
 - **列**: `id, mode, title, description, location, latitude, longitude, date, rating, price, image_count, created_at`
+
+### GET /api/admin/backup/full
+
+导出当前用户的全量灾备 ZIP 压缩包（包含足迹记录、扩展特性配置及所有本地上传的实体图片）。
+
+- **请求头**: `Authorization: Bearer <token>`
+- **响应类型**: `application/zip`
+- **文件名**: `footprint_backup_YYYYMMDD_HHMMSS.zip`
+- **ZIP 结构**:
+  - `manifest.json`: 备份版本号、记录数、特性数与图片数元数据
+  - `records.json`: 当前用户全部足迹记录明细
+  - `features.json`: 当前用户所有扩展特性与配置（情侣空间、愿望清单等）
+  - `media/`: 本地图片实体文件，恢复时自动还原
+
+### POST /api/admin/restore/full
+
+从全量灾备 ZIP 压缩包一键还原数据与媒体实体文件。
+
+- **请求头**: `Authorization: Bearer <token>`
+- **Content-Type**: `multipart/form-data`
+- **表单字段**: `file` (上传 .zip 文件)
+- **响应**: `200 OK`
+```json
+{
+    "success": true,
+    "message": "全量数据与媒体文件还原成功",
+    "restored": {
+        "records": 42,
+        "features": 3,
+        "media_files": 15
+    }
+}
+```
 
 ---
 

@@ -241,11 +241,14 @@ def upload_batch_photos():
     title = request.form.get('title', '批量导入')
     
     results = []
+    store = get_record_store()
     for file in files:
         if file.filename == '' or not allowed_file(file.filename):
             continue
         result, error = save_upload_file(file)
         if not error:
+            if hasattr(store, 'register_media_asset') and g.current_user:
+                store.register_media_asset(result['filename'], g.current_user['user_id'])
             results.append(result)
     
     # 有GPS数据的自动创建记录

@@ -31,8 +31,8 @@ def register():
     if len(username) < 3 or len(username) > 32:
         return jsonify({'error': '用户名长度应为 3-32 个字符'}), 400
     
-    if len(password) < 6:
-        return jsonify({'error': '密码长度不能少于 6 个字符'}), 400
+    if len(password) < 8:
+        return jsonify({'error': '密码长度不能少于 8 个字符'}), 400
     
     store = get_record_store()
     if store.get_user_by_username(username):

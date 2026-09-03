@@ -5,7 +5,9 @@
 import os
 import time
 import json
-from flask import Blueprint, request, jsonify, g
+import io
+import zipfile
+from flask import Blueprint, request, jsonify, g, send_file
 
 from backend.auth import login_required
 from backend.helpers import (
@@ -302,3 +304,130 @@ def admin_backup_snapshot():
         'layout': config.get('layoutConfig', {})
     }
     return jsonify(snapshot)
+
+
+@admin_bp.route('/api/admin/backup/full', methods=['GET'])
+@login_required
+def admin_backup_full():
+    """下载全量灾备 ZIP 压缩包 (包含 Manifest + Records + Features + 本地图片实体)"""
+    store = get_record_store()
+    user = g.current_user
+    user_id = user['user_id'] if user else None
+
+    records = store.list(owner_id=user_id)
+    features = store.get_user_features(user_id) if user_id and hasattr(store, 'get_user_features') else {}
+
+    # 提取所有关联的本地图片文件名
+    media_filenames = set()
+    for r in records:
+        for img in r.get('images', []):
+            if isinstance(img, str) and '/uploads/' in img:
+                media_filenames.add(img.rsplit('/uploads/', 1)[1])
+        for meta_img in r.get('metadata', {}).get('images', []):
+            fn = meta_img.get('filename') or meta_img.get('storage_key')
+            if fn:
+                media_filenames.add(os.path.basename(fn))
+
+    import backend.helpers as helpers
+    upload_folder = helpers.UPLOAD_FOLDER
+
+    zip_buffer = io.BytesIO()
+    media_count = 0
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+        manifest = {
+            'version': '1.0',
+            'type': 'footprint_disaster_recovery_backup',
+            'export_time': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+            'user': user['username'] if user else 'anonymous',
+            'record_count': len(records),
+            'features_count': len(features),
+        }
+        zf.writestr('records.json', json.dumps(records, ensure_ascii=False, indent=2))
+        zf.writestr('features.json', json.dumps(features, ensure_ascii=False, indent=2))
+
+        for fn in media_filenames:
+            clean_fn = os.path.basename(fn)
+            local_path = os.path.join(upload_folder, clean_fn)
+            if os.path.exists(local_path):
+                zf.write(local_path, arcname=f'media/{clean_fn}')
+                media_count += 1
+
+        manifest['media_count'] = media_count
+        zf.writestr('manifest.json', json.dumps(manifest, ensure_ascii=False, indent=2))
+
+    zip_buffer.seek(0)
+    timestamp = time.strftime('%Y%m%d_%H%M%S')
+    return send_file(
+        zip_buffer,
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f'footprint_backup_{timestamp}.zip'
+    )
+
+
+@admin_bp.route('/api/admin/restore/full', methods=['POST'])
+@login_required
+def admin_restore_full():
+    """从全量灾备 ZIP 压缩包还原记录、特征与本地媒体文件"""
+    if 'file' not in request.files:
+        return jsonify({'error': '缺少备份文件'}), 400
+    file = request.files['file']
+    if not file.filename.lower().endswith('.zip'):
+        return jsonify({'error': '仅支持 .zip 格式的全量备份文件'}), 400
+
+    store = get_record_store()
+    user = g.current_user
+    user_id = user['user_id'] if user else None
+
+    import backend.helpers as helpers
+    upload_folder = helpers.UPLOAD_FOLDER
+
+    try:
+        content = file.read()
+        with zipfile.ZipFile(io.BytesIO(content), 'r') as zf:
+            namelist = zf.namelist()
+            if 'records.json' not in namelist:
+                return jsonify({'error': '无效的备份包：缺少 records.json'}), 400
+
+            records_data = json.loads(zf.read('records.json').decode('utf-8'))
+            features_data = {}
+            if 'features.json' in namelist:
+                features_data = json.loads(zf.read('features.json').decode('utf-8'))
+
+            # 恢复媒体实体文件
+            media_restored = 0
+            os.makedirs(upload_folder, exist_ok=True)
+            for name in namelist:
+                if name.startswith('media/') and not name.endswith('/'):
+                    clean_name = os.path.basename(name)
+                    if clean_name:
+                        target_path = os.path.join(upload_folder, clean_name)
+                        with open(target_path, 'wb') as f:
+                            f.write(zf.read(name))
+                        if hasattr(store, 'register_media_asset') and user_id:
+                            store.register_media_asset(clean_name, user_id)
+                        media_restored += 1
+
+            # 导入记录
+            records_count = 0
+            for r in records_data:
+                if isinstance(r, dict) and r.get('id'):
+                    if store.get(r['id'], user_id):
+                        store.update(r['id'], r, user_id)
+                    else:
+                        store.create(r, user_id)
+                    records_count += 1
+
+            # 导入扩展特性数据
+            if hasattr(store, 'save_user_feature') and user_id:
+                for k, v in features_data.items():
+                    store.save_user_feature(user_id, k, v)
+
+        return jsonify({
+            'success': True,
+            'message': '全量数据与媒体资源恢复完成',
+            'records_restored': records_count,
+            'media_restored': media_restored
+        })
+    except Exception as e:
+        return jsonify({'error': f'解压或恢复备份失败: {str(e)}'}), 400

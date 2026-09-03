@@ -141,12 +141,20 @@ def get_current_user(allow_query_token: bool = False) -> dict | None:
         包含 user_id 和 username 的字典，未认证时返回 None。
     """
     token = _extract_token_from_header()
+    from_query = False
     if not token and allow_query_token:
         token = _extract_token_from_query()
+        if token:
+            from_query = True
     if not token:
         return None
     payload = verify_token(token)
     if not payload:
+        return None
+
+    # 安全隔离：URL Query 参数中的 Token 必须是 scope == 'media'
+    # Master Token 严禁在 URL Query 中传递使用，防止泄露于访问日志与历史记录
+    if from_query and payload.get('scope') != 'media':
         return None
 
     # 安全隔离：media scope Token 仅允许在静态媒体资源代理场景 (allow_query_token=True) 下使用，

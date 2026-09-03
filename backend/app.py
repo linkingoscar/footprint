@@ -102,11 +102,21 @@ def create_app():
     @app.route('/uploads/<path:filename>')
     def serve_upload(filename):
         """提供上传的图片。需携带有效 JWT（Authorization Header 或 ?token= 查询参数，
-        后者用于 <img> 标签等无法设置 Header 的场景）。"""
+        后者仅允许受限短期的 media scope Token）。"""
         user = get_current_user(allow_query_token=True)
         if not user:
             return jsonify({'error': '未认证，请先登录', 'code': 401}), 401
-        return send_from_directory(UPLOAD_FOLDER, filename)
+
+        # Owner 级授权检查：确保访问者对该媒体文件具有直接所属或情侣空间权限
+        clean_name = os.path.basename(filename)
+        store = get_record_store()
+        user_id = user.get('user_id')
+        if hasattr(store, 'check_media_access') and user_id:
+            if not store.check_media_access(clean_name, user_id):
+                return jsonify({'error': '无权访问该媒体资源', 'code': 403}), 403
+
+        import backend.helpers as helpers
+        return send_from_directory(helpers.UPLOAD_FOLDER, filename)
 
     return app
 

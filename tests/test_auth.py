@@ -81,11 +81,19 @@ def test_get_current_user_with_context(app):
         user = get_current_user()
         assert user is None
 
-    # 测试 allow_query_token=True 支持 URL 参数 ?token=
+    # 测试 URL Query 参数严格要求 media scope：Master Token 必须被拒绝
     with app.test_request_context(f'/uploads/pic.png?token={token}'):
         user_query = get_current_user(allow_query_token=True)
-        assert user_query is not None
-        assert user_query['user_id'] == 'user-123'
+        assert user_query is None
+
+    # 测试 media_token 在 allow_query_token=True 下成功识别
+    from backend.auth import generate_media_token
+    media_tok = generate_media_token("user-123", "alice")
+    with app.test_request_context(f'/uploads/pic.png?token={media_tok}'):
+        user_media = get_current_user(allow_query_token=True)
+        assert user_media is not None
+        assert user_media['user_id'] == 'user-123'
+        assert user_media['scope'] == 'media'
 
 
 def test_login_required_decorator(app):

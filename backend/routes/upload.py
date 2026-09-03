@@ -1,10 +1,10 @@
 """
 足迹 - 图片上传 API 蓝图
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, g
 
 from backend.auth import login_required
-from backend.helpers import allowed_file, save_upload_file, fetch_image_url_safe
+from backend.helpers import allowed_file, save_upload_file, fetch_image_url_safe, get_record_store
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -26,6 +26,11 @@ def upload_image():
     result, error = save_upload_file(file)
     if error:
         return jsonify(error), 400
+    
+    store = get_record_store()
+    if hasattr(store, 'register_media_asset') and g.current_user:
+        store.register_media_asset(result['filename'], g.current_user['user_id'])
+
     return jsonify(result)
 
 
@@ -38,6 +43,7 @@ def upload_batch():
     
     files = request.files.getlist('files')
     results = []
+    store = get_record_store()
     
     for file in files:
         if file.filename == '' or not allowed_file(file.filename):
@@ -45,6 +51,8 @@ def upload_batch():
         
         result, error = save_upload_file(file)
         if not error:
+            if hasattr(store, 'register_media_asset') and g.current_user:
+                store.register_media_asset(result['filename'], g.current_user['user_id'])
             results.append(result)
     
     return jsonify(results)

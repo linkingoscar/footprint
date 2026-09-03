@@ -325,6 +325,35 @@ const FootprintDB = (() => {
         return { pending, failed, total: all.length };
     }
 
+    async function retryFailed(id) {
+        const all = await getAllOutbox();
+        const item = all.find(i => i.id === id);
+        if (item) {
+            item.status = 'pending';
+            item.retryCount = 0;
+            item.lastError = null;
+            await updateOutbox(item);
+            return item;
+        }
+        return null;
+    }
+
+    async function retryAllFailed() {
+        const all = await getAllOutbox();
+        const failedItems = all.filter(i => i.status === 'failed');
+        for (const item of failedItems) {
+            item.status = 'pending';
+            item.retryCount = 0;
+            item.lastError = null;
+            await updateOutbox(item);
+        }
+        return failedItems.length;
+    }
+
+    async function discardFailed(id) {
+        await removeOutbox(id);
+    }
+
     return {
         openDB,
         getRecords,
@@ -338,7 +367,10 @@ const FootprintDB = (() => {
         getAllOutbox,
         removeOutbox,
         getOutboxCount,
-        getOutboxStatusSummary
+        getOutboxStatusSummary,
+        retryFailed,
+        retryAllFailed,
+        discardFailed
     };
 })();
 

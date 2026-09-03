@@ -66,6 +66,7 @@ def create_couple_invite():
 
 
 @couple_bp.route('/api/couple/pair', methods=['POST'])
+@couple_bp.route('/api/couple/bind', methods=['POST'])
 @login_required
 def pair_couple():
     """使用配对码绑定另一半，共建双人足迹空间"""

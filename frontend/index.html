@@ -851,6 +851,11 @@
             }
             
             if (authState.isRegister) {
+                if (password.length < 8) {
+                    errorEl.textContent = '密码长度不能少于 8 个字符';
+                    errorEl.style.display = 'block';
+                    return;
+                }
                 const confirm = document.getElementById('auth-confirm-password').value;
                 if (password !== confirm) {
                     errorEl.textContent = '两次密码不一致';
@@ -1066,25 +1071,49 @@
         function apiUrl(path) { return `${getApiBase()}${path}`; }
         let _cachedMediaToken = null;
         let _mediaTokenExpiresAt = 0;
+        let _mediaTokenPromise = null;
 
-        async function getMediaToken() {
+        async function getMediaToken(forceRefresh = false) {
             if (!authState.token) return null;
             const now = Date.now();
-            if (_cachedMediaToken && now < _mediaTokenExpiresAt) {
+            if (!forceRefresh && _cachedMediaToken && now < _mediaTokenExpiresAt) {
                 return _cachedMediaToken;
             }
+            if (_mediaTokenPromise) {
+                return _mediaTokenPromise;
+            }
+            _mediaTokenPromise = (async () => {
+                try {
+                    const res = await apiFetch('/api/auth/media-token');
+                    if (res && res.media_token) {
+                        _cachedMediaToken = res.media_token;
+                        _mediaTokenExpiresAt = now + ((res.expires_in || 3600) - 120) * 1000;
+                        return _cachedMediaToken;
+                    }
+                } catch (e) {
+                    console.warn('获取媒体 Token 失败:', e.message);
+                } finally {
+                    _mediaTokenPromise = null;
+                }
+                return _cachedMediaToken || null;
+            })();
+            return _mediaTokenPromise;
+        }
+
+        window.handleMediaImageError = async function(imgEl) {
+            if (!imgEl || imgEl.dataset.retried) return;
+            imgEl.dataset.retried = 'true';
             try {
-                const res = await apiFetch('/api/auth/media-token');
-                if (res && res.media_token) {
-                    _cachedMediaToken = res.media_token;
-                    _mediaTokenExpiresAt = now + ((res.expires_in || 3600) - 120) * 1000;
-                    return _cachedMediaToken;
+                const freshToken = await getMediaToken(true);
+                if (freshToken && imgEl.src) {
+                    const u = new URL(imgEl.src);
+                    u.searchParams.set('token', freshToken);
+                    imgEl.src = u.toString();
                 }
             } catch (e) {
-                console.log('获取媒体 Token 失败，降级使用主凭证:', e.message);
+                console.warn('媒体图片重试加载失败:', e);
             }
-            return authState.token;
-        }
+        };
 
         function resolveAssetUrl(url) {
             if (!url || /^(data:|blob:)/.test(url)) return url;
@@ -1140,6 +1169,120 @@
                     badge.title = '无需后端服务，数据与照片保存在本机浏览器';
                 }
             }
+
+            badge.onclick = async () => {
+                const s = (window.FootprintDB && FootprintDB.getOutboxStatusSummary)
+                    ? await FootprintDB.getOutboxStatusSummary()
+                    : { pending: 0, failed: 0 };
+                if (s.failed > 0 || s.pending > 0) {
+                    await showOutboxManagerModal();
+                } else {
+                    await triggerManualSync();
+                }
+            };
+        }
+
+        async function showOutboxManagerModal() {
+            if (!window.FootprintDB) return;
+            const items = await FootprintDB.getAllOutbox();
+            if (!items || items.length === 0) {
+                toast('🟢 离线队列为空，所有改动均已同步');
+                return;
+            }
+
+            function renderContent(list) {
+                const failedCount = list.filter(i => i.status === 'failed').length;
+                return `
+                    <div style="display:flex;flex-direction:column;gap:12px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                            <span style="font-size:13px;color:var(--text-sec)">队列共 ${list.length} 项 (失败 ${failedCount} 项)</span>
+                            <div style="display:flex;gap:8px;">
+                                <button class="btn btn-primary btn-sm" onclick="window.outboxRetryAll()">🔁 全部重试</button>
+                                <button class="btn btn-ghost btn-sm" onclick="window.outboxFlushNow()">⚡ 立即推送</button>
+                            </div>
+                        </div>
+                        <div style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;">
+                            ${list.map(item => {
+                                const isFailed = item.status === 'failed';
+                                const title = item.payload?.title || item.payload?.id || '未命名记录';
+                                const errMsg = item.lastError ? escapeHtml(item.lastError) : '发生冲突或请求失败';
+                                return `
+                                    <div style="background:var(--bg-elevated);border:1px solid ${isFailed ? 'rgba(239,68,68,0.4)' : 'var(--border)'};border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;">
+                                        <div style="font-size:20px;">${isFailed ? '🔴' : '🟡'}</div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                ${escapeHtml(title)}
+                                                <span style="font-size:11px;padding:2px 6px;border-radius:4px;background:var(--bg);color:var(--text-muted);margin-left:4px;">
+                                                    ${escapeHtml(item.action).toUpperCase()}
+                                                </span>
+                                            </div>
+                                            <div style="font-size:12px;color:${isFailed ? '#EF4444' : 'var(--text-muted)'};margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                ${isFailed ? `失败 (${item.retryCount || 0}次重试): ${errMsg}` : `等待同步中 (重试 ${item.retryCount || 0} 次)`}
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;gap:6px;">
+                                            <button class="btn btn-ghost btn-sm" style="padding:4px 8px;font-size:12px;" onclick="window.outboxRetryOne('${item.id}')">重试</button>
+                                            <button class="btn btn-danger btn-sm" style="padding:4px 8px;font-size:12px;" onclick="window.outboxDiscardOne('${item.id}')">丢弃</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            window.outboxRetryOne = async function(id) {
+                await FootprintDB.retryFailed(id);
+                toast('已重置该项状态为待同步');
+                if (state.apiAvailable && window.SyncEngine) {
+                    await SyncEngine.flushOutbox(apiFetch);
+                }
+                const updated = await FootprintDB.getAllOutbox();
+                showFeatureModal('📤 离线同步队列管理', renderContent(updated));
+                await updateConnectionBadge(state.apiAvailable);
+            };
+
+            window.outboxDiscardOne = async function(id) {
+                const ok = await AppDialog.confirm({ title: '确认丢弃', message: '丢弃后该离线变更将不再同步至云端，确定删除吗？', danger: true });
+                if (!ok) return;
+                await FootprintDB.discardFailed(id);
+                toast('已从队列移除');
+                const updated = await FootprintDB.getAllOutbox();
+                if (updated.length === 0) {
+                    document.getElementById('feature-modal').classList.remove('active');
+                } else {
+                    showFeatureModal('📤 离线同步队列管理', renderContent(updated));
+                }
+                await updateConnectionBadge(state.apiAvailable);
+            };
+
+            window.outboxRetryAll = async function() {
+                await FootprintDB.retryAllFailed();
+                toast('已重置所有失败项为待重试');
+                if (state.apiAvailable && window.SyncEngine) {
+                    await SyncEngine.flushOutbox(apiFetch);
+                }
+                const updated = await FootprintDB.getAllOutbox();
+                showFeatureModal('📤 离线同步队列管理', renderContent(updated));
+                await updateConnectionBadge(state.apiAvailable);
+            };
+
+            window.outboxFlushNow = async function() {
+                if (!state.apiAvailable) {
+                    toast('当前离线，无法连接云端');
+                    return;
+                }
+                toast('🔄 正在同步...');
+                await SyncEngine.flushOutbox(apiFetch);
+                const updated = await FootprintDB.getAllOutbox();
+                showFeatureModal('📤 离线同步队列管理', renderContent(updated));
+                await updateConnectionBadge(state.apiAvailable);
+                await loadRecords();
+                render();
+            };
+
+            showFeatureModal('📤 离线同步队列管理', renderContent(items));
         }
 
         async function triggerManualSync() {
@@ -1208,17 +1351,34 @@
                 // 2. Outbox 刷入后再拉取最新完整的权威云端数据
                 const records = await apiFetch('/api/records');
                 if (Array.isArray(records)) {
-                    state.records = records;
-                    if (window.FootprintDB) {
-                        await FootprintDB.saveRecords(records);
+                    let finalRecords = [...records];
+                    // Local Mutation Overlay: 若本地存在未完全同步成功的 Outbox 变更，将其覆盖叠加上去
+                    if (window.FootprintDB && FootprintDB.getAllOutbox) {
+                        const outboxItems = await FootprintDB.getAllOutbox();
+                        for (const item of outboxItems) {
+                            if (item.action === 'create' || item.action === 'update') {
+                                const localRec = item.payload;
+                                if (localRec && localRec.id) {
+                                    const idx = finalRecords.findIndex(r => r.id === localRec.id);
+                                    if (idx >= 0) finalRecords[idx] = { ...finalRecords[idx], ...localRec };
+                                    else finalRecords.unshift(localRec);
+                                }
+                            } else if (item.action === 'delete') {
+                                finalRecords = finalRecords.filter(r => r.id !== item.payload?.id);
+                            }
+                        }
                     }
-                    try { localStorage.setItem('footprint_data', JSON.stringify(records)); } catch {}
+
+                    state.records = finalRecords;
+                    if (window.FootprintDB) {
+                        await FootprintDB.saveRecords(finalRecords);
+                    }
                 }
                 state.apiAvailable = true;
                 await updateConnectionBadge(true);
 
-                // 异步预取受限媒体 Token
-                getMediaToken().catch(() => {});
+                // 确保首屏渲染前预取受限媒体 Token，杜绝并发加载图片时的 401 闪烁
+                await getMediaToken().catch(() => {});
             } catch (error) {
                 if (error.status === 401) {
                     state.apiAvailable = true;
@@ -1336,11 +1496,12 @@
         function persistLocalRecords() {
             if (window.FootprintDB) {
                 FootprintDB.saveRecords(state.records).catch(() => {});
-            }
-            try {
-                localStorage.setItem('footprint_data', JSON.stringify(state.records));
-            } catch (e) {
-                console.warn('[Footprint] localStorage 容量超限，数据已安全保存在 IndexedDB 中:', e.message);
+            } else {
+                try {
+                    localStorage.setItem('footprint_data', JSON.stringify(state.records));
+                } catch (e) {
+                    console.warn('[Footprint] localStorage 容量超限:', e.message);
+                }
             }
         }
         function hasCoordinates(item) {
@@ -1763,11 +1924,16 @@
                         toast('⚠️ 登录已失效，请重新登录');
                         break;
                     }
-                    if (error.status && (error.status === 413 || (error.status >= 400 && error.status < 500))) {
-                        toast(`❌ ${file.name} 上传失败: ${error.message || '格式或大小受限'}`);
+                    if (error.status) {
+                        // 包含 HTTP 状态码 (4xx, 5xx) 均代表服务端已收到请求并响应，不可误判为离线脱机
+                        if (error.status >= 500) {
+                            toast(`❌ 服务端错误 (${error.status}): ${error.message || '系统繁忙，请稍后重试'}`);
+                        } else {
+                            toast(`❌ ${file.name} 上传失败: ${error.message || '格式或大小受限'}`);
+                        }
                         continue;
                     }
-                    // 仅网络脱机或服务端不可达时才在前端压缩并留存在本地
+                    // 仅当纯网络层故障或真正脱机断网时才压缩留存于本地离线环境
                     let dataUrl = '';
                     if (window.ImageCompressor) {
                         const comp = await ImageCompressor.compressImageFile(file);
@@ -2582,7 +2748,7 @@
                             <h4 style="margin-bottom:12px">📍 去过的地方</h4>
                             <div style="display:flex;flex-wrap:wrap;gap:8px">
                                 ${[...locationSet].slice(0, 20).map(loc => `
-                                    <span style="padding:6px 12px;background:var(--mode-bg);border-radius:var(--radius-full);font-size:13px">${loc}</span>
+                                    <span style="padding:6px 12px;background:var(--mode-bg);border-radius:var(--radius-full);font-size:13px">${escapeHtml(loc)}</span>
                                 `).join('') || '<p style="color:var(--text-muted)">暂无地点数据</p>'}
                             </div>
                         </div>
@@ -2614,7 +2780,7 @@
                         <div style="margin-bottom:16px">
                             <div class="form-label">📍 查询城市</div>
                             <div style="display:flex;gap:8px">
-                                <input type="text" class="form-input" id="weather-city" value="${filtered.find(r=>r.location)?.location||'北京'}" placeholder="输入城市">
+                                <input type="text" class="form-input" id="weather-city" value="${escapeHtml(filtered.find(r=>r.location)?.location||'北京')}" placeholder="输入城市">
                                 <button class="btn btn-primary" onclick="queryWeather()">查询</button>
                             </div>
                         </div>
@@ -2656,7 +2822,7 @@
                     const tasteData = {}; filtered.forEach(r=>{ if(r.location){const loc=r.location.split('区')[0].split('市')[0]; tasteData[loc]=(tasteData[loc]||0)+1;} });
                     const tasteSorted = Object.entries(tasteData).sort((a,b)=>b[1]-a[1]).slice(0,8);
                     const maxC = tasteSorted.length?tasteSorted[0][1]:1;
-                    showFeatureModal('👅 口味偏好', `<div><h4 style="margin-bottom:12px">📊 常去地点</h4>${tasteSorted.map(([n,c])=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px"><span>${n}</span><span style="color:var(--text-muted)">${c}次</span></div><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--gradient);width:${(c/maxC*100)}%;border-radius:3px"></div></div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无数据</p>'}</div>`);
+                    showFeatureModal('👅 口味偏好', `<div><h4 style="margin-bottom:12px">📊 常去地点</h4>${tasteSorted.map(([n,c])=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px"><span>${escapeHtml(n)}</span><span style="color:var(--text-muted)">${c}次</span></div><div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;background:var(--gradient);width:${(c/maxC*100)}%;border-radius:3px"></div></div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无数据</p>'}</div>`);
                     break;
                 case 'ingredients':
                     const ingredients = JSON.parse(localStorage.getItem('ingredients')||'[]');

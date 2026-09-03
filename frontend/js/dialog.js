@@ -296,8 +296,12 @@
                 const closeBtn = document.getElementById('app-dialog-close-btn');
 
                 titleEl.textContent = title;
-                msgEl.innerHTML = message || '';
-                msgEl.style.display = message ? 'block' : 'none';
+                if (typeof messageHtml !== 'undefined' && messageHtml) {
+                    msgEl.innerHTML = messageHtml;
+                } else {
+                    msgEl.textContent = message || '';
+                }
+                msgEl.style.display = (message || (typeof messageHtml !== 'undefined' && messageHtml)) ? 'block' : 'none';
                 iconEl.textContent = icon;
                 iconEl.className = 'app-dialog-icon';
 
