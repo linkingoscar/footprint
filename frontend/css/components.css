@@ -807,6 +807,252 @@
     transform: translateX(-50%) translateY(0);
 }
 
+/* ==========================================================================
+   Photo Card Mosaic Layouts (1, 4, 9 Grid Support)
+   ========================================================================== */
+.photo-mosaic-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #0B0E14;
+}
+
+.photo-mosaic-1 {
+    width: 100%;
+    height: 100%;
+}
+.photo-mosaic-1 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+}
+.photo-card:hover .photo-mosaic-1 img {
+    transform: scale(1.04);
+}
+
+.photo-mosaic-4 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 2px;
+    width: 100%;
+    height: 100%;
+}
+.photo-mosaic-4 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+.photo-card:hover .photo-mosaic-4 img {
+    transform: scale(1.05);
+}
+
+.photo-mosaic-9 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 2px;
+    width: 100%;
+    height: 100%;
+}
+.photo-mosaic-9 img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease;
+}
+.photo-card:hover .photo-mosaic-9 img {
+    transform: scale(1.08);
+}
+
+.photo-mosaic-cell {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #131722;
+}
+
+.photo-mosaic-more-badge {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 800;
+    font-family: ui-monospace, monospace;
+}
+
+.photo-count-pill {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(11, 14, 20, 0.78);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+    pointer-events: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+/* ==========================================================================
+   Luxury Journey Timeline (时光轨迹 优雅重构)
+   ========================================================================== */
+.luxury-timeline {
+    position: relative;
+    padding: 10px 0 20px 24px;
+}
+
+.luxury-timeline::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 0;
+    left: 8px;
+    width: 2px;
+    background: linear-gradient(180deg, #3B82F6 0%, #EC4899 45%, #F59E0B 80%, rgba(16,185,129,0.3) 100%);
+    border-radius: 2px;
+}
+
+.timeline-month-header {
+    position: relative;
+    margin: 24px 0 16px -24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.timeline-month-tag {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.timeline-entry {
+    position: relative;
+    margin-bottom: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.timeline-entry:hover {
+    transform: translateX(4px);
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.timeline-node-dot {
+    position: absolute;
+    left: -20px;
+    top: 20px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--primary);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+    z-index: 2;
+}
+
+.timeline-node-dot.dot-food {
+    background: #F59E0B;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.3);
+}
+
+.timeline-node-dot.dot-love {
+    background: #EC4899;
+    box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.3);
+}
+
+.timeline-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.timeline-date-chip {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-sec);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.timeline-title-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+}
+
+.timeline-desc-text {
+    font-size: 13px;
+    color: var(--text-sec);
+    line-height: 1.6;
+    margin-bottom: 12px;
+}
+
+.timeline-gallery-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+}
+.timeline-gallery-row::-webkit-scrollbar {
+    display: none;
+}
+
+.timeline-gallery-thumb {
+    width: 110px;
+    height: 82px;
+    border-radius: 8px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+.timeline-gallery-thumb:hover {
+    transform: scale(1.06);
+}
+
 /* Responsive Overrides */
 @media (max-width: 768px) {
     .photo-grid { grid-template-columns: repeat(2, 1fr); }
@@ -821,3 +1067,4 @@
     .content-section { padding: 0 16px 100px; }
     .mode-bar { padding: 8px 16px; }
 }
+

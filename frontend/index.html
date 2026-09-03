@@ -1429,7 +1429,7 @@
                                 <span class="photo-card-tag ${tagClass}">${modeLabel}</span>
                                 ${isLove && r.mode !== 'love' ? '<span class="photo-card-tag tag-love">💕 专属回忆</span>' : ''}
                             </div>
-                            <img src="${resolveAssetUrl(r.images[0]||'')}" alt="${r.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
+                            ${renderMosaic(r.images, r.title)}
                             <div class="photo-card-body">
                                 <div class="photo-card-title">${r.title}</div>
                                 <div class="photo-card-meta">
@@ -1445,6 +1445,53 @@
             if (window.AppIcons) AppIcons.renderAll();
         }
 
+        // 1、4、9 宫格照片多图排版引擎
+        function renderMosaic(images, title) {
+            const list = (images && images.length) ? images : [];
+            if (list.length === 0) {
+                return `
+                    <div class="photo-mosaic-wrap photo-mosaic-1">
+                        <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>暂无照片</text></svg>" alt="${title}">
+                    </div>`;
+            }
+
+            if (list.length === 1) {
+                // 1 图单幅大卡
+                return `
+                    <div class="photo-mosaic-wrap photo-mosaic-1">
+                        <img src="${resolveAssetUrl(list[0])}" alt="${title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
+                    </div>`;
+            }
+
+            if (list.length <= 4) {
+                // 4 格排版 (2x2)
+                const display4 = list.slice(0, 4);
+                return `
+                    <div class="photo-mosaic-wrap photo-mosaic-4">
+                        ${display4.map((img, idx) => `
+                            <div class="photo-mosaic-cell">
+                                <img src="${resolveAssetUrl(img)}" alt="${title} - ${idx+1}">
+                            </div>
+                        `).join('')}
+                        <div class="photo-count-pill">📷 ${list.length}图</div>
+                    </div>`;
+            }
+
+            // 5张及以上: 9 格排版 (3x3)
+            const display9 = list.slice(0, 9);
+            const overflow = list.length - 9;
+            return `
+                <div class="photo-mosaic-wrap photo-mosaic-9">
+                    ${display9.map((img, idx) => `
+                        <div class="photo-mosaic-cell">
+                            <img src="${resolveAssetUrl(img)}" alt="${title} - ${idx+1}">
+                            ${(idx === 8 && overflow > 0) ? `<div class="photo-mosaic-more-badge">+${overflow}</div>` : ''}
+                        </div>
+                    `).join('')}
+                    <div class="photo-count-pill">📷 ${list.length}图</div>
+                </div>`;
+        }
+
         // ========== Demo Data ==========
         function demoImg(emoji, c1, c2) {
             return `data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%23${c1}%22/><stop offset=%221%22 stop-color=%22%23${c2}%22/></linearGradient></defs><rect width=%22400%22 height=%22300%22 fill=%22url(%23g)%22/><text x=%22200%22 y=%22175%22 font-size=%2272%22 text-anchor=%22middle%22>${emoji}</text></svg>`;
@@ -1454,10 +1501,14 @@
             if (state.records.length > 0) { toast('已有记录，无需加载'); return; }
             const now = new Date().toISOString();
             state.records = [
-                { id: generateId(), mode: 'travel', title: '杭州 · 西湖漫步', description: '西湖的清晨格外安静，断桥残雪倒映在水中，像一幅水墨画。', location: '浙江杭州 · 西湖', latitude: 30.2590, longitude: 120.1490, date: '2026-07-20', images: [demoImg('✈️','6366f1','818cf8'), demoImg('✈️','6366f1','818cf8')], metadata: { images: [] }, createdAt: now },
-                { id: generateId(), mode: 'travel', title: '西安 · 古城探秘', description: '', location: '陕西西安 · 城墙', latitude: 34.2541, longitude: 108.9422, date: '2026-04-10', images: [demoImg('🏯','f59e0b','ef4444'), demoImg('🏯','f59e0b','ef4444')], metadata: { images: [] }, createdAt: now },
-                { id: generateId(), mode: 'food', title: '成都 · 火锅之夜', description: '', location: '四川成都 · 宽窄巷子', latitude: 30.6690, longitude: 104.0610, date: '2026-06-15', rating: 5, price: 128, images: [demoImg('🍲','10b981','22d3ee'), demoImg('🍲','10b981','22d3ee')], metadata: { images: [] }, createdAt: now },
-                { id: generateId(), mode: 'love', title: '厦门 · 鼓浪屿日落', description: '海风、琴声和夕阳，把这一刻定格在记忆里。', location: '福建厦门 · 鼓浪屿', latitude: 24.4470, longitude: 118.0670, date: '2026-05-01', images: [demoImg('🌅','ec4899','f472b6'), demoImg('🌅','ec4899','f472b6')], metadata: { images: [] }, createdAt: now }
+                // 4图排版示例
+                { id: generateId(), mode: 'travel', title: '杭州 · 西湖漫步', description: '西湖的清晨格外安静，断桥残雪倒映在水中，像一幅水墨画。', location: '浙江杭州 · 西湖', latitude: 30.2590, longitude: 120.1490, date: '2026-07-20', images: [demoImg('✈️','6366f1','818cf8'), demoImg('🌊','3b82f6','60a5fa'), demoImg('🌿','10b981','34d399'), demoImg('⛵','06b6d4','67e8f9')], metadata: { images: [] }, createdAt: now },
+                // 1图排版示例
+                { id: generateId(), mode: 'travel', title: '西安 · 古城探秘', description: '城墙骑行，大雁塔遥望，梦回大唐盛世。', location: '陕西西安 · 城墙', latitude: 34.2541, longitude: 108.9422, date: '2026-04-10', images: [demoImg('🏯','f59e0b','ef4444')], metadata: { images: [] }, createdAt: now },
+                // 9图排版示例
+                { id: generateId(), mode: 'food', title: '成都 · 火锅之夜', description: '红油滚烫，巴适得板！巷弄里的烟火气最抚凡人心。', location: '四川成都 · 宽窄巷子', latitude: 30.6690, longitude: 104.0610, date: '2026-06-15', rating: 5, price: 128, images: [demoImg('🍲','ef4444','f87171'), demoImg('🍢','f97316','fb923c'), demoImg('🥟','f59e0b','fcd34d'), demoImg('🌶️','dc2626','ef4444'), demoImg('🐼','10b981','34d399'), demoImg('🍜','84cc16','a3e635'), demoImg('🍵','06b6d4','22d3ee'), demoImg('🥢','8b5cf6','a78bfa'), demoImg('🍮','ec4899','f472b6')], metadata: { images: [] }, createdAt: now },
+                // 4图排版示例
+                { id: generateId(), mode: 'love', title: '厦门 · 鼓浪屿日落', description: '海风、琴声和夕阳，把这一刻定格在双人回忆里。', location: '福建厦门 · 鼓浪屿', latitude: 24.4470, longitude: 118.0670, date: '2026-05-01', images: [demoImg('🌅','ec4899','f472b6'), demoImg('🏖️','06b6d4','38bdf8'), demoImg('🎵','8b5cf6','c084fc'), demoImg('🌴','10b981','34d399')], metadata: { images: [] }, createdAt: now }
             ];
             persistLocalRecords();
             localStorage.setItem('footprint_demo', '1');
@@ -1465,7 +1516,7 @@
             render();
             initMainMap();
             updateDemoButtons();
-            toast('✨ 已加载示例数据');
+            toast('✨ 已加载多图排版示例数据');
         }
 
         function clearDemoData() {
@@ -1837,16 +1888,40 @@
         function viewRecord(id) {
             const r = state.records.find(r => r.id === id); if (!r) return;
             const isLove = !!(r.is_couple || r.mode === 'love');
+            const images = (r.images && r.images.length) ? r.images : [];
+
+            // 多图上下滑动浏览流
+            const photoHtml = images.length > 1 ? `
+                <div class="modal-photo-stream" style="display:flex;flex-direction:column;gap:12px;max-height:56vh;overflow-y:auto;margin-bottom:18px;padding-right:4px;">
+                    <div style="font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center;padding:0 2px;">
+                        <span>📸 共 ${images.length} 张照片（可上下滑动浏览全貌）</span>
+                        <span style="font-size:11px;color:var(--primary)">↕ 顺畅滑动</span>
+                    </div>
+                    ${images.map((img, idx) => `
+                        <div style="position:relative;border-radius:12px;overflow:hidden;background:#0B0E14;border:1px solid var(--border);">
+                            <img src="${resolveAssetUrl(img)}" alt="${r.title} - ${idx+1}" style="width:100%;max-height:460px;object-fit:contain;display:block;">
+                            <div style="position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;font-family:ui-monospace,monospace;">
+                                ${idx + 1} / ${images.length}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : (images.length === 1 ? `
+                <div style="margin-bottom:16px;border-radius:12px;overflow:hidden;border:1px solid var(--border);background:#0B0E14;">
+                    <img src="${resolveAssetUrl(images[0])}" style="width:100%;max-height:380px;object-fit:contain;display:block;">
+                </div>
+            ` : '');
+
             showFeatureModal(r.title, `
-                <div style="margin-bottom:16px"><img src="${resolveAssetUrl(r.images[0]||'')}" style="width:100%;max-height:300px;object-fit:cover;border-radius:10px"></div>
-                ${r.description?`<p style="margin-bottom:12px;color:var(--text-sec)">${r.description}</p>`:''}
-                <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-muted);margin-bottom:18px">
-                    <span>${r.mode === 'food' ? '🍜 美食' : (r.mode === 'love' ? '💕 回忆' : '✈️ 旅行')}</span>
+                ${photoHtml}
+                ${r.description ? `<p style="margin-bottom:14px;color:var(--text-sec);line-height:1.7;font-size:14px;">${r.description}</p>` : ''}
+                <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--text-muted);margin-bottom:18px;padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm);">
+                    <span>${r.mode === 'food' ? '🍜 美食寻味' : (r.mode === 'love' ? '💕 专属回忆' : '✈️ 旅行探索')}</span>
                     ${isLove && r.mode !== 'love' ? '<span style="color:#EC4899;font-weight:600">💕 专属回忆</span>' : ''}
-                    ${r.location?`<span>📍 ${r.location}</span>`:''}
-                    ${r.date?`<span>📅 ${r.date}</span>`:''}
-                    ${r.rating?`<span>⭐ ${r.rating}分</span>`:''}
-                    ${r.price?`<span>💰 ¥${r.price}</span>`:''}
+                    ${r.location ? `<span>📍 ${r.location}</span>` : ''}
+                    ${r.date ? `<span>📅 ${r.date}</span>` : ''}
+                    ${r.rating ? `<span>⭐ ${r.rating}分</span>` : ''}
+                    ${r.price ? `<span style="color:#F59E0B;font-weight:700">💰 人均¥${r.price}</span>` : ''}
                 </div>
                 <div style="display:flex;gap:10px;justify-content:flex-end">
                     <button class="btn btn-ghost btn-sm" onclick="closeModal('feature');openEditModal('${r.id}')">编辑</button>
@@ -2100,9 +2175,16 @@
                     break;
 
                 case 'timeline':
-                    // 按时间分组
+                    // 按时间倒序排序
+                    const sortedTimeline = [...filtered].sort((a, b) => {
+                        const dateA = a.date || a.createdAt || '';
+                        const dateB = b.date || b.createdAt || '';
+                        return dateB.localeCompare(dateA);
+                    });
+
+                    // 按月份分组
                     const grouped = {};
-                    filtered.forEach(r => {
+                    sortedTimeline.forEach(r => {
                         const date = r.date || r.createdAt?.split('T')[0] || '未知日期';
                         const month = date.substring(0, 7);
                         if (!grouped[month]) grouped[month] = [];
@@ -2113,39 +2195,71 @@
                     
                     // Love mode: anniversary detection
                     const togetherConfig = JSON.parse(localStorage.getItem('footprint_config') || '{}');
-                    const togetherDate = togetherConfig.togetherDate;
+                    const togetherDate = togetherConfig.togetherDate || localStorage.getItem('together_date');
                     
-                    showFeatureModal('📅 时间线', `
-                        <div>
+                    showFeatureModal('✨ 时光轨迹 · 岁月画卷', `
+                        <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; font-size: 13px;">
+                            <span>🗓️ 共记录 <strong>${sortedTimeline.length}</strong> 篇珍贵回忆 · 沉淀于 <strong>${months.length}</strong> 个月份</span>
+                            <span style="color: var(--text-muted); font-size: 12px;">时光倒序</span>
+                        </div>
+                        <div class="luxury-timeline">
                             ${months.map(month => `
-                                <div style="margin-bottom:24px">
-                                    <div style="font-size:14px;font-weight:600;margin-bottom:12px;color:var(--primary)">${formatMonth(month)}</div>
-                                    ${grouped[month].map(r => {
-                                        let anniversaryBadge = '';
-                                        if (togetherDate && (state.coupleMode || state.mode === 'love') && r.date) {
-                                            const startDate = new Date(togetherDate);
-                                            const recordDate = new Date(r.date);
-                                            const dayNum = Math.floor((recordDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
-                                            const milestones = [100, 200, 365, 500, 730, 1000];
+                                <div class="timeline-month-header">
+                                    <div class="timeline-month-tag">
+                                        <span>🗓️</span>
+                                        <span>${formatMonth(month)}</span>
+                                        <span style="font-size: 11px; opacity: 0.7; font-weight: normal;">(${grouped[month].length} 篇)</span>
+                                    </div>
+                                </div>
+                                ${grouped[month].map(r => {
+                                    let anniversaryBadge = '';
+                                    if (togetherDate && (state.coupleMode || r.is_couple || r.mode === 'love') && r.date) {
+                                        const startDate = new Date(togetherDate);
+                                        const recordDate = new Date(r.date);
+                                        const dayNum = Math.floor((recordDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                                        if (dayNum > 0) {
+                                            const milestones = [100, 200, 365, 500, 520, 730, 1000, 1314];
                                             if (milestones.includes(dayNum)) {
                                                 const years = Math.floor(dayNum / 365);
                                                 const label = years > 0 ? `${years}周年纪念` : `第${dayNum}天纪念`;
-                                                anniversaryBadge = `<div class="anniversary-badge">🎉 ${label}</div>`;
+                                                anniversaryBadge = `<div class="anniversary-badge" style="margin-bottom:8px">🎉 相伴${label}</div>`;
                                             }
                                         }
-                                        return `
-                                        <div class="timeline-item">
-                                            <div class="timeline-date">${r.date ? new Date(r.date).getDate() + '日' : ''}</div>
-                                            <div>
-                                                ${anniversaryBadge}
-                                                <div class="timeline-title">${r.title}</div>
-                                                <div class="timeline-desc">${r.location || ''}</div>
-                                                ${r.images?.length ? `<div class="timeline-photo-flow">${r.images.slice(0,8).map((img,j)=>`<img src="${resolveAssetUrl(img)}" style="aspect-ratio:${j % 3 === 0 ? '4/5' : (j % 3 === 1 ? '1/1' : '5/4')}">`).join('')}${r.images.length>8?`<div class="timeline-more">+${r.images.length-8} 张</div>`:''}</div>` : ''}
+                                    }
+                                    const dotClass = r.mode === 'food' ? 'dot-food' : (r.mode === 'love' ? 'dot-love' : '');
+                                    const categoryLabel = r.mode === 'food' ? '🍜 美食寻味' : (r.mode === 'love' ? '💕 专属回忆' : '✈️ 旅行探索');
+                                    const hasPhotos = r.images && r.images.length > 0;
+
+                                    return `
+                                    <div class="timeline-entry" onclick="viewRecord('${r.id}')" style="cursor: pointer;">
+                                        <div class="timeline-node-dot ${dotClass}"></div>
+                                        <div class="timeline-top-bar">
+                                            <div class="timeline-date-chip">
+                                                <span>📅</span><span>${r.date || '未知日期'}</span>
                                             </div>
-                                        </div>`;
-                                    }).join('')}
-                                </div>
-                            `).join('') || '<p style="text-align:center;color:var(--text-muted)">暂无记录</p>'}
+                                            <div style="display:flex;gap:6px;align-items:center">
+                                                <span class="photo-card-tag ${r.mode === 'food' ? 'tag-food' : (r.mode === 'love' ? 'tag-love' : 'tag-travel')}" style="position:static;font-size:10px;padding:2px 8px;">
+                                                    ${categoryLabel}
+                                                </span>
+                                                ${r.location ? `<span style="font-size:11px;color:var(--text-muted)">📍 ${r.location}</span>` : ''}
+                                            </div>
+                                        </div>
+                                        ${anniversaryBadge}
+                                        <div class="timeline-title-text">${r.title}</div>
+                                        ${r.description ? `<div class="timeline-desc-text">${r.description}</div>` : ''}
+                                        ${hasPhotos ? `
+                                            <div class="timeline-gallery-row">
+                                                ${r.images.map((img, j) => `
+                                                    <img class="timeline-gallery-thumb" src="${resolveAssetUrl(img)}" alt="${r.title} - ${j+1}" onerror="this.style.display='none'">
+                                                `).join('')}
+                                            </div>
+                                            <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">
+                                                📷 ${r.images.length} 张珍贵照片 · 点击查看高清大图
+                                            </div>
+                                        ` : ''}
+                                    </div>`;
+                                }).join('')}
+                            `).join('') || '<p style="text-align:center;color:var(--text-muted);padding:40px 0">暂无足迹记录，快去记录你的第一站旅途吧 ✨</p>'}
                         </div>
                     `);
                     break;
