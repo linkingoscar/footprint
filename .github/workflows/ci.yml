@@ -29,7 +29,27 @@ jobs:
           python -c "import app; assert app.app.name == 'backend.app'"
 
       - name: Run tests with coverage
-        run: pytest tests/ -v --cov=backend --cov-report=term-missing --cov-fail-under=45
+        run: pytest tests/ --ignore=tests/e2e -v --cov=backend --cov-report=term-missing --cov-fail-under=45
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+          pip install playwright
+          python -m playwright install --with-deps chromium
+
+      - name: Run E2E browser tests
+        run: pytest tests/e2e -v
 
   docker-smoke:
     runs-on: ubuntu-latest
@@ -46,4 +66,5 @@ jobs:
           sleep 5
           docker ps
           curl --fail --retry 5 --retry-delay 2 http://localhost:5000/api/health || (docker logs footprint-app && exit 1)
+
 

@@ -49,6 +49,8 @@ backend/uploads/*
 *.sqlite
 *.sqlite3
 backend/runtime_config.json
+backend/runtime_secrets.json
+runtime_secrets.json
 backend/expenses.json
 
 # Logs
