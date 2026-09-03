@@ -2,12 +2,13 @@
 足迹 - 微信小程序对接 API 蓝图
 提供小程序原生认证、code2session 转换、沙盒体验与配置检测。
 """
+import os
 import urllib.request
 import urllib.parse
 import json
 from flask import Blueprint, request, jsonify
 
-from backend.auth import generate_token, get_current_user
+from backend.auth import generate_token, get_current_user, hash_password
 from backend.helpers import get_record_store, get_runtime_config
 
 wechat_bp = Blueprint('wechat', __name__)
@@ -17,8 +18,8 @@ wechat_bp = Blueprint('wechat', __name__)
 def wechat_config():
     """获取小程序端公开配置状态"""
     config = get_runtime_config()
-    app_id = config.get('wechatAppId')
-    app_secret = config.get('wechatAppSecret')
+    app_id = config.get('wechatAppId') or os.environ.get('WECHAT_APP_ID') or os.environ.get('WECHAT_APPID')
+    app_secret = config.get('wechatAppSecret') or os.environ.get('WECHAT_APP_SECRET') or os.environ.get('WECHAT_SECRET')
     mock_login = config.get('wechatMockLogin', True)  # 默认在无 Key 时允许沙盒体验
 
     return jsonify({
@@ -39,13 +40,13 @@ def wechat_login():
     code = data.get('code', '').strip()
 
     config = get_runtime_config()
-    app_id = config.get('wechatAppId')
-    app_secret = config.get('wechatAppSecret')
+    app_id = config.get('wechatAppId') or os.environ.get('WECHAT_APP_ID') or os.environ.get('WECHAT_APPID')
+    app_secret = config.get('wechatAppSecret') or os.environ.get('WECHAT_APP_SECRET') or os.environ.get('WECHAT_SECRET')
     mock_login = config.get('wechatMockLogin', True)
 
     store = get_record_store()
 
-    # 1. 生产模式：已配置 AppID 和 AppSecret
+    # 1. 真实微信网关模式：已配置 AppID 和 Secret
     if app_id and app_secret and code and code != 'mock_code':
         wx_url = (
             f"https://api.weixin.qq.com/sns/jscode2session?"
@@ -70,13 +71,14 @@ def wechat_login():
 
             # 绑定或创建微信用户
             username = f"wx_{openid[:10]}"
+            user_id = f"user_{openid[:12]}"
             user = None
             if hasattr(store, 'get_user_by_username'):
                 user = store.get_user_by_username(username)
             if not user and hasattr(store, 'create_user'):
-                user = store.create_user(username, openid)  # 使用 openid 派生密码
+                user = store.create_user(user_id, username, hash_password(openid))  # 使用 openid 派生密码哈希
 
-            user_dict = user if user else {'id': f'user_{openid[:12]}', 'username': username}
+            user_dict = user if user else {'id': user_id, 'username': username}
             token = generate_token(user_dict['id'], user_dict['username'])
             return jsonify({
                 'success': True,

@@ -13,6 +13,11 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/api/auth/register', methods=['POST'])
 def register():
     """用户注册"""
+    import os
+    allow_reg = os.environ.get('ALLOW_REGISTRATION', 'true').lower() in ('true', '1', 'yes')
+    if not allow_reg:
+        return jsonify({'error': '当前站点已暂停开放新用户注册'}), 403
+
     data = request.get_json()
     if not data:
         return jsonify({'error': '无效的数据'}), 400
@@ -81,12 +86,12 @@ def get_me():
 @auth_bp.route('/api/auth/media-token', methods=['GET'])
 @login_required
 def get_media_token():
-    """获取仅用于媒体访问的短期受限 Token (有效期 1 小时)"""
+    """获取仅用于媒体访问的短期受限 Token (有效期 15 分钟)"""
     user_id = g.current_user['user_id']
     username = g.current_user['username']
-    media_token = generate_media_token(user_id, username, expiry_hours=1)
+    media_token = generate_media_token(user_id, username, expiry_minutes=15)
     return jsonify({
         'success': True,
         'media_token': media_token,
-        'expires_in': 3600
+        'expires_in': 900
     })

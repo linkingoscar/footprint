@@ -131,17 +131,17 @@ footprint/
 │   ├── index.html          # Main UI (Travel & Food Core)
 │   ├── admin.html          # Admin CMS (Layout, CMS, DB/Storage monitoring)
 │   ├── settings.html       # Preferences & System Settings
-│   ├── css/                # Styling (base.css, layout.css, components.css)
-│   └── js/                 # Modular business scripts (globe, passport, icons, etc.)
+│   ├── css/                # Styling (base.css, components.css, map.css, couple.css)
+│   └── js/                 # Modular business scripts (globe, storage, i18n, replay, icons, etc.)
 ├── backend/                # Backend services
-│   ├── database.py         # Multi-database drivers (SQLite, PostgreSQL, JSON)
-│   ├── storage.py          # Object storage (Local, OSS, COS, S3)
-│   ├── auth.py             # JWT authentication
+│   ├── database.py         # Multi-database drivers & cloud storage adapters (SQLite, Postgres, OSS, COS, S3)
+│   ├── auth.py             # JWT authentication & scoped media token
+│   ├── helpers.py          # Media processing, reverse geocoding & utility helpers
 │   └── routes/             # Blueprints (records, couple, admin, features, etc.)
 ├── docs/                   # Documentation
 │   ├── ARCHITECTURE.md     # Architecture Blueprint & Secondary Development Guide
 │   └── API.md              # RESTful API Specification Manual
-└── tests/                  # Test suite (67 unit & integration tests, 100% pass)
+└── tests/                  # Test suite (70+ unit & integration tests, pytest-cov monitored)
 ```
 
 ---
@@ -159,8 +159,8 @@ Read the complete guide:
 
 Comprehensive automated test suite passing at 100%:
 ```bash
-python -m pytest tests/ -v
-# 67 passed in 15.86s
+pytest tests/ -v --cov=backend --cov-report=term-missing
+# 70+ passed with strict coverage threshold
 ```
 
 ---

@@ -32,7 +32,7 @@
 
 在日常记录中，**旅行**与**美食**天然互为映衬，构成了每个人最值得珍藏的生活探索印迹。
 
-**足迹 Footprint** 将主页永远聚焦于“旅行探索 + 美食寻味”两大核心场景；而**情侣模式**则收敛在管理后台作为增值协同层——开启并完成 6 位浪漫配对后，主页将动态点亮情侣专属工具组与双人甜蜜标记，实现**一人打卡、双向实时同步**，关闭时不影响任何基础数据。
+**足迹 Footprint** 将主页永远聚焦于“旅行探索 + 美食寻味”两大核心场景；而**情侣模式**则收敛在管理后台作为增值协同层——开启并完成 6 位浪漫配对后，主页将动态点亮情侣专属工具组与双人甜蜜标记，实现**一人打卡、双端云端同步**，关闭时不影响任何基础数据。
 
 ---
 
@@ -142,17 +142,17 @@ footprint/
 │   ├── index.html          # 主页 (旅行 + 美食核心足迹)
 │   ├── admin.html          # 网页管理后台 (排版/足迹CMS/数据库图床脚手架)
 │   ├── settings.html       # 系统设置与偏好配置
-│   ├── css/                # 样式系统 (base.css, layout.css, components.css)
-│   └── js/                 # 模块化业务脚本 (globe, passport, icons, etc.)
+│   ├── css/                # 样式系统 (base.css, components.css, map.css, couple.css)
+│   └── js/                 # 模块化业务脚本 (globe, storage, i18n, replay, icons, etc.)
 ├── backend/                # 后端服务
-│   ├── database.py         # 存储驱动 (SQLite, PostgreSQL, JSON)
-│   ├── storage.py          # 对象存储 (Local, Aliyun OSS, Tencent COS, S3)
-│   ├── auth.py             # JWT 鉴权体系
+│   ├── database.py         # 存储驱动与对象存储适配器 (SQLite, Postgres, OSS, COS, S3)
+│   ├── auth.py             # JWT 鉴权体系与受限 Media Token
+│   ├── helpers.py          # 媒体处理、地理逆编码与通用工具函数
 │   └── routes/             # 业务蓝图 (records, couple, admin, features, etc.)
 ├── docs/                   # 核心文档
 │   ├── ARCHITECTURE.md     # 系统全栈架构设计与二次开发底座指南
 │   └── API.md              # RESTful API 完整规范手册
-└── tests/                  # 自动化测试套件 (67 项自动化测试 100% 覆盖)
+└── tests/                  # 自动化测试套件 (70+ 项自动化集成测试，pytest-cov 严密监控)
 ```
 
 ---
@@ -170,8 +170,8 @@ footprint/
 
 全套自动化测试套件通过率 100%：
 ```bash
-python -m pytest tests/ -v
-# 67 passed in 15.89s
+pytest tests/ -v --cov=backend --cov-report=term-missing
+# 70+ passed with strict coverage threshold
 ```
 
 ---

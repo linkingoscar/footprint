@@ -1,11 +1,19 @@
 // Service Worker for PWA
-const CACHE_NAME = 'footprint-v4';
+const CACHE_NAME = 'footprint-v5';
 const APP_SHELL = [
     './',
     './index.html',
     './settings.html',
     './guide.html',
     './manifest.json',
+    './css/base.css',
+    './css/components.css',
+    './css/couple.css',
+    './css/map.css',
+    './js/api.js',
+    './js/state.js',
+    './js/ui.js',
+    './js/map.js',
     './js/i18n.js',
     './js/storage.js',
     './js/replay.js',
@@ -14,6 +22,11 @@ const APP_SHELL = [
     './js/food-wheel.js',
     './js/couple-pair.js',
     './js/globe-conquest.js',
+    './js/passport.js',
+    './js/badges.js',
+    './js/packing-list.js',
+    './js/love-capsule.js',
+    './js/icons.js',
     './icons/icon-192.svg',
     './icons/icon-512.svg',
     './icons/shortcut-add.svg'
@@ -48,10 +61,13 @@ self.addEventListener('fetch', event => {
             fetch(request)
                 .then(response => {
                     const copy = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+                    caches.open(CACHE_NAME).then(cache => {
+                        // 准确缓存实际请求的导航目标，杜绝将 settings.html/guide.html 错写至 index.html
+                        cache.put(request, copy);
+                    });
                     return response;
                 })
-                .catch(() => caches.match('./index.html').then(res => res || caches.match('index.html')))
+                .catch(() => caches.match(request).then(res => res || caches.match('./index.html').then(r => r || caches.match('index.html'))))
         );
         return;
     }

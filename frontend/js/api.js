@@ -19,7 +19,8 @@ function resolveAssetUrl(url) {
     const base = getApiBase();
     const isLocalUpload = url.startsWith('/uploads/') || (base && url.startsWith(`${base}/uploads/`));
     const resolved = (base && url.startsWith('/')) ? `${base}${url}` : url;
-    const tokenToUse = (typeof _cachedMediaToken !== 'undefined' && _cachedMediaToken) || (typeof authState !== 'undefined' && authState.token);
+    // 严格安全策略：仅使用受限的短期 Media Token，坚决不回退主登录凭据 JWT 到图片 URL
+    const tokenToUse = (typeof _cachedMediaToken !== 'undefined' && _cachedMediaToken) || null;
     if (isLocalUpload && tokenToUse) {
         const sep = resolved.includes('?') ? '&' : '?';
         return `${resolved}${sep}token=${encodeURIComponent(tokenToUse)}`;

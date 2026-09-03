@@ -230,6 +230,29 @@ class TestRecordAPI:
         assert data['mode'] == sample_record['mode']
         assert 'id' in data
 
+    def test_create_record_with_client_id_and_idempotency(self, client, auth_header, sample_record):
+        """测试使用客户端指定UUID创建记录，并保证重试幂等性"""
+        client_uuid = "client-uuid-12345678-abcdef"
+        payload = dict(sample_record, id=client_uuid, title="离线创建足迹")
+        
+        # 第一次创建：返回 201，ID 保持客户端指定 ID
+        res1 = client.post('/api/records', data=json.dumps(payload), content_type='application/json', headers=auth_header)
+        assert res1.status_code == 201
+        data1 = json.loads(res1.data)
+        assert data1['id'] == client_uuid
+        assert data1['title'] == "离线创建足迹"
+
+        # 离线 Outbox 重试重放：相同 ID 再次 POST，应幂等更新并返回 200，绝不产生重复记录
+        res2 = client.post('/api/records', data=json.dumps(payload), content_type='application/json', headers=auth_header)
+        assert res2.status_code == 200
+        data2 = json.loads(res2.data)
+        assert data2['id'] == client_uuid
+
+        # 校验该用户下只有一条该记录
+        list_res = client.get('/api/records', headers=auth_header)
+        all_matching = [r for r in json.loads(list_res.data) if r['id'] == client_uuid]
+        assert len(all_matching) == 1
+
     def test_create_record_missing_title(self, client, auth_header):
         """测试创建记录缺少标题(标题必填)"""
         response = client.post(
@@ -617,6 +640,58 @@ class TestBulkDataAPI:
 
         response = client.get('/api/records', headers=auth_header)
         assert json.loads(response.data) == []
+
+    def test_export_json_and_import_roundtrip(self, client, auth_header):
+        """测试导出 JSON 包含 schemaVersion 并支持全量往返恢复"""
+        sample_record = {
+            'mode': 'food',
+            'title': '老字号面馆',
+            'location': '苏州市姑苏区',
+            'latitude': 31.3,
+            'longitude': 120.6,
+            'rating': 5,
+            'price': 38.5,
+            'images': ['/uploads/sample.png'],
+            'date': '2026-08-01'
+        }
+        create_resp = client.post(
+            '/api/records',
+            data=json.dumps(sample_record),
+            content_type='application/json',
+            headers=auth_header
+        )
+        assert create_resp.status_code in (200, 201)
+        created_id = json.loads(create_resp.data)['id']
+
+        # 1. 调用 GET /api/export/json 导出
+        export_resp = client.get('/api/export/json', headers=auth_header)
+        assert export_resp.status_code == 200
+        export_data = json.loads(export_resp.data)
+        assert export_data['schemaVersion'] == 1
+        assert export_data['app'] == 'Footprint'
+        assert any(r['id'] == created_id for r in export_data['records'])
+
+        # 2. 清空现有记录
+        client.delete('/api/records', headers=auth_header)
+        assert json.loads(client.get('/api/records', headers=auth_header).data) == []
+
+        # 3. 将导出的数据对象传入 /api/records/import 进行恢复
+        import_resp = client.post(
+            '/api/records/import',
+            data=json.dumps(export_data),
+            content_type='application/json',
+            headers=auth_header
+        )
+        assert import_resp.status_code == 200
+        assert json.loads(import_resp.data)['count'] >= 1
+
+        # 4. 验证完整恢复且字段精确匹配
+        restored = client.get(f'/api/records/{created_id}', headers=auth_header)
+        assert restored.status_code == 200
+        restored_item = json.loads(restored.data)
+        assert restored_item['title'] == '老字号面馆'
+        assert restored_item['price'] == 38.5
+        assert restored_item['rating'] == 5
 
 
 class TestStatsAPI:

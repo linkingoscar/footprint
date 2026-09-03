@@ -18,8 +18,12 @@ if %errorlevel% equ 0 (
         echo [OK] Server is ready! Opening Footprint (http://localhost:5000)...
         start http://localhost:5000
     ) else (
-        echo [Notice] Server took longer to respond, opening browser...
-        start http://localhost:5000
+        echo [Error] Server health check timed out. The backend server failed to start!
+        echo Please inspect your terminal or test startup manually by running:
+        echo   python app.py
+        echo.
+        pause
+        exit /b 1
     )
 ) else (
     echo [Notice] Python not found. Launching in 100% Offline Local Desktop Mode!

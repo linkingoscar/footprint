@@ -195,8 +195,9 @@
          */
         confirm(options = {}) {
             const {
-                title = '确认操作',
-                message = '确定要继续吗？',
+                title = '确认',
+                message = '',
+                messageHtml = null,
                 confirmText = '确定',
                 cancelText = '取消',
                 danger = false,
@@ -216,7 +217,11 @@
                 const closeBtn = document.getElementById('app-dialog-close-btn');
 
                 titleEl.textContent = title;
-                msgEl.innerHTML = message;
+                if (messageHtml) {
+                    msgEl.innerHTML = messageHtml;
+                } else {
+                    msgEl.textContent = message;
+                }
                 iconEl.textContent = icon;
                 iconEl.className = 'app-dialog-icon' + (danger ? ' danger' : '');
                 inputWrap.style.display = 'none';

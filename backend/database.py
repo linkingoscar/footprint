@@ -106,6 +106,26 @@ class RecordStore:
         raise NotImplementedError
 
 
+def _atomic_json_write(filepath: str, data: Any):
+    """安全原子化写入 JSON 文件（写入临时文件 -> fsync 刷盘 -> 平台级原子重命名），避免进程意外退出导致文件损坏。"""
+    dirname = os.path.dirname(filepath)
+    if dirname:
+        os.makedirs(dirname, exist_ok=True)
+    temp_file = f"{filepath}.tmp.{uuid.uuid4().hex}"
+    try:
+        with open(temp_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(temp_file, filepath)
+    finally:
+        if os.path.exists(temp_file):
+            try:
+                os.remove(temp_file)
+            except OSError:
+                pass
+
+
 class JsonRecordStore(RecordStore):
     """向后兼容的 JSON 文件存储。"""
 
@@ -124,8 +144,7 @@ class JsonRecordStore(RecordStore):
         return []
 
     def _save(self, records: List[Dict[str, Any]]):
-        with open(self.metadata_file, 'w', encoding='utf-8') as f:
-            json.dump(records, f, ensure_ascii=False, indent=2)
+        _atomic_json_write(self.metadata_file, records)
 
     def _load_users(self) -> list:
         if os.path.exists(self.users_file):
@@ -134,8 +153,7 @@ class JsonRecordStore(RecordStore):
         return []
 
     def _save_users(self, users: list):
-        with open(self.users_file, 'w', encoding='utf-8') as f:
-            json.dump(users, f, ensure_ascii=False, indent=2)
+        _atomic_json_write(self.users_file, users)
 
     def _load_expenses(self) -> list:
         if os.path.exists(self.expenses_file):
@@ -144,8 +162,7 @@ class JsonRecordStore(RecordStore):
         return []
 
     def _save_expenses(self, expenses: list):
-        with open(self.expenses_file, 'w', encoding='utf-8') as f:
-            json.dump(expenses, f, ensure_ascii=False, indent=2)
+        _atomic_json_write(self.expenses_file, expenses)
 
     def list(self, mode: str = None, owner_id: str = None) -> List[Dict[str, Any]]:
         records = self._load()
@@ -307,8 +324,7 @@ class JsonRecordStore(RecordStore):
         return {}
 
     def _save_features(self, features: dict):
-        with open(self.features_file, 'w', encoding='utf-8') as f:
-            json.dump(features, f, ensure_ascii=False, indent=2)
+        _atomic_json_write(self.features_file, features)
 
     def get_user_features(self, owner_id: str) -> Dict[str, Any]:
         return self._load_features().get(owner_id, {})
@@ -1565,12 +1581,10 @@ def load_runtime_config() -> Dict[str, Any]:
 
 
 def save_runtime_config(config: Dict[str, Any]) -> Dict[str, Any]:
-    """保存设置页同步过来的运行时配置。"""
+    """保存设置页同步过来的运行时配置（临时文件 + 原子重命名）。"""
     current = load_runtime_config()
     current.update(config)
-    os.makedirs(os.path.dirname(RUNTIME_CONFIG_FILE), exist_ok=True)
-    with open(RUNTIME_CONFIG_FILE, 'w', encoding='utf-8') as f:
-        json.dump(current, f, ensure_ascii=False, indent=2)
+    _atomic_json_write(RUNTIME_CONFIG_FILE, current)
     return current
 
 

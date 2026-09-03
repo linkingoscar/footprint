@@ -14,10 +14,6 @@ gunicorn>=22.0.0
 pillow==12.3.0
 exifread==3.5.1
 
-# 测试
-pytest==9.1.1
-pytest-cov==7.1.0
-
 # === 以下为可选依赖，按需安装 ===
 # 安装方式: pip install -r requirements.txt -r requirements-optional.txt
 # 或: pip install "footprint[aliyun]" (如果发布为包)

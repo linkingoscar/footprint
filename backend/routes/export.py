@@ -93,3 +93,20 @@ def export_csv():
     content = output.getvalue()
     return Response(content, mimetype='text/csv',
                     headers={'Content-Disposition': f'attachment; filename=footprint_{datetime.now().strftime("%Y%m%d")}.csv'})
+
+
+@export_bp.route('/api/export/json', methods=['GET'])
+@login_required
+def export_json():
+    """导出完整 JSON 备份文件，携带标准 schemaVersion 与导出元数据"""
+    records = load_records(owner_id=g.current_user['user_id'])
+    payload = {
+        'schemaVersion': 1,
+        'app': 'Footprint',
+        'exportedAt': datetime.now().isoformat(),
+        'count': len(records),
+        'records': records
+    }
+    content = json.dumps(payload, ensure_ascii=False, indent=2)
+    return Response(content, mimetype='application/json',
+                    headers={'Content-Disposition': f'attachment; filename=footprint_backup_{datetime.now().strftime("%Y%m%d")}.json'})

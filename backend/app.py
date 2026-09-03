@@ -4,6 +4,14 @@
 """
 
 import os
+
+# 在所有依赖环境变量的子模块加载前加载 .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_limiter import Limiter
@@ -44,13 +52,30 @@ def create_app():
     def too_large(error):
         return jsonify({'error': f'文件过大，单次上传不能超过 {max_mb}MB'}), 413
 
-    # 速率限制
+    # 反向代理适配（当运行在 Nginx 等可信反向代理后时由环境变量 BEHIND_PROXY 启用）
+    if os.environ.get('BEHIND_PROXY', 'false').lower() in ('true', '1', 'yes'):
+        try:
+            from werkzeug.middleware.proxy_fix import ProxyFix
+            app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+        except Exception:
+            pass
+
+    # 速率限制（默认内存存储，支持通过 RATELIMIT_STORAGE_URI 扩展为 Redis）
+    storage_uri = os.environ.get('RATELIMIT_STORAGE_URI', 'memory://')
     limiter = Limiter(
         app=app,
         key_func=get_remote_address,
         default_limits=["200 per minute"],
-        storage_uri="memory://",
+        storage_uri=storage_uri,
     )
+
+    # 现代基础安全响应头
+    @app.after_request
+    def add_security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        return response
 
     # 数据库连接清理
     @app.teardown_appcontext
@@ -120,4 +145,5 @@ if __name__ == '__main__':
     print(f"数据库: {DB_TYPE}")
     print(f"调试模式: {'开' if debug else '关'}")
     print("=" * 50)
-    app.run(debug=debug, port=port, use_reloader=False)
+    host = os.environ.get('HOST', '127.0.0.1')
+    app.run(host=host, debug=debug, port=port, use_reloader=False)

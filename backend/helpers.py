@@ -169,6 +169,20 @@ def save_upload_file(file):
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
+    # 严格校验真实图片内容并防范解压炸弹 (Decompression Bomb)
+    try:
+        from PIL import Image
+        Image.MAX_IMAGE_PIXELS = 80_000_000
+        with Image.open(filepath) as img:
+            img.verify()
+    except Exception as e:
+        if os.path.exists(filepath):
+            try:
+                os.remove(filepath)
+            except OSError:
+                pass
+        return None, {'error': f'上传文件不是有效的图片或超过像素安全上限: {e}'}
+
     gps = extract_gps_from_image(filepath) or {}
     image_info = get_image_info(filepath) or {}
     date_taken = extract_datetime_from_image(filepath)

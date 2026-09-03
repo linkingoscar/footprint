@@ -7,6 +7,9 @@ services:
     container_name: footprint-app
     ports:
       - "5000:5000"
+    env_file:
+      - path: .env
+        required: false
     volumes:
       - ./backend/uploads:/app/backend/uploads
       - ./data:/app/data

@@ -1093,7 +1093,8 @@
             const isLocalUpload = url.startsWith('/uploads/') || (base && url.startsWith(`${base}/uploads/`));
             const resolved = (base && url.startsWith('/')) ? `${base}${url}` : url;
             if (isLocalUpload) {
-                const tokenToUse = _cachedMediaToken || authState.token;
+                // 严格安全策略：仅使用受限的短期 Media Token，坚决不回退主登录凭据 JWT 到图片 URL
+                const tokenToUse = _cachedMediaToken || null;
                 if (tokenToUse) {
                     const sep = resolved.includes('?') ? '&' : '?';
                     return `${resolved}${sep}token=${encodeURIComponent(tokenToUse)}`;
@@ -1105,9 +1106,18 @@
         async function updateConnectionBadge(isCloud) {
             const badge = document.getElementById('connection-status-badge');
             if (!badge) return;
-            const pendingCount = (window.FootprintDB) ? await FootprintDB.getOutboxCount() : 0;
+            const summary = (window.FootprintDB && FootprintDB.getOutboxStatusSummary)
+                ? await FootprintDB.getOutboxStatusSummary()
+                : { pending: 0, failed: 0 };
+            const pendingCount = summary.pending;
+            const failedCount = summary.failed;
+
             if (isCloud) {
-                if (pendingCount > 0) {
+                if (failedCount > 0) {
+                    badge.innerHTML = `<span>🔴</span><span>同步遇阻 ${failedCount} 项 (点击同步)</span>`;
+                    badge.style.color = '#EF4444';
+                    badge.title = '部分离线改动遇到服务端错误或冲突，点击尝试重试同步';
+                } else if (pendingCount > 0) {
                     badge.innerHTML = `<span>🟡</span><span>待同步 ${pendingCount} 项 (点击同步)</span>`;
                     badge.style.color = '#F59E0B';
                     badge.title = '存在未上报到云端的离线改动，点击立即同步';
@@ -1117,7 +1127,10 @@
                     badge.title = '后端服务正常运行，数据已多端同步';
                 }
             } else {
-                if (pendingCount > 0) {
+                if (failedCount > 0) {
+                    badge.innerHTML = `<span>🔴</span><span>本地脱机 (${failedCount} 失败 / ${pendingCount} 待同)</span>`;
+                    badge.style.color = '#EF4444';
+                } else if (pendingCount > 0) {
                     badge.innerHTML = `<span>🍃</span><span>本地脱机 (${pendingCount} 待同步)</span>`;
                     badge.style.color = '#F59E0B';
                     badge.title = '当前无后端连接，改动已保存在本机离线队列';
@@ -1144,7 +1157,7 @@
                 } else if (res.remaining === 0) {
                     toast('🟢 本地已与云端完全同步');
                 } else {
-                    toast(`⚠️ 仍有 ${res.remaining} 项未同步`);
+                    toast(`⚠️ 仍有 ${res.remaining} 项未同步或重试中`);
                 }
                 await updateConnectionBadge(true);
             }
@@ -1180,6 +1193,19 @@
 
         async function loadRecords() {
             try {
+                // 1. 时序修正：若本地存在 pending 的 Outbox 队列，先 Push 到云端，防止云端旧数据覆盖离线新增或导致离线删除复活
+                if (window.SyncEngine && window.FootprintDB) {
+                    const count = await FootprintDB.getOutboxCount();
+                    if (count > 0) {
+                        try {
+                            await SyncEngine.flushOutbox(apiFetch);
+                        } catch (e) {
+                            console.warn('[SyncEngine] 前置 Outbox 推送警告:', e);
+                        }
+                    }
+                }
+
+                // 2. Outbox 刷入后再拉取最新完整的权威云端数据
                 const records = await apiFetch('/api/records');
                 if (Array.isArray(records)) {
                     state.records = records;
@@ -1191,15 +1217,15 @@
                 state.apiAvailable = true;
                 await updateConnectionBadge(true);
 
-                // 异步预取媒体 Token
+                // 异步预取受限媒体 Token
                 getMediaToken().catch(() => {});
-
-                // 自动同步离线队列
-                if (window.SyncEngine) {
-                    SyncEngine.flushOutbox(apiFetch).then(() => updateConnectionBadge(true)).catch(() => {});
-                }
             } catch (error) {
-                state.apiAvailable = false;
+                if (error.status === 401) {
+                    state.apiAvailable = true;
+                    console.warn('Auth token expired or required');
+                } else if (error.isNetworkError || !navigator.onLine) {
+                    state.apiAvailable = false;
+                }
                 console.log('API records unavailable, using local IndexedDB/localStorage:', error.message);
                 if (window.FootprintDB) {
                     const localRecords = await FootprintDB.getRecords();
@@ -1207,7 +1233,7 @@
                         state.records = localRecords;
                     }
                 }
-                await updateConnectionBadge(false);
+                await updateConnectionBadge(state.apiAvailable && !error.isNetworkError);
             }
             await loadConfigFromCloud();
             await loadFeaturesFromCloud();
@@ -1297,6 +1323,14 @@
                 });
             } catch (e) {
                 console.warn(`Sync ${featureKey} to cloud failed:`, e.message);
+                if ((e.isNetworkError || !navigator.onLine) && window.FootprintDB) {
+                    await FootprintDB.addToOutbox({
+                        action: 'sync_feature',
+                        featureKey,
+                        payload: { data }
+                    });
+                    await updateConnectionBadge(false);
+                }
             }
         }
         function persistLocalRecords() {
@@ -1578,7 +1612,7 @@
                 // 1 图单幅大卡
                 return `
                     <div class="photo-mosaic-wrap photo-mosaic-1">
-                        <img src="${resolveAssetUrl(list[0])}" alt="${title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
+                        <img src="${resolveAssetUrl(list[0])}" alt="${safeTitle}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
                     </div>`;
             }
 
@@ -1589,7 +1623,7 @@
                     <div class="photo-mosaic-wrap photo-mosaic-4">
                         ${display4.map((img, idx) => `
                             <div class="photo-mosaic-cell">
-                                <img src="${resolveAssetUrl(img)}" alt="${title} - ${idx+1}">
+                                <img src="${resolveAssetUrl(img)}" alt="${safeTitle} - ${idx+1}">
                             </div>
                         `).join('')}
                         <div class="photo-count-pill">📷 ${list.length}图</div>
@@ -1603,7 +1637,7 @@
                 <div class="photo-mosaic-wrap photo-mosaic-9">
                     ${display9.map((img, idx) => `
                         <div class="photo-mosaic-cell">
-                            <img src="${resolveAssetUrl(img)}" alt="${title} - ${idx+1}">
+                            <img src="${resolveAssetUrl(img)}" alt="${safeTitle} - ${idx+1}">
                             ${(idx === 8 && overflow > 0) ? `<div class="photo-mosaic-more-badge">+${overflow}</div>` : ''}
                         </div>
                     `).join('')}
@@ -1725,6 +1759,15 @@
                     state.imageMeta.push({ ...result });
                     syncLocationFromImageMeta(result);
                 } catch (error) {
+                    if (error.status === 401) {
+                        toast('⚠️ 登录已失效，请重新登录');
+                        break;
+                    }
+                    if (error.status && (error.status === 413 || (error.status >= 400 && error.status < 500))) {
+                        toast(`❌ ${file.name} 上传失败: ${error.message || '格式或大小受限'}`);
+                        continue;
+                    }
+                    // 仅网络脱机或服务端不可达时才在前端压缩并留存在本地
                     let dataUrl = '';
                     if (window.ImageCompressor) {
                         const comp = await ImageCompressor.compressImageFile(file);
@@ -1736,8 +1779,11 @@
                     state.images.push(dataUrl);
                     state.imageMeta.push({ original_name: file.name, local: true, compressed: true, ...localMeta });
                     syncLocationFromImageMeta(localMeta);
-                    state.apiAvailable = false;
-                    console.log('Upload API unavailable, safely compressed and kept image in browser:', error.message);
+                    if (error.isNetworkError || !navigator.onLine) {
+                        state.apiAvailable = false;
+                        await updateConnectionBadge(false);
+                    }
+                    console.log('Upload API network unavailable, safely compressed and kept image in browser:', error.message);
                 } finally {
                     loaded++;
                     fill.style.width = `${(loaded/imageFiles.length*100)}%`;
@@ -1963,7 +2009,7 @@
                 new AMap.Geocoder({city:'全国'}).getLocation(query, (status, result) => {
                     if (status === 'complete' && result.geocodes.length) {
                         el.classList.add('active');
-                        el.innerHTML = result.geocodes.map((item,i) => `<div class="search-item" onclick="selectLocation(${i})">${item.formattedAddress}<br><small>${item.province} ${item.city} ${item.district}</small></div>`).join('');
+                        el.innerHTML = result.geocodes.map((item,i) => `<div class="search-item" onclick="selectLocation(${i})">${escapeHtml(item.formattedAddress)}<br><small>${escapeHtml(item.province || '')} ${escapeHtml(item.city || '')} ${escapeHtml(item.district || '')}</small></div>`).join('');
                         window._results = result.geocodes;
                     } else { el.classList.remove('active'); }
                 });
@@ -1975,7 +2021,7 @@
                 const pois = result.pois || [];
                 if (result.success && pois.length) {
                     el.classList.add('active');
-                    el.innerHTML = pois.map((item,i) => `<div class="search-item" onclick="selectLocation(${i})">${item.name}<br><small>${item.address || ''}</small></div>`).join('');
+                    el.innerHTML = pois.map((item,i) => `<div class="search-item" onclick="selectLocation(${i})">${escapeHtml(item.name)}<br><small>${escapeHtml(item.address || '')}</small></div>`).join('');
                     window._results = pois;
                 } else {
                     el.classList.remove('active');
@@ -2030,11 +2076,12 @@
                     toast('⚠️ 登录已失效，请重新登录');
                     return;
                 }
-                if (error.status && error.status >= 400 && error.status < 500) {
-                    toast(`❌ 保存失败: ${error.message}`);
+                // 仅当底层网络中断（无网络、连接被拒绝）时才允许进入本地离线与 Outbox
+                // 若服务端返回具体状态码（4xx 拒绝或 5xx 异常），向用户报错提示，绝不静默假装成功
+                if (error.status || (!error.isNetworkError && navigator.onLine)) {
+                    toast(`❌ 保存失败: ${error.message || '服务端异常 (' + error.status + ')'}`);
                     return;
                 }
-                // 仅真实网络脱机时，安全保存在本机数据库与离线队列
                 state.apiAvailable = false;
                 const idx = state.records.findIndex(r => r.id === record.id);
                 if (idx >= 0) state.records.splice(idx, 1, record);
@@ -2112,32 +2159,48 @@
             if (!record) return;
             const ok = (window.AppDialog) ? await AppDialog.confirm({
                 title: '删除足迹记录',
-                message: `确定要删除「<strong>${record.title}</strong>」吗？此操作不可撤销。`,
+                message: `确定要删除「${record.title}」吗？此操作不可撤销。`,
                 danger: true,
                 confirmText: '确认删除'
-            }) : confirm(`确定删除${record.title}吗？`);
+            }) : confirm(`确定删除 ${record.title} 吗？`);
             if (!ok) return;
+
+            let deleteSynced = false;
             try {
                 await apiFetch(`/api/records/${id}`, { method: 'DELETE' });
+                deleteSynced = true;
             } catch (error) {
                 if (error.status === 401) {
                     toast('⚠️ 登录已失效，请重新登录');
                     return;
                 }
-                state.apiAvailable = false;
-                if (window.FootprintDB) {
-                    await FootprintDB.deleteRecord(id);
-                    await FootprintDB.addToOutbox({ action: 'delete', recordId: id });
+                if (error.status === 404) {
+                    // 服务端已不存在该记录，视为已在云端完成删除
+                    deleteSynced = true;
+                } else if (error.isNetworkError || !navigator.onLine) {
+                    // 仅真实断网时记录在离线 Outbox
+                    state.apiAvailable = false;
+                    if (window.FootprintDB) {
+                        await FootprintDB.addToOutbox({ action: 'delete', recordId: id });
+                    }
+                    await updateConnectionBadge(false);
+                    console.log('Delete API network unavailable, recorded delete in outbox:', error.message);
+                } else {
+                    // 明确的服务端错误（403/500 等）向用户报错，不伪装成离线成功
+                    toast(`❌ 删除失败: ${error.message || '服务端异常 (' + error.status + ')'}`);
+                    return;
                 }
-                await updateConnectionBadge(false);
-                console.log('Delete API unavailable, recorded delete in outbox:', error.message);
+            }
+
+            if (window.FootprintDB) {
+                await FootprintDB.deleteRecord(id);
             }
             state.records = state.records.filter(r => r.id !== id);
             persistLocalRecords();
             closeModal('feature');
             render();
             initMainMap();
-            toast('已在本地删除 (离线队列待同步)');
+            toast(deleteSynced ? '🗑️ 记录已删除' : '已在本地删除 (离线队列待同步)');
         }
 
         // ========== Modal ==========
@@ -2613,7 +2676,7 @@
                             <div style="display:flex;flex-wrap:wrap;gap:8px;min-height:50px;align-items:center;">
                                 ${ingredients.map((ing,i)=>`
                                     <span style="padding:6px 14px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.4);border-radius:999px;font-size:13px;font-weight:600;color:#10B981;display:inline-flex;align-items:center;gap:8px;">
-                                        <span>🥬 ${ing}</span>
+                                        <span>🥬 ${escapeHtml(ing)}</span>
                                         <span onclick="removeIngredient(${i})" style="cursor:pointer;opacity:0.75;font-weight:800;" title="删除">✕</span>
                                     </span>
                                 `).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">食材库空空如也，快从下方快捷添加吧 ✨</div>'}
@@ -2656,8 +2719,8 @@
                                     <div class="list-item" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;transition:var(--transition);">
                                         <div style="font-size:24px;margin-right:12px;">🎉</div>
                                         <div class="list-content" style="flex:1">
-                                            <div style="font-weight:700;font-size:14px;color:var(--text);">${a.name}</div>
-                                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">📅 ${a.date}</div>
+                                            <div style="font-weight:700;font-size:14px;color:var(--text);">${escapeHtml(a.name)}</div>
+                                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">📅 ${escapeHtml(a.date)}</div>
                                         </div>
                                         <div style="text-align:right;margin-right:16px;">
                                             <div style="font-size:22px;font-weight:800;color:#EC4899;line-height:1">${Math.abs(diff)}</div>
@@ -2683,9 +2746,9 @@
                         <div style="display:flex;flex-direction:column;gap:12px;">
                             ${notes.map((n,i)=>`
                                 <div style="padding:16px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);border-left:4px solid #EC4899;box-shadow:0 4px 14px rgba(0,0,0,0.06);">
-                                    <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap;margin-bottom:10px;">${n.content}</div>
+                                    <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap;margin-bottom:10px;">${escapeHtml(n.content)}</div>
                                     <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-muted);padding-top:8px;border-top:1px dashed var(--border);">
-                                        <span>📅 ${n.date}</span>
+                                        <span>📅 ${escapeHtml(n.date)}</span>
                                         <span onclick="removeLoveNote(${i})" style="cursor:pointer;color:var(--danger);font-weight:600;">删除便签</span>
                                     </div>
                                 </div>
@@ -2712,14 +2775,14 @@
                             ${dp.map((p,i)=>`
                                 <div style="padding:16px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);">
                                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                                        <div style="font-weight:700;font-size:15px;color:var(--text);">✨ ${p.title}</div>
+                                        <div style="font-weight:700;font-size:15px;color:var(--text);">✨ ${escapeHtml(p.title)}</div>
                                         <button class="btn btn-ghost btn-sm" onclick="removeDatePlan(${i})" style="color:var(--danger);padding:2px 8px;">✕</button>
                                     </div>
                                     <div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
-                                        <span>📅 ${p.date || '未定日期'}</span>
-                                        <span>📍 ${p.location || '未定地点'}</span>
+                                        <span>📅 ${escapeHtml(p.date || '未定日期')}</span>
+                                        <span>📍 ${escapeHtml(p.location || '未定地点')}</span>
                                     </div>
-                                    ${p.desc ? `<div style="font-size:13px;color:var(--text-sec);line-height:1.6;background:var(--bg-elevated);padding:8px 12px;border-radius:6px;">${p.desc}</div>` : ''}
+                                    ${p.desc ? `<div style="font-size:13px;color:var(--text-sec);line-height:1.6;background:var(--bg-elevated);padding:8px 12px;border-radius:6px;">${escapeHtml(p.desc)}</div>` : ''}
                                 </div>
                             `).join('') || '<p style="text-align:center;color:var(--text-muted);padding:30px 0;">暂无约会计划，计划一场专属的心动之旅吧 🎈</p>'}
                         </div>
@@ -2749,8 +2812,8 @@
                                 <div class="list-item" onclick="toggleCoupleTask(${i})" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;transition:var(--transition);">
                                     <div style="font-size:18px;margin-right:12px;">${t.done ? '💖' : '🤍'}</div>
                                     <div class="list-content" style="flex:1;${t.done ? 'text-decoration:line-through;opacity:0.6;' : ''}">
-                                        <div style="font-weight:600;font-size:14px;color:var(--text);">${t.title}</div>
-                                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${t.date || ''}</div>
+                                        <div style="font-weight:600;font-size:14px;color:var(--text);">${escapeHtml(t.title)}</div>
+                                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${escapeHtml(t.date || '')}</div>
                                     </div>
                                     <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();removeCoupleTask(${i})" style="color:var(--danger);padding:4px 8px;">✕</button>
                                 </div>
@@ -3258,7 +3321,12 @@
         async function queryWeather() { const city=document.getElementById('weather-city').value.trim(); if(!city){toast('请输入城市');return;} const el=document.getElementById('weather-result'); el.innerHTML='<div style="padding:20px">查询中...</div>'; try { const res=await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=j1`); const data=await res.json(); const c=data.current_condition[0]; el.innerHTML=`<div style="margin-bottom:20px"><div style="font-size:64px;margin-bottom:8px">🌤️</div><div style="font-size:36px;font-weight:700;color:var(--primary)">${c.temp_C}°C</div><div style="font-size:14px;color:var(--text-sec)">${c.lang_zh?.[0]?.value||c.weatherDesc?.[0]?.value||''}</div></div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px"><div class="stat-card"><div style="font-size:20px">🌡️</div><div style="font-size:14px;margin-top:4px">体感</div><div style="font-size:16px;font-weight:600">${c.FeelsLikeC}°C</div></div><div class="stat-card"><div style="font-size:20px">💧</div><div style="font-size:14px;margin-top:4px">湿度</div><div style="font-size:16px;font-weight:600">${c.humidity}%</div></div><div class="stat-card"><div style="font-size:20px">💨</div><div style="font-size:14px;margin-top:4px">风速</div><div style="font-size:16px;font-weight:600">${c.windspeedKmph}km/h</div></div><div class="stat-card"><div style="font-size:20px">👁️</div><div style="font-size:14px;margin-top:4px">能见度</div><div style="font-size:16px;font-weight:600">${c.visibility}km</div></div></div>`; } catch(e) { el.innerHTML=`<div style="padding:20px;color:#EF4444">查询失败: ${e.message}</div>`; } }
 
         // ========== Utils ==========
-        function generateId() { return Date.now().toString(36) + Math.random().toString(36).substr(2); }
+        function generateId() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+                return crypto.randomUUID().replace(/-/g, '');
+            }
+            return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        }
         function getModeName(mode) { return {travel:'旅行',food:'美食',love:'情侣'}[mode]||mode; }
         function toast(msg) { const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2500); }
 

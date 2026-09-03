@@ -189,7 +189,10 @@ const FootprintDB = (() => {
             recordId: mutation.recordId,
             payload: mutation.payload || null,
             createdAt: mutation.createdAt || new Date().toISOString(),
-            retryCount: 0
+            retryCount: 0,
+            status: 'pending', // 'pending' | 'failed'
+            lastError: null,
+            lastAttemptAt: null
         };
 
         const db = await openDB();
@@ -214,7 +217,58 @@ const FootprintDB = (() => {
         });
     }
 
+    async function updateOutbox(item) {
+        const db = await openDB();
+        if (!db) {
+            try {
+                const list = JSON.parse(localStorage.getItem('footprint_outbox') || '[]');
+                const idx = list.findIndex(i => i.id === item.id);
+                if (idx >= 0) list[idx] = item;
+                else list.push(item);
+                localStorage.setItem('footprint_outbox', JSON.stringify(list));
+            } catch {}
+            return item;
+        }
+
+        return new Promise((resolve) => {
+            try {
+                const tx = db.transaction('outbox', 'readwrite');
+                tx.objectStore('outbox').put(item);
+                tx.oncomplete = () => resolve(item);
+                tx.onerror = () => resolve(item);
+            } catch {
+                resolve(item);
+            }
+        });
+    }
+
     async function getPendingOutbox() {
+        const db = await openDB();
+        if (!db) {
+            try {
+                const all = JSON.parse(localStorage.getItem('footprint_outbox') || '[]');
+                return all.filter(i => i.status !== 'failed');
+            } catch {
+                return [];
+            }
+        }
+
+        return new Promise((resolve) => {
+            try {
+                const tx = db.transaction('outbox', 'readonly');
+                const req = tx.objectStore('outbox').getAll();
+                req.onsuccess = () => {
+                    const all = req.result || [];
+                    resolve(all.filter(i => i.status !== 'failed'));
+                };
+                req.onerror = () => resolve([]);
+            } catch {
+                resolve([]);
+            }
+        });
+    }
+
+    async function getAllOutbox() {
         const db = await openDB();
         if (!db) {
             try {
@@ -264,6 +318,13 @@ const FootprintDB = (() => {
         return items.length;
     }
 
+    async function getOutboxStatusSummary() {
+        const all = await getAllOutbox();
+        const pending = all.filter(i => i.status !== 'failed').length;
+        const failed = all.filter(i => i.status === 'failed').length;
+        return { pending, failed, total: all.length };
+    }
+
     return {
         openDB,
         getRecords,
@@ -272,9 +333,12 @@ const FootprintDB = (() => {
         deleteRecord,
         migrateFromLocalStorage,
         addToOutbox,
+        updateOutbox,
         getPendingOutbox,
+        getAllOutbox,
         removeOutbox,
-        getOutboxCount
+        getOutboxCount,
+        getOutboxStatusSummary
     };
 })();
 
@@ -435,14 +499,44 @@ const SyncEngine = (() => {
                     await apiFetchImpl(`/api/records/${item.recordId}`, {
                         method: 'DELETE'
                     });
+                } else if (item.action === 'sync_feature' && item.featureKey && item.payload) {
+                    await apiFetchImpl(`/api/features/${item.featureKey}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(item.payload)
+                    });
                 }
 
                 await FootprintDB.removeOutbox(item.id);
                 successCount++;
             } catch (err) {
                 console.warn(`[SyncEngine] 同步项目 ${item.id} 失败:`, err.message);
-                // 如果遇到认证错误或网络再次中断，暂停本次同步流程
-                if (err.status === 401 || err.isNetworkError) {
+
+                // 幂等处理：如果云端返回 404 且操作是删除，说明云端已经不存在该记录，安全视为同步完成并从队列移除
+                if (err.status === 404 && item.action === 'delete') {
+                    await FootprintDB.removeOutbox(item.id);
+                    successCount++;
+                    continue;
+                }
+
+                item.retryCount = (item.retryCount || 0) + 1;
+                item.lastError = err.message || String(err);
+                item.lastAttemptAt = new Date().toISOString();
+
+                // 区分可重试错误与永久失败：
+                // 4xx 业务错误（除 408 超时、429 限流外）或重试超过 5 次，标记为 failed，避免无限重试阻塞
+                const isClientBusinessError = err.status && err.status >= 400 && err.status < 500 && err.status !== 408 && err.status !== 429;
+                if (item.retryCount >= 5 || isClientBusinessError) {
+                    item.status = 'failed';
+                    console.error(`[SyncEngine] 项目 ${item.id} 无法自动同步，已标记为失败:`, item.lastError);
+                }
+
+                if (FootprintDB.updateOutbox) {
+                    await FootprintDB.updateOutbox(item);
+                }
+
+                // 如果遇到认证失效或网络再次中断，暂停本次同步流程
+                if (err.status === 401 || err.isNetworkError || (typeof navigator !== 'undefined' && !navigator.onLine)) {
                     break;
                 }
             }

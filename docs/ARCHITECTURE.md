@@ -70,11 +70,16 @@ frontend/
 ├── settings.html            # 个人偏好设置与系统配置
 ├── css/
 │   ├── base.css             # 现代化 Design Tokens、色彩系统与 Lucide SVG 图标样式
-│   ├── layout.css           # 栅格响应式布局与杂志级卡片系统
-│   └── components.css       # 模态框、按钮组与瑞士排版数据看板
+│   ├── components.css       # 模态框、按钮组与瑞士排版数据看板
+│   ├── map.css              # 地图容器与点亮图层样式
+│   └── couple.css           # 浪漫情侣主题与动态倒计时组件样式
 └── js/
     ├── state.js             # 全局响应式状态机与本地缓存驱动
     ├── api.js               # 智能双模引擎：优先云端，离线时无缝降级为纯本地持久化
+    ├── storage.js           # IndexedDB 离线存储库、客户端图片智能压缩与 Outbox 队列引擎
+    ├── i18n.js              # 轻量化中英双语国际化字典与动态切换引擎
+    ├── replay.js            # 足迹路线自动播放、动态进度条与回放控制器
+    ├── dialog.js            # 优雅玻璃拟态确认框与输入弹窗 (AppDialog)
     ├── icons.js             # 100% 纯本地高级矢量 SVG 图标引擎 (AppIcons)
     ├── quick-catch.js       # 3秒极速闪录：EXIF GPS 解析与逆地理智能地名推断
     ├── food-wheel.js        # “今天吃什么”美食决策轮盘
@@ -94,13 +99,13 @@ frontend/
 
 ```
 backend/
-├── app.py                  # 应用初始化、跨域、安全响应头与路由装配
-├── auth.py                 # JWT 令牌签发、验证、上下文用户注入 (@login_required)
-├── database.py             # 数据持久层抽象基类 (RecordStore)
+├── app.py                  # 应用初始化、跨域、速率限制、安全响应头与路由装配
+├── auth.py                 # JWT 令牌签发、验证、上下文用户注入 (@login_required) 与受限 Media Token
+├── database.py             # 数据持久层与多云对象存储适配层 (RecordStore / StorageAdapter)
 │                           # ├─ SQLiteRecordStore (单文件开箱即用)
 │                           # ├─ PostgresRecordStore (生产高并发)
-│                           # └─ JsonRecordStore (文件向后兼容)
-├── storage.py              # 对象存储服务适配器 (Local, OSS, COS, Kodo, S3)
+│                           # ├─ JsonRecordStore (文件向后兼容)
+│                           # └─ Local / OSS / COS / Kodo / S3 多云适配器
 ├── helpers.py              # EXIF 提取、安全过滤、分页与数据规约
 └── routes/
     ├── records.py          # 足迹的核心增删改查、批量导入与导出

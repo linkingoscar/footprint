@@ -25,7 +25,7 @@ def upload_image():
     
     result, error = save_upload_file(file)
     if error:
-        return jsonify(error), 500
+        return jsonify(error), 400
     return jsonify(result)
 
 

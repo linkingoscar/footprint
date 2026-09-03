@@ -11,6 +11,13 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 if ROOT_DIR not in sys.path:
     sys.path.insert(0, ROOT_DIR)
 
+# 在一切子模块导入前加载 .env
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from backend.app import app, create_app  # noqa: E402
 from backend.helpers import get_map_provider, map_key_configured, get_storage_provider  # noqa: E402
 
@@ -18,6 +25,7 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_ENV') == 'development'
     db_type = os.environ.get('DB_TYPE', 'sqlite')
+    host = os.environ.get('HOST', '127.0.0.1')
 
     print("=" * 50)
     print("Footprint - 记录你的美好生活 (根入口 app.py)")
@@ -29,4 +37,4 @@ if __name__ == '__main__':
     print(f"调试模式: {'开' if debug else '关'}")
     print("=" * 50)
 
-    app.run(host='0.0.0.0', debug=debug, port=port, use_reloader=False)
+    app.run(host=host, debug=debug, port=port, use_reloader=False)

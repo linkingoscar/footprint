@@ -87,15 +87,16 @@ def generate_token(user_id: str, username: str) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
 
-def generate_media_token(user_id: str, username: str, expiry_hours: int = 1) -> str:
-    """生成仅用于媒体资源代理读取的短期受限 Token (scope: media)。"""
+def generate_media_token(user_id: str, username: str, expiry_minutes: int = 15, expiry_hours: float | None = None) -> str:
+    """生成仅用于媒体资源代理读取的短期受限 Token (scope: media，默认 15 分钟有效期，兼容旧 expiry_hours 参数)。"""
     now = datetime.now(timezone.utc)
+    delta = timedelta(hours=expiry_hours) if expiry_hours is not None else timedelta(minutes=expiry_minutes)
     payload = {
         'sub': user_id,
         'username': username,
         'scope': 'media',
         'iat': now,
-        'exp': now + timedelta(hours=expiry_hours),
+        'exp': now + delta,
     }
     return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 

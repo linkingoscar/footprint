@@ -197,6 +197,7 @@ def generate_story():
         data.get('api_base') or
         runtime_config.get('aiApiBase') or
         os.environ.get('AI_API_BASE') or
+        os.environ.get('OPENAI_BASE_URL') or
         os.environ.get('OPENAI_API_BASE') or
         'https://api.openai.com/v1'
     )
@@ -204,6 +205,7 @@ def generate_story():
         data.get('model') or
         runtime_config.get('aiModel') or
         os.environ.get('AI_MODEL') or
+        os.environ.get('OPENAI_MODEL') or
         'deepseek-chat'
     )
 

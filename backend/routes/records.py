@@ -1,6 +1,7 @@
 """
 足迹 - 记录 API 蓝图
 """
+import re
 import uuid
 import json
 from datetime import datetime
@@ -22,15 +23,23 @@ def get_records():
     mode = request.args.get('mode')
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
+    keyword = request.args.get('keyword', '').strip()
+    year = request.args.get('year', type=int)
 
-    records = load_records(mode, g.current_user['user_id'])
+    store = get_record_store()
+    records = store.list(owner_id=g.current_user['user_id'])
+    
+    if mode:
+        records = [r for r in records if r.get('mode') == mode]
+    if keyword:
+        records = [r for r in records if keyword.lower() in (r.get('title', '') + r.get('description', '') + r.get('location', '')).lower()]
+    if year:
+        records = [r for r in records if r.get('date', '').startswith(str(year))]
 
-    # 如果请求中指定了分页参数，返回分页格式
     if 'page' in request.args or 'per_page' in request.args:
-        result = paginate_list(records, page, per_page)
-        return jsonify(result)
+        return jsonify(paginate_list(records, page, per_page))
 
-    # 向后兼容：不传分页参数时返回全部记录（原行为）
+    # 向后兼容：不传分页参数时返回全部记录列表
     return jsonify(records)
 
 
@@ -49,7 +58,7 @@ def get_record(record_id):
 @records_bp.route('/api/records', methods=['POST'])
 @login_required
 def create_record():
-    """创建记录"""
+    """创建记录（支持客户端分配稳定 ID 并提供幂等重试保护）"""
     data = request.get_json()
     
     if not data:
@@ -60,10 +69,23 @@ def create_record():
         if field not in data:
             return jsonify({'error': f'缺少字段: {field}'}), 400
 
-    record = normalize_record_payload(data, uuid.uuid4().hex)
+    client_id = data.get('id')
+    if client_id and isinstance(client_id, str) and 8 <= len(client_id) <= 64 and re.match(r'^[a-zA-Z0-9_-]+$', client_id):
+        record_id = client_id
+    else:
+        record_id = uuid.uuid4().hex
+
+    record = normalize_record_payload(data, record_id)
+    store = get_record_store()
+    owner_id = g.current_user['user_id']
     
-    get_record_store().create(record, g.current_user['user_id'])
-    
+    # 幂等性保障：如果该用户的此记录已存在（例如网络丢响应后的重试），则执行幂等更新并返回 200
+    existing = store.get(record_id, owner_id)
+    if existing:
+        store.update(record_id, record, owner_id)
+        return jsonify(record), 200
+
+    store.create(record, owner_id)
     return jsonify(record), 201
 
 

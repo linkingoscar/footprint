@@ -18,8 +18,12 @@ if %errorlevel% equ 0 (
         echo [OK] 服务启动成功！正在打开足迹主页 (http://localhost:5000)...
         start http://localhost:5000
     ) else (
-        echo [提示] 服务初始化较慢或遇阻，正在尝试打开足迹主页...
-        start http://localhost:5000
+        echo [错误] 后端服务健康检查超时，服务未能成功启动！
+        echo 请检查端口 5000 是否被占用，或在命令行中手动测试启动排查原因：
+        echo   python app.py
+        echo.
+        pause
+        exit /b 1
     )
 ) else (
     echo [提示] 本地未安装 Python，将直接以【纯本地桌面离线应用】模式启动！
