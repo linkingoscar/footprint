@@ -1768,14 +1768,19 @@
             if (window.AppIcons) AppIcons.renderAll();
         }
 
-        // 1、4、9 宫格照片多图排版引擎
+        // 1、4、9 宫格照片多图排版引擎 (支持未铺满时艺术模糊卡片占位)
         function renderMosaic(images, title) {
             const list = (images && images.length) ? images : [];
             const safeTitle = escapeHtml(title);
             if (list.length === 0) {
                 return `
                     <div class="photo-mosaic-wrap photo-mosaic-1">
-                        <img src="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>暂无照片</text></svg>" alt="${safeTitle}">
+                        <div class="photo-mosaic-cell photo-mosaic-placeholder" style="width:100%;height:100%">
+                            <div class="photo-mosaic-placeholder-content">
+                                <span class="photo-mosaic-placeholder-icon">📸</span>
+                                <span style="font-size:12px;opacity:0.8">暂无照片</span>
+                            </div>
+                        </div>
                     </div>`;
             }
 
@@ -1784,34 +1789,65 @@
                 return `
                     <div class="photo-mosaic-wrap photo-mosaic-1">
                         <img src="${resolveAssetUrl(list[0])}" alt="${safeTitle}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%231a1a24%22 width=%22400%22 height=%22300%22/><text x=%22200%22 y=%22150%22 fill=%22%23666%22 text-anchor=%22middle%22 font-size=%2216%22>No Image</text></svg>'">
+                        <div class="photo-count-pill">📷 1图</div>
                     </div>`;
             }
 
             if (list.length <= 4) {
                 // 4 格排版 (2x2)
-                const display4 = list.slice(0, 4);
+                const cells = [];
+                for (let i = 0; i < 4; i++) {
+                    if (i < list.length) {
+                        cells.push(`
+                            <div class="photo-mosaic-cell">
+                                <img src="${resolveAssetUrl(list[i])}" alt="${safeTitle} - ${i+1}">
+                            </div>`);
+                    } else {
+                        // 未铺满时的模糊卡片占位：从已有照片中取景，配合磨砂毛玻璃与高光点缀，告别黑块
+                        const blurSrc = resolveAssetUrl(list[i % list.length]);
+                        cells.push(`
+                            <div class="photo-mosaic-cell photo-mosaic-placeholder">
+                                <div class="photo-mosaic-placeholder-blur" style="background-image:url('${blurSrc}')"></div>
+                                <div class="photo-mosaic-placeholder-overlay"></div>
+                                <div class="photo-mosaic-placeholder-content">
+                                    <span class="photo-mosaic-placeholder-icon">✨</span>
+                                </div>
+                            </div>`);
+                    }
+                }
                 return `
                     <div class="photo-mosaic-wrap photo-mosaic-4">
-                        ${display4.map((img, idx) => `
-                            <div class="photo-mosaic-cell">
-                                <img src="${resolveAssetUrl(img)}" alt="${safeTitle} - ${idx+1}">
-                            </div>
-                        `).join('')}
+                        ${cells.join('')}
                         <div class="photo-count-pill">📷 ${list.length}图</div>
                     </div>`;
             }
 
             // 5张及以上: 9 格排版 (3x3)
-            const display9 = list.slice(0, 9);
             const overflow = list.length - 9;
+            const cells9 = [];
+            for (let i = 0; i < 9; i++) {
+                if (i < list.length && i < 9) {
+                    cells9.push(`
+                        <div class="photo-mosaic-cell">
+                            <img src="${resolveAssetUrl(list[i])}" alt="${safeTitle} - ${i+1}">
+                            ${(i === 8 && overflow > 0) ? `<div class="photo-mosaic-more-badge">+${overflow}</div>` : ''}
+                        </div>`);
+                } else {
+                    // 未铺满 9 格时的模糊卡片占位
+                    const blurSrc = resolveAssetUrl(list[i % list.length]);
+                    cells9.push(`
+                        <div class="photo-mosaic-cell photo-mosaic-placeholder">
+                            <div class="photo-mosaic-placeholder-blur" style="background-image:url('${blurSrc}')"></div>
+                            <div class="photo-mosaic-placeholder-overlay"></div>
+                            <div class="photo-mosaic-placeholder-content">
+                                <span class="photo-mosaic-placeholder-icon">✨</span>
+                            </div>
+                        </div>`);
+                }
+            }
             return `
                 <div class="photo-mosaic-wrap photo-mosaic-9">
-                    ${display9.map((img, idx) => `
-                        <div class="photo-mosaic-cell">
-                            <img src="${resolveAssetUrl(img)}" alt="${safeTitle} - ${idx+1}">
-                            ${(idx === 8 && overflow > 0) ? `<div class="photo-mosaic-more-badge">+${overflow}</div>` : ''}
-                        </div>
-                    `).join('')}
+                    ${cells9.join('')}
                     <div class="photo-count-pill">📷 ${list.length}图</div>
                 </div>`;
         }
@@ -1829,26 +1865,12 @@
             localStorage.removeItem('footprint_user_cleared');
             const now = new Date().toISOString();
             state.records = [
-                // 4图排版示例 (旅行)
-                {
-                    id: generateId(),
-                    mode: 'travel',
-                    title: '杭州 · 西湖漫步',
-                    description: '西湖的清晨格外安静，断桥残雪倒映在水中，像一幅水墨画。沿着苏堤漫步，微风拂过湖面，令人心旷神怡。',
-                    location: '浙江杭州 · 西湖',
-                    latitude: 30.2590,
-                    longitude: 120.1490,
-                    date: '2026-07-20',
-                    images: [demoImg('✈️','6366f1','818cf8'), demoImg('🌊','3b82f6','60a5fa'), demoImg('🌿','10b981','34d399'), demoImg('⛵','06b6d4','67e8f9')],
-                    metadata: { images: [] },
-                    createdAt: now
-                },
-                // 1图大图排版示例 (旅行)
+                // 【格局 1】: 1 图全景单幅大卡展示
                 {
                     id: generateId(),
                     mode: 'travel',
                     title: '西安 · 古城探秘',
-                    description: '古城墙骑行追落日，大雁塔遥望大唐盛世。千年古都的青砖灰瓦间，流淌着厚重悠远的华夏文明。',
+                    description: '古城墙骑行追落日，大雁塔遥望大唐盛世。千年古都的青砖灰瓦间，流淌着厚重悠远的华夏文明。（演示 1 图大图格局）',
                     location: '陕西西安 · 城墙',
                     latitude: 34.2541,
                     longitude: 108.9422,
@@ -1857,12 +1879,26 @@
                     metadata: { images: [] },
                     createdAt: now
                 },
-                // 9图排版示例 (美食)
+                // 【格局 2】: 4 宫格满格 (2x2 对称排版) 展示
+                {
+                    id: generateId(),
+                    mode: 'travel',
+                    title: '杭州 · 西湖漫步',
+                    description: '西湖的清晨格外安静，断桥残雪倒映在水中，像一幅水墨画。沿着苏堤漫步，微风拂过湖面，令人心旷神怡。（演示 4 宫格满格格局）',
+                    location: '浙江杭州 · 西湖',
+                    latitude: 30.2590,
+                    longitude: 120.1490,
+                    date: '2026-07-20',
+                    images: [demoImg('✈️','6366f1','818cf8'), demoImg('🌊','3b82f6','60a5fa'), demoImg('🌿','10b981','34d399'), demoImg('⛵','06b6d4','67e8f9')],
+                    metadata: { images: [] },
+                    createdAt: now
+                },
+                // 【格局 3】: 9 宫格满格 (3x3 矩阵排版) 展示
                 {
                     id: generateId(),
                     mode: 'food',
                     title: '成都 · 火锅之夜',
-                    description: '红油滚烫，巴适得板！巷弄里的烟火气最抚凡人心，鲜切毛肚七上八下，红糖糍粑外酥里糯。',
+                    description: '红油滚烫，巴适得板！巷弄里的烟火气最抚凡人心，鲜切毛肚七上八下，红糖糍粑外酥里糯。（演示 9 宫格满格格局）',
                     location: '四川成都 · 宽窄巷子',
                     latitude: 30.6690,
                     longitude: 104.0610,
@@ -1877,21 +1913,21 @@
                     metadata: { images: [] },
                     createdAt: now
                 },
-                // 4图排版示例 (旅行)
+                // 【格局 4】: 未铺满宫格时的艺术模糊卡片占位展示 (2 图排在 4 宫格中，后 2 格优雅磨砂卡片占位)
                 {
                     id: generateId(),
                     mode: 'travel',
                     title: '桂林 · 漓江竹筏画中游',
-                    description: '桂林山水甲天下，轻舟泛过九马画山，两岸奇峰倒影，烟雨蒙蒙如同误入水墨丹青仙境。',
+                    description: '桂林山水甲天下，轻舟泛过九马画山。两张图片置入4宫格，空缺区域自动呈现艺术模糊卡片占位，告别漆黑一片。（演示未铺满占位规则）',
                     location: '广西桂林 · 阳朔漓江',
                     latitude: 24.7794,
                     longitude: 110.4951,
                     date: '2026-05-18',
-                    images: [demoImg('🏞️','059669','10b981'), demoImg('🎋','10b981','34d399'), demoImg('🚣','06b6d4','38bdf8'), demoImg('⛰️','6366f1','818cf8')],
+                    images: [demoImg('🏞️','059669','10b981'), demoImg('🎋','10b981','34d399')],
                     metadata: { images: [] },
                     createdAt: now
                 },
-                // 4图排版示例 (情侣专属备选，情侣模式开启时自动展现)
+                // 【格局 5】: 情侣专属备选 (开启情侣模式时自动展示)
                 {
                     id: generateId(),
                     mode: 'love',
