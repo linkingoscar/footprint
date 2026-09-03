@@ -1829,24 +1829,157 @@
             localStorage.removeItem('footprint_user_cleared');
             const now = new Date().toISOString();
             state.records = [
-                // 4图排版示例
-                { id: generateId(), mode: 'travel', title: '杭州 · 西湖漫步', description: '西湖的清晨格外安静，断桥残雪倒映在水中，像一幅水墨画。', location: '浙江杭州 · 西湖', latitude: 30.2590, longitude: 120.1490, date: '2026-07-20', images: [demoImg('✈️','6366f1','818cf8'), demoImg('🌊','3b82f6','60a5fa'), demoImg('🌿','10b981','34d399'), demoImg('⛵','06b6d4','67e8f9')], metadata: { images: [] }, createdAt: now },
-                // 1图排版示例
-                { id: generateId(), mode: 'travel', title: '西安 · 古城探秘', description: '城墙骑行，大雁塔遥望，梦回大唐盛世。', location: '陕西西安 · 城墙', latitude: 34.2541, longitude: 108.9422, date: '2026-04-10', images: [demoImg('🏯','f59e0b','ef4444')], metadata: { images: [] }, createdAt: now },
-                // 9图排版示例
-                { id: generateId(), mode: 'food', title: '成都 · 火锅之夜', description: '红油滚烫，巴适得板！巷弄里的烟火气最抚凡人心。', location: '四川成都 · 宽窄巷子', latitude: 30.6690, longitude: 104.0610, date: '2026-06-15', rating: 5, price: 128, images: [demoImg('🍲','ef4444','f87171'), demoImg('🍢','f97316','fb923c'), demoImg('🥟','f59e0b','fcd34d'), demoImg('🌶️','dc2626','ef4444'), demoImg('🐼','10b981','34d399'), demoImg('🍜','84cc16','a3e635'), demoImg('🍵','06b6d4','22d3ee'), demoImg('🥢','8b5cf6','a78bfa'), demoImg('🍮','ec4899','f472b6')], metadata: { images: [] }, createdAt: now },
-                // 4图排版示例
-                { id: generateId(), mode: 'love', title: '厦门 · 鼓浪屿日落', description: '海风、琴声和夕阳，把这一刻定格在双人回忆里。', location: '福建厦门 · 鼓浪屿', latitude: 24.4470, longitude: 118.0670, date: '2026-05-01', images: [demoImg('🌅','ec4899','f472b6'), demoImg('🏖️','06b6d4','38bdf8'), demoImg('🎵','8b5cf6','c084fc'), demoImg('🌴','10b981','34d399')], metadata: { images: [] }, createdAt: now }
+                // 4图排版示例 (旅行)
+                {
+                    id: generateId(),
+                    mode: 'travel',
+                    title: '杭州 · 西湖漫步',
+                    description: '西湖的清晨格外安静，断桥残雪倒映在水中，像一幅水墨画。沿着苏堤漫步，微风拂过湖面，令人心旷神怡。',
+                    location: '浙江杭州 · 西湖',
+                    latitude: 30.2590,
+                    longitude: 120.1490,
+                    date: '2026-07-20',
+                    images: [demoImg('✈️','6366f1','818cf8'), demoImg('🌊','3b82f6','60a5fa'), demoImg('🌿','10b981','34d399'), demoImg('⛵','06b6d4','67e8f9')],
+                    metadata: { images: [] },
+                    createdAt: now
+                },
+                // 1图大图排版示例 (旅行)
+                {
+                    id: generateId(),
+                    mode: 'travel',
+                    title: '西安 · 古城探秘',
+                    description: '古城墙骑行追落日，大雁塔遥望大唐盛世。千年古都的青砖灰瓦间，流淌着厚重悠远的华夏文明。',
+                    location: '陕西西安 · 城墙',
+                    latitude: 34.2541,
+                    longitude: 108.9422,
+                    date: '2026-04-10',
+                    images: [demoImg('🏯','f59e0b','ef4444')],
+                    metadata: { images: [] },
+                    createdAt: now
+                },
+                // 9图排版示例 (美食)
+                {
+                    id: generateId(),
+                    mode: 'food',
+                    title: '成都 · 火锅之夜',
+                    description: '红油滚烫，巴适得板！巷弄里的烟火气最抚凡人心，鲜切毛肚七上八下，红糖糍粑外酥里糯。',
+                    location: '四川成都 · 宽窄巷子',
+                    latitude: 30.6690,
+                    longitude: 104.0610,
+                    date: '2026-06-15',
+                    rating: 5,
+                    price: 128,
+                    images: [
+                        demoImg('🍲','ef4444','f87171'), demoImg('🍢','f97316','fb923c'), demoImg('🥟','f59e0b','fcd34d'),
+                        demoImg('🌶️','dc2626','ef4444'), demoImg('🐼','10b981','34d399'), demoImg('🍜','84cc16','a3e635'),
+                        demoImg('🍵','06b6d4','22d3ee'), demoImg('🥢','8b5cf6','a78bfa'), demoImg('🍮','ec4899','f472b6')
+                    ],
+                    metadata: { images: [] },
+                    createdAt: now
+                },
+                // 4图排版示例 (旅行)
+                {
+                    id: generateId(),
+                    mode: 'travel',
+                    title: '桂林 · 漓江竹筏画中游',
+                    description: '桂林山水甲天下，轻舟泛过九马画山，两岸奇峰倒影，烟雨蒙蒙如同误入水墨丹青仙境。',
+                    location: '广西桂林 · 阳朔漓江',
+                    latitude: 24.7794,
+                    longitude: 110.4951,
+                    date: '2026-05-18',
+                    images: [demoImg('🏞️','059669','10b981'), demoImg('🎋','10b981','34d399'), demoImg('🚣','06b6d4','38bdf8'), demoImg('⛰️','6366f1','818cf8')],
+                    metadata: { images: [] },
+                    createdAt: now
+                },
+                // 4图排版示例 (情侣专属备选，情侣模式开启时自动展现)
+                {
+                    id: generateId(),
+                    mode: 'love',
+                    is_couple: true,
+                    title: '厦门 · 鼓浪屿日落',
+                    description: '海风、琴声和夕阳，把这一刻定格在双人回忆里。穿过转角遇到海，日光岩下的晚霞温柔了时光。',
+                    location: '福建厦门 · 鼓浪屿',
+                    latitude: 24.4470,
+                    longitude: 118.0670,
+                    date: '2026-05-01',
+                    images: [demoImg('🌅','ec4899','f472b6'), demoImg('🏖️','06b6d4','38bdf8'), demoImg('🎵','8b5cf6','c084fc'), demoImg('🌴','10b981','34d399')],
+                    metadata: { images: [] },
+                    createdAt: now
+                }
             ];
-            state.coupleMode = true;
+
+            // 1. 行程规划示例数据
+            localStorage.setItem('travel_plans', JSON.stringify([
+                { title: '西湖环湖骑行与断桥残雪寻梅', date: '2026-07-20' },
+                { title: '西安古城墙漫步与陕历博特展', date: '2026-04-10' },
+                { title: '成都宽窄巷子品茗与玉林路民谣酒吧', date: '2026-06-15' },
+                { title: '阳朔西街夜市与遇龙河竹筏漂流', date: '2026-05-18' }
+            ]));
+
+            // 2. 心愿清单示例数据
+            localStorage.setItem('wishes', JSON.stringify([
+                { title: '登顶泰山看一场红霞日出', date: '2026-08-01', done: false },
+                { title: '在西湖畔吹着夏夜微风喝龙井', date: '2026-07-20', done: true },
+                { title: '自驾川藏 318 体验雪山天路', date: '2026-10-01', done: false },
+                { title: '打卡成都正宗九宫格麻辣火锅', date: '2026-06-15', done: true }
+            ]));
+
+            // 3. 费用账单明细示例数据
+            localStorage.setItem('footprint_expenses', JSON.stringify([
+                { id: 'exp_1', title: '西湖景区游船套票', amount: 110, category: '门票', date: '2026-07-20', location: '杭州' },
+                { id: 'exp_2', title: '成都老茶馆盖碗茶', amount: 68, category: '餐饮', date: '2026-06-15', location: '成都' },
+                { id: 'exp_3', title: '西安钟楼特色文创伴手礼', amount: 128, category: '购物', date: '2026-04-10', location: '西安' },
+                { id: 'exp_4', title: '杭州往返高铁商务座', amount: 560, category: '交通', date: '2026-07-19', location: '杭州' },
+                { id: 'exp_5', title: '阳朔漓江畔景观客栈一晚', amount: 380, category: '住宿', date: '2026-05-18', location: '桂林' }
+            ]));
+
+            // 4. 寻味食材库 · 私房备料示例数据
+            localStorage.setItem('ingredients', JSON.stringify([
+                '番茄', '牛里脊', '大蒜', '意面', '洋葱', '金针菇', '黑胡椒', '松茸'
+            ]));
+
+            // 5. 美食大转盘自定义候选池示例数据
+            localStorage.setItem('footprint_custom_foods', JSON.stringify([
+                { name: '🍲 宽窄巷子老火锅', desc: '红油滚烫，巴适得板' },
+                { name: '🍜 西安老字号羊肉泡馍', desc: '浓郁羊汤与手掰馍碎' },
+                { name: '🥟 杭州鲜肉小笼包', desc: '皮薄汁多，笋鲜汤美' },
+                { name: '🍨 鼓浪屿手工海盐冰淇淋', desc: '芒果清甜与微凉海风' }
+            ]));
+
+            // 6. 情侣专属功能数据预置（情侣模式开启时即开即享）
+            localStorage.setItem('anniversaries', JSON.stringify([
+                { name: '认识TA的第一天', date: '2024-05-20' },
+                { name: '第一次一起看海', date: '2024-10-01' },
+                { name: '相恋一周年纪念日', date: '2025-05-20' }
+            ]));
+            localStorage.setItem('love_notes', JSON.stringify([
+                { content: '今天在海边吹晚风，夕阳落在你发梢，世界好像按下了静音键。', date: '2026-05-01' },
+                { content: '吃火锅的时候你偷偷把最喜欢的酥肉夹给了我，幸福其实很小很具体。', date: '2026-06-15' },
+                { content: '未来的每一处足迹，都想和你一步一步认真丈量下去。', date: '2026-07-20' }
+            ]));
+            localStorage.setItem('date_plans', JSON.stringify([
+                { title: '高空星空景观烛光晚餐', date: '2026-09-12', location: '云端景观餐厅', desc: '提前订好靠窗景观位，带上拍立得合影留念' },
+                { title: '海滨环岛公路日落骑行', date: '2026-09-20', location: '海滨大道', desc: '租一辆双人自行车，吹吹海风听听音乐' }
+            ]));
+            localStorage.setItem('couple_tasks', JSON.stringify([
+                { title: '一起看一场海边日落', done: true, date: '2026-05-01' },
+                { title: '为彼此做一顿爱心晚餐', done: true, date: '2026-06-20' },
+                { title: '拍一套复古胶片情侣照', done: false },
+                { title: '去游乐园坐一次摩天轮', done: false },
+                { title: '一起自驾去山顶露营数星星', done: false }
+            ]));
+
+            // 严格默认保持单人纯净足迹模式，不自动同步开启情侣模式
+            state.coupleMode = false;
             updateCoupleUI();
+
             persistLocalRecords();
             localStorage.setItem('footprint_demo', '1');
             localStorage.setItem('footprint_guide_seen', '1');
             render();
             initMainMap();
             updateDemoButtons();
-            if (!silent) toast('✨ 已加载多图排版示例数据');
+            if (!silent) toast('✨ 已载入全功能示例数据');
         }
 
         function clearDemoData() {
@@ -1856,6 +1989,9 @@
             localStorage.removeItem('footprint_data');
             localStorage.removeItem('footprint_demo');
             localStorage.setItem('footprint_user_cleared', '1');
+            ['travel_plans', 'wishes', 'footprint_expenses', 'ingredients', 'footprint_custom_foods', 'anniversaries', 'love_notes', 'date_plans', 'couple_tasks'].forEach(k => {
+                localStorage.removeItem(k);
+            });
             persistLocalRecords();
             render();
             initMainMap();
