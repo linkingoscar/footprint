@@ -1398,6 +1398,10 @@
                         state.records = localRecords;
                     }
                 }
+                // 静态体验或离线初访（如 GitHub Pages）：无历史记录且未主动清空过，自动装载示例数据供体验
+                if (!state.records.length && !localStorage.getItem('footprint_user_cleared')) {
+                    loadDemoData(true);
+                }
                 await updateConnectionBadge(state.apiAvailable && !error.isNetworkError);
             }
             await loadConfigFromCloud();
@@ -1730,6 +1734,7 @@
             const empty = document.getElementById('empty');
             if (filtered.length === 0) {
                 grid.style.display = 'none';
+                grid.innerHTML = '';
                 empty.style.display = 'block';
             } else {
                 grid.style.display = 'grid';
@@ -1816,8 +1821,12 @@
             return `data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%23${c1}%22/><stop offset=%221%22 stop-color=%22%23${c2}%22/></linearGradient></defs><rect width=%22400%22 height=%22300%22 fill=%22url(%23g)%22/><text x=%22200%22 y=%22175%22 font-size=%2272%22 text-anchor=%22middle%22>${emoji}</text></svg>`;
         }
 
-        function loadDemoData() {
-            if (state.records.length > 0) { toast('已有记录，无需加载'); return; }
+        function loadDemoData(silent = false) {
+            if (state.records.length > 0) {
+                if (!silent) toast('已有记录，无需加载');
+                return;
+            }
+            localStorage.removeItem('footprint_user_cleared');
             const now = new Date().toISOString();
             state.records = [
                 // 4图排版示例
@@ -1829,19 +1838,24 @@
                 // 4图排版示例
                 { id: generateId(), mode: 'love', title: '厦门 · 鼓浪屿日落', description: '海风、琴声和夕阳，把这一刻定格在双人回忆里。', location: '福建厦门 · 鼓浪屿', latitude: 24.4470, longitude: 118.0670, date: '2026-05-01', images: [demoImg('🌅','ec4899','f472b6'), demoImg('🏖️','06b6d4','38bdf8'), demoImg('🎵','8b5cf6','c084fc'), demoImg('🌴','10b981','34d399')], metadata: { images: [] }, createdAt: now }
             ];
+            state.coupleMode = true;
+            updateCoupleUI();
             persistLocalRecords();
             localStorage.setItem('footprint_demo', '1');
             localStorage.setItem('footprint_guide_seen', '1');
             render();
             initMainMap();
             updateDemoButtons();
-            toast('✨ 已加载多图排版示例数据');
+            if (!silent) toast('✨ 已加载多图排版示例数据');
         }
 
         function clearDemoData() {
             state.records = [];
+            state.coupleMode = false;
+            updateCoupleUI();
             localStorage.removeItem('footprint_data');
             localStorage.removeItem('footprint_demo');
+            localStorage.setItem('footprint_user_cleared', '1');
             persistLocalRecords();
             render();
             initMainMap();
@@ -1853,7 +1867,7 @@
             const loadBtn = document.getElementById('btn-load-demo');
             const clearBtn = document.getElementById('btn-clear-demo');
             if (!loadBtn || !clearBtn) return;
-            const isDemo = localStorage.getItem('footprint_demo') === '1';
+            const isDemo = localStorage.getItem('footprint_demo') === '1' && state.records.length > 0;
             loadBtn.style.display = isDemo ? 'none' : '';
             clearBtn.style.display = isDemo ? '' : 'none';
         }
@@ -3092,6 +3106,7 @@
             if (!located.length) {
                 el.style.display = 'none';
                 if (emptyEl) emptyEl.style.display = 'flex';
+                if (window.leafletCluster) window.leafletCluster.clearLayers();
                 return;
             }
             el.style.display = 'block';
@@ -3168,41 +3183,45 @@
 
             // Leaflet & MarkerCluster Engine (高可用开箱即用引擎)
             if (typeof L !== 'undefined') {
-                if (window.leafletMapInstance) {
-                    try { window.leafletMapInstance.remove(); } catch(e) {}
-                    window.leafletMapInstance = null;
-                }
-                const map = L.map(el, {
-                    zoomControl: true,
-                    attributionControl: false
-                }).setView([located[0].latitude, located[0].longitude], 5);
-                window.leafletMapInstance = map;
+                let map = window.leafletMapInstance;
+                let cluster = window.leafletCluster;
 
-                L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
-                    subdomains: ['1', '2', '3', '4'],
-                    minZoom: 3,
-                    maxZoom: 18
-                }).addTo(map);
+                if (!map) {
+                    map = L.map(el, {
+                        zoomControl: true,
+                        attributionControl: false
+                    }).setView([located[0].latitude, located[0].longitude], 5);
+                    window.leafletMapInstance = map;
 
-                let cluster = null;
-                if (typeof L.markerClusterGroup === 'function') {
-                    cluster = L.markerClusterGroup({
-                        showCoverageOnHover: false,
-                        maxClusterRadius: 42,
-                        spiderfyOnMaxZoom: true,
-                        iconCreateFunction: function (c) {
-                            const count = c.getChildCount();
-                            let cls = 'marker-cluster-small';
-                            if (count > 20) cls = 'marker-cluster-large';
-                            else if (count > 5) cls = 'marker-cluster-medium';
-                            return L.divIcon({
-                                html: `<div><span>${count}</span></div>`,
-                                className: `marker-cluster ${cls}`,
-                                iconSize: L.point(40, 40)
-                            });
-                        }
-                    });
-                    map.addLayer(cluster);
+                    L.tileLayer('https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}', {
+                        subdomains: ['1', '2', '3', '4'],
+                        minZoom: 3,
+                        maxZoom: 18
+                    }).addTo(map);
+
+                    if (typeof L.markerClusterGroup === 'function') {
+                        cluster = L.markerClusterGroup({
+                            showCoverageOnHover: false,
+                            maxClusterRadius: 42,
+                            spiderfyOnMaxZoom: true,
+                            iconCreateFunction: function (c) {
+                                const count = c.getChildCount();
+                                let cls = 'marker-cluster-small';
+                                if (count > 20) cls = 'marker-cluster-large';
+                                else if (count > 5) cls = 'marker-cluster-medium';
+                                return L.divIcon({
+                                    html: `<div><span>${count}</span></div>`,
+                                    className: `marker-cluster ${cls}`,
+                                    iconSize: L.point(40, 40)
+                                });
+                            }
+                        });
+                        map.addLayer(cluster);
+                        window.leafletCluster = cluster;
+                    }
+                } else {
+                    if (cluster) cluster.clearLayers();
+                    map.invalidateSize();
                 }
 
                 const bounds = L.latLngBounds();
