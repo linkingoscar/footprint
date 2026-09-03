@@ -130,19 +130,49 @@ const LoveCapsuleModule = {
                         </div>
                     </div>
 
+                    <!-- 新增胶囊内联表单 -->
+                    <div id="capsule-create-form" style="display:none; background: rgba(225,29,72,0.08); border: 1px solid rgba(225,29,72,0.3); border-radius: 14px; padding: 18px; margin-bottom: 16px;">
+                        <div style="font-size: 14px; font-weight: 700; color: #F43F5E; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <span>✍️</span><span>埋下新的相伴时光胶囊</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div>
+                                <label style="font-size: 12px; color: #FDA4AF; display: block; margin-bottom: 4px;">胶囊主题</label>
+                                <input type="text" id="new-cap-title" class="form-input" placeholder="例如: 写给两周年后的我们 / 下次一起看极光" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #FDA4AF; display: block; margin-bottom: 4px;">开启解锁日期</label>
+                                <input type="date" id="new-cap-date" class="form-input" style="width: 100%; box-sizing: border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size: 12px; color: #FDA4AF; display: block; margin-bottom: 4px;">封存密信内容</label>
+                                <textarea id="new-cap-content" class="form-textarea" placeholder="写下你们当下的感悟、许下的约定，或给未来的深情寄语..." rows="4" style="width: 100%; box-sizing: border-box;"></textarea>
+                            </div>
+                            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+                                <button class="btn btn-ghost btn-sm" onclick="LoveCapsuleModule.toggleCreateForm(false)">取消</button>
+                                <button class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #E11D48, #9333EA); border: none;" onclick="LoveCapsuleModule.saveNewCapsule()">✨ 封存入库</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- 时光胶囊密信区域 -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                         <div>
                             <div style="font-size: 16px; font-weight: 800; color: #F8FAFC;">封存的时光胶囊</div>
                             <div style="font-size: 12px; color: #94A3B8;">写给未来的信，未到开启日期无法查看</div>
                         </div>
-                        <button class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #E11D48, #9333EA); border: none;" onclick="LoveCapsuleModule.createCapsulePrompt()">
+                        <button class="btn btn-sm btn-primary" style="background: linear-gradient(135deg, #E11D48, #9333EA); border: none;" onclick="LoveCapsuleModule.toggleCreateForm(true)">
                             ➕ 埋下新胶囊
                         </button>
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 12px;">
-                        ${capsules.map(c => {
+                        ${capsules.length === 0 ? `
+                            <div style="text-align: center; padding: 30px; color: #94A3B8; font-size: 13px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+                                暂无封存的胶囊，点击上方「➕ 埋下新胶囊」为未来写一封信吧 ✨
+                            </div>
+                        ` : ''}
+                        ${capsules.map((c, idx) => {
                             const isLocked = c.unlockDate > todayStr;
                             return `
                                 <div style="
@@ -156,9 +186,12 @@ const LoveCapsuleModule = {
                                             <span>${isLocked ? '🔒' : '🔓'}</span>
                                             <span>${c.title}</span>
                                         </div>
-                                        <span style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: ${isLocked ? 'rgba(255,255,255,0.08)' : 'rgba(244,63,94,0.15)'}; color: ${isLocked ? '#94A3B8' : '#F43F5E'}; font-family: monospace;">
-                                            ${isLocked ? `解锁日期: ${c.unlockDate}` : '✨ 已解锁'}
-                                        </span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 999px; background: ${isLocked ? 'rgba(255,255,255,0.08)' : 'rgba(244,63,94,0.15)'}; color: ${isLocked ? '#94A3B8' : '#F43F5E'}; font-family: monospace;">
+                                                ${isLocked ? `解锁日期: ${c.unlockDate}` : '✨ 已解锁'}
+                                            </span>
+                                            <button class="btn btn-ghost btn-xs" style="padding: 2px 6px; font-size: 11px; color: #94A3B8;" onclick="LoveCapsuleModule.deleteCapsule(${idx})" title="删除此胶囊">✕</button>
+                                        </div>
                                     </div>
                                     ${isLocked ? `
                                         <div style="font-size: 12px; color: #64748B; font-style: italic; padding: 12px 0;">
@@ -184,25 +217,63 @@ const LoveCapsuleModule = {
         if (modal) modal.classList.remove('active');
     },
 
-    createCapsulePrompt() {
-        const title = prompt('请输入时光胶囊的标题（如：写给两周年后的我们）:');
-        if (!title || !title.trim()) return;
-        const unlockDate = prompt('请输入解锁开启日期 (格式: YYYY-MM-DD，如 2026-12-31):', '2026-12-31');
-        if (!unlockDate || !unlockDate.trim()) return;
-        const content = prompt('请输入封存给未来的密信内容:');
-        if (!content || !content.trim()) return;
+    toggleCreateForm(show) {
+        const form = document.getElementById('capsule-create-form');
+        if (!form) return;
+        form.style.display = show ? 'block' : 'none';
+        if (show) {
+            const nextYear = new Date();
+            nextYear.setFullYear(nextYear.getFullYear() + 1);
+            const dateInput = document.getElementById('new-cap-date');
+            if (dateInput && !dateInput.value) {
+                dateInput.value = nextYear.toISOString().split('T')[0];
+            }
+            const titleInput = document.getElementById('new-cap-title');
+            if (titleInput) setTimeout(() => titleInput.focus(), 50);
+        }
+    },
+
+    saveNewCapsule() {
+        const titleEl = document.getElementById('new-cap-title');
+        const dateEl = document.getElementById('new-cap-date');
+        const contentEl = document.getElementById('new-cap-content');
+        if (!titleEl || !dateEl || !contentEl) return;
+
+        const title = titleEl.value.trim();
+        const unlockDate = dateEl.value.trim();
+        const content = contentEl.value.trim();
+
+        if (!title) { toast('请输入胶囊主题'); return; }
+        if (!unlockDate) { toast('请选择开启日期'); return; }
+        if (!content) { toast('请输入密信内容'); return; }
 
         const list = this.getCapsules();
         list.unshift({
             id: 'cap_' + Date.now(),
-            title: title.trim(),
-            unlockDate: unlockDate.trim(),
-            content: content.trim(),
+            title,
+            unlockDate,
+            content,
             createdAt: new Date().toISOString().split('T')[0]
         });
         this.saveCapsules(list);
         this.open();
         toast('💌 时光胶囊已成功封存入库！');
+    },
+
+    async deleteCapsule(idx) {
+        const ok = (window.AppDialog) ? await AppDialog.confirm({
+            title: '删除时光胶囊',
+            message: '确定要删除此时光胶囊吗？此操作不可恢复。',
+            danger: true,
+            confirmText: '确认删除'
+        }) : confirm('确定要删除此时光胶囊吗？');
+        if (!ok) return;
+
+        const list = this.getCapsules();
+        list.splice(idx, 1);
+        this.saveCapsules(list);
+        this.open();
+        toast('已删除时光胶囊');
     }
 };
 

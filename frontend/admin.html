@@ -1716,7 +1716,13 @@
         async function batchDeleteRecords() {
             const ids = Array.from(adminState.selectedRecordIds);
             if (!ids.length) { toast('请先勾选要操作的记录'); return; }
-            if (!confirm(`确定批量删除选中的 ${ids.length} 条足迹吗？`)) return;
+            const ok = (window.AppDialog) ? await AppDialog.confirm({
+                title: '批量删除足迹',
+                message: `确定要批量删除选中的 <strong>${ids.length}</strong> 条足迹记录吗？此操作不可撤销。`,
+                danger: true,
+                confirmText: '确认批量删除'
+            }) : confirm(`确定批量删除选中的 ${ids.length} 条足迹吗？`);
+            if (!ok) return;
 
             for (const id of ids) {
                 await api(`/api/records/${id}`, { method: 'DELETE' }).catch(() => {});
@@ -1824,7 +1830,13 @@
         }
 
         async function deleteRecord(id) {
-            if (!confirm('确定删除该足迹记录吗？')) return;
+            const ok = (window.AppDialog) ? await AppDialog.confirm({
+                title: '删除足迹记录',
+                message: '确定要删除该足迹记录吗？此操作不可撤销。',
+                danger: true,
+                confirmText: '删除'
+            }) : confirm('确定删除该足迹记录吗？');
+            if (!ok) return;
             try {
                 await api(`/api/records/${id}`, { method: 'DELETE' });
                 toast('已删除');
@@ -2355,9 +2367,23 @@
             input.click();
         }
 
-        function clearAllSettings() {
-            if (!confirm('⚠️ 确定清除所有本地数据？此操作不可恢复！')) return;
-            if (!confirm('🚨 再次确认：所有足迹记录、配置、情侣数据都将永久删除！')) return;
+        async function clearAllSettings() {
+            const ok1 = (window.AppDialog) ? await AppDialog.confirm({
+                title: '清除全部本地数据',
+                message: '⚠️ 确定清除所有本地数据？包含足迹记录、系统配置、情侣数据。此操作不可恢复！',
+                danger: true,
+                confirmText: '下一步确认'
+            }) : confirm('⚠️ 确定清除所有本地数据？此操作不可恢复！');
+            if (!ok1) return;
+
+            const ok2 = (window.AppDialog) ? await AppDialog.confirm({
+                title: '二次风险确认',
+                message: '🚨 再次确认：所有数据都将从浏览器永久抹除！建议提前导出备份。确定要清空吗？',
+                danger: true,
+                confirmText: '永久清空'
+            }) : confirm('🚨 再次确认：所有足迹记录、配置、情侣数据都将永久删除！');
+            if (!ok2) return;
+
             ['footprint_data', 'footprint_config', 'footprint_features', 'couple_mode', 'together_date', 'partner_name', 'travel_plans', 'wishes', 'ingredients', 'anniversaries', 'love_notes'].forEach(k => localStorage.removeItem(k));
             toast('🗑️ 已清除全部本地数据');
             setTimeout(() => location.reload(), 1200);
@@ -2392,6 +2418,7 @@
 
         window.addEventListener('DOMContentLoaded', initAdmin);
     </script>
+    <script src="js/dialog.js"></script>
     <script src="js/couple-pair.js"></script>
     <script src="js/icons.js"></script>
 </body>

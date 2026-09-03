@@ -96,6 +96,13 @@ const GlobeConquest = {
             if (cityName.includes('省') && cityName.split('省')[1]) {
                 cityName = cityName.split('省')[1].trim();
             }
+            // 剥离省份前缀（如 "浙江杭州" -> "杭州"，"陕西西安" -> "西安"，"四川成都" -> "成都"，"福建厦门" -> "厦门"）
+            for (const prov of Object.keys(this.provinceAdcodes)) {
+                if (cityName.startsWith(prov) && cityName.length > prov.length) {
+                    cityName = cityName.replace(prov, '').trim();
+                    break;
+                }
+            }
             const cleanCity = cityName.split('市')[0].trim() || cityName;
 
             if (!visitedCities.has(cleanCity)) {
@@ -191,9 +198,9 @@ const GlobeConquest = {
                         </div>
                         <div style="width: 1px; height: 30px; background: rgba(255,255,255,0.08);"></div>
                         <div>
-                            <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase;">迁徙航线</div>
+                            <div style="font-size: 11px; color: #94A3B8; text-transform: uppercase;">打卡足迹</div>
                             <div style="font-size: 22px; font-weight: 800; color: #38BDF8; font-family: ui-monospace, monospace;">
-                                ${analysis.arcs.length} <span style="font-size: 13px; color: #94A3B8; font-weight: normal;">条</span>
+                                ${analysis.locatedRecords.length} <span style="font-size: 13px; color: #94A3B8; font-weight: normal;">处</span>
                             </div>
                         </div>
                         <button class="modal-close" onclick="GlobeConquest.close()" style="font-size: 20px; margin-left: 6px;">✕</button>
@@ -299,6 +306,10 @@ const GlobeConquest = {
             metricSecondaryVal.innerHTML = `${worldRate}% <span style="font-size: 13px; color: #94A3B8; font-weight: normal;">版图</span>`;
 
             this.globeInstance.pointOfView({ lat: 20.0, lng: 30.0, altitude: 2.4 }, 1200);
+        }
+
+        if (this.globeInstance) {
+            this.globeInstance.htmlElementsData(analysis.visitedCities);
         }
 
         await this.loadAndApplyPolygons(analysis);
@@ -429,6 +440,98 @@ const GlobeConquest = {
         }
     },
 
+    injectBeaconStyles() {
+        if (document.getElementById('globe-beacon-style')) return;
+        const style = document.createElement('style');
+        style.id = 'globe-beacon-style';
+        style.textContent = `
+            .globe-shimmer-beacon {
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                transform: translate(-50%, -50%);
+                pointer-events: auto;
+                cursor: pointer;
+                user-select: none;
+                z-index: 50;
+            }
+            .beacon-glow {
+                position: absolute;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(245, 158, 11, 0.8) 0%, rgba(245, 158, 11, 0) 70%);
+                animation: beaconTwinkle 2.2s ease-in-out infinite;
+                pointer-events: none;
+            }
+            .beacon-core {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #FFFFFF;
+                box-shadow: 0 0 8px #F59E0B, 0 0 18px #F59E0B;
+                border: 1.5px solid #F59E0B;
+                z-index: 2;
+                animation: beaconCorePulse 2.2s ease-in-out infinite;
+            }
+            .beacon-tag {
+                margin-top: 4px;
+                background: rgba(11, 14, 20, 0.9);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1px solid rgba(245, 158, 11, 0.45);
+                border-radius: 999px;
+                padding: 1px 7px;
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                white-space: nowrap;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+                z-index: 3;
+                pointer-events: none;
+            }
+            .beacon-title {
+                font-size: 11px;
+                font-weight: 700;
+                color: #FFFFFF;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+                letter-spacing: 0.3px;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
+            }
+            .beacon-count {
+                font-size: 9px;
+                font-weight: 800;
+                color: #000;
+                background: #F59E0B;
+                padding: 0 4px;
+                border-radius: 999px;
+                line-height: 13px;
+            }
+            @keyframes beaconTwinkle {
+                0%, 100% {
+                    transform: scale(0.5);
+                    opacity: 0.2;
+                }
+                50% {
+                    transform: scale(1.6);
+                    opacity: 0.95;
+                }
+            }
+            @keyframes beaconCorePulse {
+                0%, 100% {
+                    transform: scale(0.85);
+                    box-shadow: 0 0 4px #F59E0B;
+                }
+                50% {
+                    transform: scale(1.3);
+                    box-shadow: 0 0 14px #F59E0B, 0 0 24px rgba(245, 158, 11, 0.7);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    },
+
     async initOrUpdateGlobe(analysis) {
         const container = document.getElementById('globe-3d-viewport');
         if (!container) return;
@@ -441,6 +544,8 @@ const GlobeConquest = {
             return;
         }
 
+        this.injectBeaconStyles();
+
         // 初始化单例实例
         if (!this.globeInstance) {
             const globe = Globe()(container)
@@ -451,39 +556,32 @@ const GlobeConquest = {
                 .showAtmosphere(true)
                 .atmosphereColor('#38BDF8')
                 .atmosphereAltitude(0.2)
-                // 城市脉冲光环
-                .ringsData(analysis.visitedCities)
-                .ringLat('lat')
-                .ringLng('lng')
-                .ringColor(() => () => this.currentView === 'china' ? 'rgba(245, 158, 11, 0.85)' : 'rgba(56, 189, 248, 0.85)')
-                .ringMaxRadius(2.8)
-                .ringPropagationSpeed(1.6)
-                .ringRepeatPeriod(1200)
-                // 城市文本标签
-                .labelsData(analysis.visitedCities)
-                .labelLat('lat')
-                .labelLng('lng')
-                .labelText('name')
-                .labelSize(1.2)
-                .labelDotRadius(0.4)
-                .labelColor(() => '#F8FAFC')
-                .labelResolution(2)
-                // 3D 大圆抛物流光航线
-                .arcsData(analysis.arcs)
-                .arcStartLat('startLat')
-                .arcStartLng('startLng')
-                .arcEndLat('endLat')
-                .arcEndLng('endLng')
-                .arcColor(() => ['rgba(245, 158, 11, 0.95)', 'rgba(239, 68, 68, 0.9)'])
-                .arcAltitude(0.12)
-                .arcStroke(1.4)
-                .arcDashLength(0.4)
-                .arcDashGap(0.2)
-                .arcDashAnimateTime(1800);
+                // 3D 城市微光闪烁发光信标 (使用原生 HTML DOM 节点，汉字永不变成问号，一闪一闪的微光亮点)
+                .htmlElementsData(analysis.visitedCities)
+                .htmlLat('lat')
+                .htmlLng('lng')
+                .htmlAltitude(0.012)
+                .htmlElement(d => {
+                    const el = document.createElement('div');
+                    el.className = 'globe-shimmer-beacon';
+                    el.innerHTML = `
+                        <div class="beacon-glow"></div>
+                        <div class="beacon-core"></div>
+                        <div class="beacon-tag">
+                            <span class="beacon-title">${d.name}</span>
+                            ${d.count > 1 ? `<span class="beacon-count">${d.count}</span>` : ''}
+                        </div>
+                    `;
+                    el.title = `${d.fullName || d.name} · ${d.count} 次打卡`;
+                    return el;
+                });
 
             globe.controls().autoRotate = this.isAutoRotate;
             globe.controls().autoRotateSpeed = 0.6;
             this.globeInstance = globe;
+        } else {
+            // 更新信标数据
+            this.globeInstance.htmlElementsData(analysis.visitedCities);
         }
 
         // 默认先聚焦中国

@@ -78,8 +78,13 @@ const PackingListModule = {
         }
     },
 
-    resetAll() {
-        if (!confirm('确定要清空所有已勾选项，开启下一次旅途准备吗？')) return;
+    async resetAll() {
+        const ok = (window.AppDialog) ? await AppDialog.confirm({
+            title: '重置行前清单',
+            message: '确定要清空所有已勾选项，开启下一次旅途准备吗？',
+            confirmText: '重置清单'
+        }) : confirm('确定要清空所有已勾选项，开启下一次旅途准备吗？');
+        if (!ok) return;
         const data = this.getData();
         data.forEach(c => c.items.forEach(i => i.checked = false));
         this.saveData(data);
@@ -87,8 +92,13 @@ const PackingListModule = {
         toast('已重置清单');
     },
 
-    addNewItem(catIdx) {
-        const name = prompt('请输入新增行李物品名称:');
+    async addNewItem(catIdx) {
+        const name = (window.AppDialog) ? await AppDialog.prompt({
+            title: '新增行李物品',
+            placeholder: '例如: 防晒霜 / 转换插头 / 护照',
+            icon: '🎒',
+            confirmText: '添加物品'
+        }) : prompt('请输入新增行李物品名称:');
         if (!name || !name.trim()) return;
         const data = this.getData();
         data[catIdx].items.push({

@@ -15,7 +15,12 @@
 }
 
 .map-section.collapsed {
-    height: 48px;
+    height: 52px;
+}
+
+.map-section.collapsed .footprint-map,
+.map-section.collapsed .map-empty {
+    display: none !important;
 }
 
 .map-header-bar {
@@ -23,43 +28,85 @@
     top: 12px;
     left: 12px;
     right: 12px;
-    z-index: 400;
+    z-index: 800;
     display: flex;
     justify-content: space-between;
     align-items: center;
     pointer-events: none;
+    transition: top 0.3s ease, transform 0.3s ease;
+}
+
+.map-section.collapsed .map-header-bar {
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .map-title-tag {
     pointer-events: auto;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(12px);
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     padding: 6px 14px;
     border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     font-size: 12px;
     font-weight: 700;
-    color: var(--text);
+    color: #F8FAFC;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 .map-actions-toggle {
     pointer-events: auto;
     display: flex;
-    gap: 6px;
+    gap: 8px;
 }
 
 .map-actions-toggle .btn {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: var(--text);
-    padding: 4px 12px;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #F8FAFC;
+    padding: 5px 14px;
     border-radius: 999px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.map-actions-toggle .btn:hover {
+    background: rgba(30, 41, 59, 0.95);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+/* Light / Sunlight Mode (日光模式) Styling */
+[data-theme="light"] .map-title-tag {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #0F172A;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .map-actions-toggle .btn {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    color: #0F172A;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .map-actions-toggle .btn:hover {
+    background: #FFFFFF;
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .footprint-map {

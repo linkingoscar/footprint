@@ -68,7 +68,13 @@ const CouplePair = {
     },
 
     async unbind() {
-        if (!confirm('确定要解除双人情侣空间绑定吗？解除后将恢复单人模式。')) return;
+        const ok = (window.AppDialog) ? await AppDialog.confirm({
+            title: '解除双人空间绑定',
+            message: '确定要解除双人情侣空间绑定吗？解除后将恢复个人单人模式，现有足迹仍会各自保留。',
+            danger: true,
+            confirmText: '确认解除'
+        }) : confirm('确定要解除双人情侣空间绑定吗？解除后将恢复单人模式。');
+        if (!ok) return;
         try {
             await this._fetch('/api/couple/unbind', { method: 'POST' });
             toast('已解除绑定');

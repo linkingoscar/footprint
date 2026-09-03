@@ -48,6 +48,7 @@
     <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.32.2/dist/globe.gl.min.js"></script>
 
     <!-- Modular Feature Scripts -->
+    <script src="js/dialog.js"></script>
     <script src="js/quick-catch.js"></script>
     <script src="js/food-wheel.js"></script>
     <script src="js/couple-pair.js"></script>
@@ -70,11 +71,9 @@
             <div class="logo" onclick="location.reload()">
                 <div class="logo-icon-svg" id="logo-icon" data-icon="brand-logo" data-logo-size="34"></div>
                 <div class="logo-text">足迹</div>
-                <div class="love-header" id="love-header" style="display:none">
-                    <span class="love-avatar">👩</span>
-                    <span class="love-connector">💕</span>
-                    <span class="love-avatar">👨</span>
-                    <span id="couple-partner-badge" style="display:none;font-size:12px;color:#EC4899;font-weight:600;margin-left:6px"></span>
+                <div class="couple-space-badge" id="couple-space-badge" style="display:none" title="双人情侣空间协同中">
+                    <span class="couple-dot"></span>
+                    <span id="couple-partner-badge">双人空间</span>
                 </div>
             </div>
             <div class="header-actions">
@@ -958,15 +957,24 @@
 
         async function setTogetherDate() {
             const config = getConfig();
-            const current = config.togetherDate || '';
-            const date = prompt('设置在一起的日期 (YYYY-MM-DD)', current);
+            const current = config.togetherDate || new Date().toISOString().split('T')[0];
+            const date = (window.AppDialog) ? await AppDialog.prompt({
+                title: '设置相恋纪念日',
+                message: '记录你们相识相恋的浪漫起点，首页将实时计算相伴天数',
+                defaultValue: current,
+                type: 'date',
+                icon: '💕',
+                confirmText: '保存纪念日'
+            }) : prompt('设置在一起的日期 (YYYY-MM-DD)', current);
+
             if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
                 config.togetherDate = date;
+                localStorage.setItem('together_date', date);
                 saveConfig(config);
                 await syncBackendConfig(config);
                 updateTogetherBanner();
-                toast('💕 日期已设置');
-            } else if (date !== null) {
+                toast('💕 相恋纪念日已更新');
+            } else if (date !== null && date !== undefined && date !== '') {
                 toast('请输入正确的日期格式 (YYYY-MM-DD)');
             }
         }
@@ -1289,7 +1297,7 @@
             const banner = document.getElementById('together-banner');
             const tools = document.getElementById('couple-tools-section');
             const tag = document.getElementById('group-couple-tag');
-            const loveHeader = document.getElementById('love-header');
+            const coupleBadge = document.getElementById('couple-space-badge');
             const logoIcon = document.getElementById('logo-icon');
 
             if (state.coupleMode) {
@@ -1301,8 +1309,8 @@
                 if (pill) pill.style.display = 'inline-flex';
                 if (tools) tools.style.display = 'block';
                 if (tag) tag.style.display = 'block';
-                if (loveHeader) loveHeader.style.display = 'flex';
-                if (logoIcon) logoIcon.style.display = 'none';
+                if (coupleBadge) coupleBadge.style.display = 'inline-flex';
+                if (logoIcon) logoIcon.style.display = 'block'; // 永远保留 SVG 品牌徽标
                 updateTogetherBanner();
             } else {
                 document.body.classList.remove('couple-mode-active');
@@ -1314,7 +1322,7 @@
                 if (banner) banner.style.display = 'none';
                 if (tools) tools.style.display = 'none';
                 if (tag) tag.style.display = 'none';
-                if (loveHeader) loveHeader.style.display = 'none';
+                if (coupleBadge) coupleBadge.style.display = 'none';
                 if (logoIcon) logoIcon.style.display = 'block';
                 if (state.filter === 'love') {
                     setFootprintFilter('all');
@@ -1849,7 +1857,14 @@
 
         async function deleteRecord(id) {
             const record = state.records.find(r => r.id === id);
-            if (!record || !confirm(`确定删除${record.title}吗？`)) return;
+            if (!record) return;
+            const ok = (window.AppDialog) ? await AppDialog.confirm({
+                title: '删除足迹记录',
+                message: `确定要删除「<strong>${record.title}</strong>」吗？此操作不可撤销。`,
+                danger: true,
+                confirmText: '确认删除'
+            }) : confirm(`确定删除${record.title}吗？`);
+            if (!ok) return;
             try {
                 await apiFetch(`/api/records/${id}`, { method: 'DELETE' });
             } catch (error) {
@@ -2988,7 +3003,16 @@
         }
 
         // ========== Feature Helpers ==========
-        function confirmDelete(cb, name) { if (confirm(`确定删除${name}吗？`)) { cb(); toast('已删除'); } }
+        async function confirmDelete(cb, name) {
+            const ok = (window.AppDialog) ? await AppDialog.confirm({
+                title: '删除确认',
+                message: `确定要删除该<strong>${name}</strong>吗？此操作不可恢复。`,
+                danger: true,
+                confirmText: '删除',
+                cancelText: '取消'
+            }) : confirm(`确定删除${name}吗？`);
+            if (ok) { cb(); toast('已删除'); }
+        }
         function addPlan() { const input=document.getElementById('plan-input'); const t=input.value.trim(); if(!t){toast('请输入行程');return;} const plans=JSON.parse(localStorage.getItem('travel_plans')||'[]'); plans.push({title:t,date:new Date().toLocaleDateString()}); localStorage.setItem('travel_plans',JSON.stringify(plans)); syncFeatureToCloud('travel_plans', plans); input.value=''; handleFeature('plan'); toast('✅ 已添加'); }
         function removePlan(i) { confirmDelete(()=>{ const p=JSON.parse(localStorage.getItem('travel_plans')||'[]'); p.splice(i,1); localStorage.setItem('travel_plans',JSON.stringify(p)); syncFeatureToCloud('travel_plans', p); handleFeature('plan'); },'行程'); }
         function addWish() { const input=document.getElementById('wish-input'); const t=input.value.trim(); if(!t){toast('请输入愿望');return;} const w=JSON.parse(localStorage.getItem('wishes')||'[]'); w.push({title:t,done:false,date:new Date().toLocaleDateString()}); localStorage.setItem('wishes',JSON.stringify(w)); syncFeatureToCloud('wishes', w); input.value=''; handleFeature('wishlist'); toast('❤️ 已添加'); }

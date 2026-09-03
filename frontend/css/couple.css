@@ -19,38 +19,56 @@ body.couple-mode-active .app::before {
     z-index: 1000;
 }
 
-/* Dual Avatar Header in Love Mode */
-.love-header {
-    display: flex;
+/* Dual Space Header Badge in Love Mode */
+.couple-space-badge {
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    padding: 3px 10px;
+    background: rgba(236, 72, 153, 0.12);
+    border: 1px solid rgba(236, 72, 153, 0.3);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #EC4899;
+    margin-left: 8px;
+    transition: var(--transition);
 }
 
-.love-avatar {
-    font-size: 24px;
-}
-
-.love-connector {
-    font-size: 16px;
+.couple-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #EC4899;
+    box-shadow: 0 0 8px #EC4899;
     animation: heartbeat 1.5s ease-in-out infinite;
 }
 
-/* Together Days Banner */
+/* Together Days Banner - Glassy, balanced, responsive */
 .together-banner {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 16px;
-    padding: 20px;
-    background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(139, 92, 246, 0.15));
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(236, 72, 153, 0.08), rgba(139, 92, 246, 0.08));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: var(--radius);
     margin-bottom: 20px;
-    border: 1px solid rgba(236, 72, 153, 0.3);
-    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.1);
+    border: 1px solid rgba(236, 72, 153, 0.25);
+    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.08);
+    transition: var(--transition);
+}
+
+[data-theme="light"] .together-banner {
+    background: linear-gradient(135deg, rgba(253, 242, 248, 0.95), rgba(245, 243, 255, 0.95));
+    border-color: rgba(236, 72, 153, 0.2);
+    box-shadow: 0 8px 25px rgba(236, 72, 153, 0.06);
 }
 
 .together-heart {
-    font-size: 36px;
+    font-size: 32px;
     animation: heartbeat 1.5s ease-in-out infinite;
 }
 
@@ -60,16 +78,18 @@ body.couple-mode-active .app::before {
 }
 
 .together-text {
-    text-align: center;
+    text-align: left;
+    flex: 1;
 }
 
 .together-label {
     font-size: 13px;
     color: var(--text-muted);
+    font-weight: 500;
 }
 
 .together-days {
-    font-size: 30px;
+    font-size: 26px;
     font-weight: 800;
     background: linear-gradient(135deg, #EC4899, #8B5CF6);
     -webkit-background-clip: text;
@@ -110,21 +130,15 @@ body.couple-mode-active .app::before {
 
 .couple-tools-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 12px;
-}
-
-@media (max-width: 768px) {
-    .couple-tools-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
 }
 
 .couple-tool-card {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
+    gap: 12px;
+    padding: 12px 14px;
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -136,6 +150,7 @@ body.couple-mode-active .app::before {
     border-color: #EC4899;
     transform: translateY(-2px);
     background: rgba(236, 72, 153, 0.08);
+    box-shadow: 0 4px 14px rgba(236, 72, 153, 0.12);
 }
 
 .couple-tool-icon {
