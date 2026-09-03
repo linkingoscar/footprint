@@ -95,6 +95,8 @@ def _apply_rate_limits(app, limiter):
         'upload.upload_batch': "20 per minute",
         'upload.validate_image_url': "30 per minute",
         'misc.upload_batch_photos': "20 per minute",
+        'couple.pair_couple': "10 per minute",
+        'couple.create_couple_invite': "10 per minute",
     }
     for endpoint, limit in limits.items():
         if endpoint in app.view_functions:

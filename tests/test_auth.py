@@ -131,5 +131,26 @@ def test_optional_auth_decorator(app):
         assert result['user_id'] == 'user-123'
 
 
+def test_media_token_generation_and_scope_isolation(app):
+    """测试受限媒体 Token 签发及其只能在静态资源代理中生效，不能用于核心 API"""
+    from backend.auth import generate_media_token
+
+    media_token = generate_media_token("user-123", "alice", expiry_hours=1)
+    payload = verify_token(media_token)
+    assert payload["scope"] == "media"
+
+    # 在非静态资源场景（allow_query_token=False），带 media_token 被拒绝
+    with app.test_request_context('/api/records', headers={'Authorization': f'Bearer {media_token}'}):
+        user = get_current_user(allow_query_token=False)
+        assert user is None
+
+    # 在静态资源场景（allow_query_token=True），允许携带 media_token 鉴权
+    with app.test_request_context('/uploads/pic.jpg?token=' + media_token):
+        user = get_current_user(allow_query_token=True)
+        assert user is not None
+        assert user['user_id'] == 'user-123'
+        assert user['scope'] == 'media'
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

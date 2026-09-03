@@ -1,14 +1,22 @@
 // Service Worker for PWA
-const CACHE_NAME = 'footprint-v2';
+const CACHE_NAME = 'footprint-v4';
 const APP_SHELL = [
-    '/',
-    '/index.html',
-    '/settings.html',
-    '/guide.html',
-    '/manifest.json',
-    '/icons/icon-192.svg',
-    '/icons/icon-512.svg',
-    '/icons/shortcut-add.svg'
+    './',
+    './index.html',
+    './settings.html',
+    './guide.html',
+    './manifest.json',
+    './js/i18n.js',
+    './js/storage.js',
+    './js/replay.js',
+    './js/dialog.js',
+    './js/quick-catch.js',
+    './js/food-wheel.js',
+    './js/couple-pair.js',
+    './js/globe-conquest.js',
+    './icons/icon-192.svg',
+    './icons/icon-512.svg',
+    './icons/shortcut-add.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -40,10 +48,10 @@ self.addEventListener('fetch', event => {
             fetch(request)
                 .then(response => {
                     const copy = response.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put('/index.html', copy));
+                    caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
                     return response;
                 })
-                .catch(() => caches.match('/index.html'))
+                .catch(() => caches.match('./index.html').then(res => res || caches.match('index.html')))
         );
         return;
     }

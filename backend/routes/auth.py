@@ -5,7 +5,7 @@ import uuid
 from flask import Blueprint, request, jsonify, g
 
 from backend.helpers import get_record_store
-from backend.auth import hash_password, check_password, generate_token, login_required
+from backend.auth import hash_password, check_password, generate_token, generate_media_token, login_required
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -76,3 +76,17 @@ def login():
 def get_me():
     """获取当前用户信息"""
     return jsonify(g.current_user)
+
+
+@auth_bp.route('/api/auth/media-token', methods=['GET'])
+@login_required
+def get_media_token():
+    """获取仅用于媒体访问的短期受限 Token (有效期 1 小时)"""
+    user_id = g.current_user['user_id']
+    username = g.current_user['username']
+    media_token = generate_media_token(user_id, username, expiry_hours=1)
+    return jsonify({
+        'success': True,
+        'media_token': media_token,
+        'expires_in': 3600
+    })

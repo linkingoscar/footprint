@@ -11,10 +11,16 @@ echo Checking local environment...
 where python >nul 2>nul
 if %errorlevel% equ 0 (
     echo [OK] Python detected, starting backend server...
-    start /b python app.py >nul 2>nul
-    timeout /t 2 >nul
-    echo Opening Footprint (http://localhost:5000)...
-    start http://localhost:5000
+    start "Footprint Server" /b python -m backend.app
+    echo Waiting for service to be ready...
+    powershell -Command "for ($i=0; $i -lt 10; $i++) { try { $r = Invoke-WebRequest -Uri 'http://localhost:5000/api/health' -UseBasicParsing -TimeoutSec 1; if ($r.StatusCode -eq 200) { exit 0 } } catch {}; Start-Sleep -Milliseconds 500 }; exit 1" >nul 2>&1
+    if %errorlevel% equ 0 (
+        echo [OK] Server is ready! Opening Footprint (http://localhost:5000)...
+        start http://localhost:5000
+    ) else (
+        echo [Notice] Server took longer to respond, opening browser...
+        start http://localhost:5000
+    )
 ) else (
     echo [Notice] Python not found. Launching in 100% Offline Local Desktop Mode!
     echo All photos and data will be safely stored in your local browser storage.

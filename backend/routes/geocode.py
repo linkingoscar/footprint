@@ -30,6 +30,7 @@ def geocode():
 
 
 @geocode_bp.route('/api/reverse-geocode', methods=['GET'])
+@geocode_bp.route('/api/geocode/reverse', methods=['GET'])
 @login_required
 def reverse_geocode():
     """逆地理编码：坐标 -> 地址"""

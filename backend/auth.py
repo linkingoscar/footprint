@@ -87,6 +87,19 @@ def generate_token(user_id: str, username: str) -> str:
     return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 
 
+def generate_media_token(user_id: str, username: str, expiry_hours: int = 1) -> str:
+    """生成仅用于媒体资源代理读取的短期受限 Token (scope: media)。"""
+    now = datetime.now(timezone.utc)
+    payload = {
+        'sub': user_id,
+        'username': username,
+        'scope': 'media',
+        'iat': now,
+        'exp': now + timedelta(hours=expiry_hours),
+    }
+    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+
+
 def verify_token(token: str) -> dict | None:
     """
     解码并验证 JWT Token。
@@ -134,9 +147,16 @@ def get_current_user(allow_query_token: bool = False) -> dict | None:
     payload = verify_token(token)
     if not payload:
         return None
+
+    # 安全隔离：media scope Token 仅允许在静态媒体资源代理场景 (allow_query_token=True) 下使用，
+    # 禁止用于任何核心业务 API 操作
+    if payload.get('scope') == 'media' and not allow_query_token:
+        return None
+
     return {
         'user_id': payload.get('sub'),
         'username': payload.get('username'),
+        'scope': payload.get('scope', 'master'),
     }
 
 

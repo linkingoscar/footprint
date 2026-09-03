@@ -540,8 +540,19 @@ const GlobeConquest = {
         if (loading) loading.style.display = 'none';
 
         if (typeof Globe === 'undefined') {
-            container.innerHTML = `<div style="padding:40px;text-align:center;color:#94A3B8">WebGL Globe 库加载中...</div>`;
-            return;
+            container.innerHTML = `<div style="padding:40px;text-align:center;color:#38BDF8;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;"><div style="font-size:32px;">🌍</div><div style="font-size:14px;font-weight:500">正在按需加载 3D 地球引擎，请稍候...</div></div>`;
+            try {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/globe.gl@2.32.2/dist/globe.gl.min.js';
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            } catch (err) {
+                container.innerHTML = `<div style="padding:40px;text-align:center;color:#EF4444">3D 地球引擎加载失败，请检查网络后重试</div>`;
+                return;
+            }
         }
 
         this.injectBeaconStyles();

@@ -116,8 +116,9 @@ cd footprint
 # 2. 安装依赖
 pip install -r requirements.txt
 
-# 3. 启动服务
-python app.py
+# 3. 启动服务（支持模块化启动或根入口启动）
+python -m backend.app
+# 或: python app.py
 
 # 4. 浏览器访问
 open http://localhost:5000

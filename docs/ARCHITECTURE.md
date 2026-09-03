@@ -179,7 +179,8 @@ source venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
 
 # 3. 运行主服务
-python app.py
+python -m backend.app
+# 或直接运行根入口: python app.py
 ```
 浏览器访问：`http://localhost:5000`。
 

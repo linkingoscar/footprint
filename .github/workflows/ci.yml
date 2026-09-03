@@ -24,10 +24,12 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install test tools
+        run: pip install pytest pytest-cov
 
-      # 注意: 若 tests/ 当前存在失败用例，本步骤将导致 CI 变红，
-      # 由 CI 捕获问题（测试修复由专人负责，本配置不做修改）。
-      - name: Run tests
-        run: pytest tests/ -v
+      - name: Entrypoint Smoke Test
+        run: |
+          python -c "import app; assert app.app.name == 'backend.app'"
+
+      - name: Run tests with coverage
+        run: pytest tests/ -v --cov=backend --cov-report=term-missing

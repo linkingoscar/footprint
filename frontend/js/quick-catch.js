@@ -55,7 +55,7 @@ const QuickCatch = {
 
             try {
                 // 逆地理编码推断地名
-                const locResp = await apiFetch(`/api/geocode/reverse?lat=${lat}&lng=${lng}`).catch(() => null);
+                const locResp = await apiFetch(`/api/reverse-geocode?lat=${lat}&lng=${lng}`).catch(() => null);
                 if (locResp && locResp.address) {
                     const locInput = document.getElementById('record-location');
                     if (locInput) locInput.value = locResp.address;

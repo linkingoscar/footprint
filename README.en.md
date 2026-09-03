@@ -105,8 +105,9 @@ cd footprint
 # 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Launch server
-python app.py
+# 3. Launch server (modular launch or root entrypoint)
+python -m backend.app
+# or: python app.py
 
 # 4. Visit in browser
 open http://localhost:5000

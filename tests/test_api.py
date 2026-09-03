@@ -125,6 +125,12 @@ class TestHealthCheck:
         data = json.loads(response.data)
         assert data['status'] == 'ok'
 
+    def test_root_app_entrypoint(self):
+        """测试根目录入口 app.py 能正常导入并暴露 Flask app"""
+        import app as root_app
+        assert hasattr(root_app, 'app')
+        assert root_app.app.name == 'backend.app'
+
 
 class TestAuthRequired:
     """鉴权改造契约:未认证访问受保护端点返回 401"""
@@ -136,6 +142,22 @@ class TestAuthRequired:
     def test_get_records_paginated_requires_auth(self, client):
         """未认证访问分页 GET /api/records 返回 401"""
         assert_unauthorized(client.get('/api/records?page=1&per_page=2'))
+
+    def test_media_token_requires_auth(self, client):
+        """未认证访问 GET /api/auth/media-token 返回 401"""
+        assert_unauthorized(client.get('/api/auth/media-token'))
+
+    def test_media_token_success_and_scope(self, client, auth_header):
+        """测试获取媒体专用 Token 并在核心 API 端点被严格隔离拒绝"""
+        resp = client.get('/api/auth/media-token', headers=auth_header)
+        assert resp.status_code == 200
+        data = json.loads(resp.data)
+        assert 'media_token' in data
+        media_token = data['media_token']
+
+        # 该 media_token 无法用于普通 API
+        rec_resp = client.get('/api/records', headers={'Authorization': f'Bearer {media_token}'})
+        assert rec_resp.status_code == 401
 
     def test_create_record_requires_auth(self, client):
         """未认证 POST /api/records 返回 401"""
@@ -411,6 +433,11 @@ class TestGeocodeAPI:
     def test_reverse_geocode_missing_params(self, client, auth_header):
         """测试逆地理编码缺少参数"""
         response = client.get('/api/reverse-geocode', headers=auth_header)
+        assert response.status_code == 400
+
+    def test_reverse_geocode_alias_route(self, client, auth_header):
+        """测试逆地理编码别名路由 /api/geocode/reverse 保持一致"""
+        response = client.get('/api/geocode/reverse', headers=auth_header)
         assert response.status_code == 400
 
 

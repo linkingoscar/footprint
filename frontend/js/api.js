@@ -19,9 +19,10 @@ function resolveAssetUrl(url) {
     const base = getApiBase();
     const isLocalUpload = url.startsWith('/uploads/') || (base && url.startsWith(`${base}/uploads/`));
     const resolved = (base && url.startsWith('/')) ? `${base}${url}` : url;
-    if (isLocalUpload && authState.token) {
+    const tokenToUse = (typeof _cachedMediaToken !== 'undefined' && _cachedMediaToken) || (typeof authState !== 'undefined' && authState.token);
+    if (isLocalUpload && tokenToUse) {
         const sep = resolved.includes('?') ? '&' : '?';
-        return `${resolved}${sep}token=${encodeURIComponent(authState.token)}`;
+        return `${resolved}${sep}token=${encodeURIComponent(tokenToUse)}`;
     }
     return resolved;
 }
@@ -142,7 +143,7 @@ const LocalFallbackEngine = {
         }
 
         // 5. Geocode Reverse Fallback
-        if (path.startsWith('/api/geocode/reverse')) {
+        if (path.startsWith('/api/geocode/reverse') || path.startsWith('/api/reverse-geocode')) {
             const params = new URLSearchParams(path.split('?')[1] || '');
             const lat = Number(params.get('lat') || 0).toFixed(4);
             const lng = Number(params.get('lng') || 0).toFixed(4);
@@ -163,28 +164,37 @@ async function apiFetch(path, options = {}) {
         }
     }
 
+    let response;
     try {
         const authHeaders = getAuthHeaders();
         const mergedHeaders = { ...(authHeaders || {}), ...(options.headers || {}) };
-        const response = await fetch(apiUrl(path), { ...options, headers: mergedHeaders });
-        let data = null;
-        try { data = await response.json(); } catch { data = null; }
-        if (!response.ok) {
-            throw new Error(data?.error || `HTTP ${response.status}`);
-        }
-        state.apiAvailable = true;
-        updateConnectionBadge(true);
-        return data;
-    } catch (err) {
-        // 网络不可达或未启动后端，无缝降级到纯本地引擎！
+        response = await fetch(apiUrl(path), { ...options, headers: mergedHeaders });
+    } catch (networkErr) {
+        // 仅在真实网络通信异常时判定为后端未连接，进入本地引擎
         state.apiAvailable = false;
         updateConnectionBadge(false);
-        console.log(`[Footprint] 后端未连接 (${err.message})，已无缝切换到纯本地脱机伪应用引擎: ${path}`);
+        console.log(`[Footprint] 后端未连接或网络离线 (${networkErr.message})，已切换到纯本地脱机引擎: ${path}`);
         return LocalFallbackEngine.handle(path, options);
     }
+
+    // 收到 HTTP 响应说明后端存活
+    state.apiAvailable = true;
+    updateConnectionBadge(true);
+
+    let data = null;
+    try { data = await response.json(); } catch { data = null; }
+
+    if (!response.ok) {
+        const err = new Error(data?.error || `HTTP ${response.status}`);
+        err.status = response.status;
+        err.data = data;
+        throw err;
+    }
+
+    return data;
 }
 
-// 智能图片处理：优先云端，离线时压缩为本地 Data URL
+// 智能图片处理：优先云端，离线时转为本地存储
 async function uploadImageFile(file) {
     if (state.apiAvailable !== false) {
         try {
@@ -200,12 +210,26 @@ async function uploadImageFile(file) {
             if (resp.ok && data.url) {
                 return data.url;
             }
+            if (resp.status === 401) {
+                throw new Error('登录已过期，请重新登录后上传');
+            }
+            if (!resp.ok) {
+                throw new Error(data.error || `上传失败 (HTTP ${resp.status})`);
+            }
         } catch (e) {
+            if (e.message && (e.message.includes('401') || e.message.includes('登录') || e.message.includes('上传失败'))) {
+                throw e;
+            }
             console.log('云端上传不可用，正在转为本地存储...');
         }
     }
 
-    // 本地伪应用模式：直接以 Base64 Data URL 持久化
+    // 本地伪应用模式：优先调用 ImageCompressor 压缩，防止大图撑爆存储
+    if (typeof window !== 'undefined' && window.ImageCompressor) {
+        const comp = await window.ImageCompressor.compressImageFile(file);
+        return comp.dataUrl;
+    }
+
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = (e) => {

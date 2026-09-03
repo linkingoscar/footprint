@@ -4,7 +4,7 @@
 """
 import uuid
 import string
-import random
+import secrets
 from datetime import datetime, timedelta
 from flask import Blueprint, request, jsonify, g
 from backend.auth import login_required
@@ -18,7 +18,7 @@ def _generate_invite_code(length=6) -> str:
     chars = string.ascii_uppercase + string.digits
     # 过滤易混淆字符
     clean_chars = ''.join(c for c in chars if c not in '0O1I')
-    random_part = ''.join(random.choice(clean_chars) for _ in range(length))
+    random_part = ''.join(secrets.choice(clean_chars) for _ in range(length))
     return f"CP{random_part[:4]}"
 
 
@@ -48,6 +48,12 @@ def create_couple_invite():
         }), 400
 
     code = _generate_invite_code()
+    # 碰撞重试防重
+    for _ in range(5):
+        if not store.get_couple_invite(code):
+            break
+        code = _generate_invite_code()
+
     expires_at = (datetime.now() + timedelta(hours=24)).isoformat()
     invite = store.create_couple_invite(user_id, code, expires_at)
 
