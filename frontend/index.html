@@ -195,18 +195,38 @@
                     </div>
                 </div>
 
-                <!-- 灵动生活实用工具组 (自动响应折行，绝无横向滚动条) -->
-                <div class="hub-tool-dock" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; align-items: center;">
-                    <button class="feature-pill-btn" onclick="FoodWheel.open()" style="border-color:rgba(245,158,11,0.45);background:rgba(245,158,11,0.12)"><span style="color:#F59E0B" data-icon="dices"></span><span style="font-weight:700;color:#F59E0B">今天吃什么</span></button>
-                    <button class="feature-pill-btn" onclick="PackingListModule.open()" style="border-color:rgba(16,185,129,0.3);"><span style="color:#10B981" data-icon="briefcase"></span><span>行前清单</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('replay')"><span data-icon="play-circle"></span><span>轨迹回放</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('timeline')"><span data-icon="calendar"></span><span>时光轨迹</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('cities')"><span data-icon="building-2"></span><span>城市排行</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('ai-story')"><span data-icon="sparkles"></span><span>AI游记</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('expense')"><span data-icon="wallet"></span><span>花费账单</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('ingredients')"><span data-icon="salad"></span><span>美食食材</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('stats')"><span data-icon="bar-chart-3"></span><span>足迹报告</span></button>
-                    <button class="feature-pill-btn" onclick="handleFeature('export')"><span data-icon="package"></span><span>数据导出</span></button>
+                <!-- 灵动生活实用工具组 (高颜值微拟态微动效) -->
+                <div class="hub-tool-dock">
+                    <button type="button" class="feature-pill-btn pill-amber" onclick="FoodWheel.open()">
+                        <span class="pill-icon-box" data-icon="dices"></span><span>今天吃什么</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-emerald" onclick="PackingListModule.open()">
+                        <span class="pill-icon-box" data-icon="briefcase"></span><span>行前清单</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-sky" onclick="handleFeature('replay')">
+                        <span class="pill-icon-box" data-icon="play-circle"></span><span>轨迹回放</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-rose" onclick="handleFeature('timeline')">
+                        <span class="pill-icon-box" data-icon="calendar"></span><span>时光轨迹</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-sky" onclick="handleFeature('cities')">
+                        <span class="pill-icon-box" data-icon="building-2"></span><span>城市排行</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-purple" onclick="handleFeature('ai-story')">
+                        <span class="pill-icon-box" data-icon="sparkles"></span><span>AI游记</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-amber" onclick="handleFeature('expense')">
+                        <span class="pill-icon-box" data-icon="wallet"></span><span>花费账单</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-emerald" onclick="handleFeature('ingredients')">
+                        <span class="pill-icon-box" data-icon="salad"></span><span>美食食材</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn pill-sky" onclick="handleFeature('stats')">
+                        <span class="pill-icon-box" data-icon="bar-chart-3"></span><span>足迹报告</span>
+                    </button>
+                    <button type="button" class="feature-pill-btn" onclick="handleFeature('export')">
+                        <span class="pill-icon-box" data-icon="package"></span><span>数据导出</span>
+                    </button>
                 </div>
             </div>
 
@@ -278,62 +298,83 @@
 
     <!-- Add Modal -->
     <div class="modal-overlay" id="modal-add">
-        <div class="modal">
+        <div class="modal" style="max-width: 600px;">
             <div class="modal-header">
-                <div class="modal-title" id="modal-add-title">添加记录</div>
+                <div>
+                    <div class="modal-title" id="modal-add-title">📸 记录精彩足迹</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;" id="modal-add-subtitle">定格旅途风景与烟火美味，生成专属时光记忆</div>
+                </div>
                 <button class="modal-close" onclick="closeModal('add')">✕</button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <div class="form-label">📷 添加照片</div>
+                    <div class="form-label" style="display:flex;justify-content:space-between;align-items:center;">
+                        <span id="label-add-photos">📷 添加照片</span>
+                        <span style="font-size:11px;color:var(--text-muted);" id="hint-multi-photos">支持多图 1、4、9 宫格呈现</span>
+                    </div>
                     <div class="upload-tabs">
-                        <button class="upload-tab active" data-tab="local" onclick="switchUploadTab('local')">📁 本地上传</button>
-                        <button class="upload-tab" data-tab="url" onclick="switchUploadTab('url')">🔗 链接添加</button>
+                        <button type="button" class="upload-tab active" data-tab="local" onclick="switchUploadTab('local')">
+                            <span>📁</span><span id="tab-btn-local">本地多图上传</span>
+                        </button>
+                        <button type="button" class="upload-tab" data-tab="url" onclick="switchUploadTab('url')">
+                            <span>🔗</span><span id="tab-btn-url">网络图片直链</span>
+                        </button>
                     </div>
                     <div class="upload-tab-content active" id="tab-local">
-                        <div class="upload-zone" id="upload-zone">
+                        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
                             <input type="file" id="file-input" multiple accept="image/*" style="display:none">
                             <input type="file" id="folder-input" webkitdirectory style="display:none">
                             <input type="file" id="gallery-input" multiple accept="image/*" style="display:none">
                             <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none">
-                            <div class="upload-zone-icon">📷</div>
-                            <h4>拖拽图片或点击上传</h4>
-                            <p>支持 JPG、PNG、GIF、WebP 格式</p>
+                            <div class="upload-zone-icon">📸</div>
+                            <h4 id="dropzone-title">点击或拖拽照片到此处上传</h4>
+                            <p id="dropzone-desc">支持 JPG、PNG、GIF、WebP · 支持同时多选多张 · 支持截图粘贴 (Ctrl+V)</p>
                             <div class="upload-zone-actions desktop-only">
-                                <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('file-input').click()">📁 选择文件</button>
-                                <button class="btn btn-ghost" onclick="event.stopPropagation();document.getElementById('folder-input').click()">📂 选择文件夹</button>
+                                <button type="button" class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('file-input').click()">
+                                    📁 批量选择照片
+                                </button>
+                                <button type="button" class="btn btn-ghost" onclick="event.stopPropagation();document.getElementById('folder-input').click()">
+                                    📂 导入文件夹
+                                </button>
                             </div>
                             <div class="upload-zone-actions mobile-only">
-                                <button class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('gallery-input').click()">🖼️ 相册</button>
-                                <button class="btn btn-ghost" onclick="event.stopPropagation();document.getElementById('camera-input').click()">📸 拍照</button>
+                                <button type="button" class="btn btn-primary" onclick="event.stopPropagation();document.getElementById('gallery-input').click()">
+                                    🖼️ 打开相册
+                                </button>
+                                <button type="button" class="btn btn-ghost" onclick="event.stopPropagation();document.getElementById('camera-input').click()">
+                                    📸 现场拍照
+                                </button>
                             </div>
                         </div>
                     </div>
                     <div class="upload-tab-content" id="tab-url">
                         <div class="url-upload-zone">
-                            <div style="margin-bottom:12px">
-                                <div class="form-label" style="margin-bottom:8px">🔗 输入图片链接</div>
+                            <div style="margin-bottom:14px">
+                                <div class="form-label" style="margin-bottom:8px;" id="label-url-single">🔗 单张图片直链添加</div>
                                 <div style="display:flex;gap:8px">
-                                    <input type="text" class="form-input" id="url-input" placeholder="粘贴图片链接" onkeypress="if(event.key==='Enter')addImagesByUrl()">
-                                    <button class="btn btn-primary" onclick="addImagesByUrl()">添加</button>
+                                    <input type="text" class="form-input" id="url-input" placeholder="输入图片直链地址 (http:// 或 https://)" onkeypress="if(event.key==='Enter')addImagesByUrl()">
+                                    <button type="button" class="btn btn-primary" onclick="addImagesByUrl()" style="white-space:nowrap;padding:0 20px;" id="btn-add-url">添加图片</button>
                                 </div>
                             </div>
-                            <div style="margin-bottom:12px">
-                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">支持的图床：</div>
+                            <div style="margin-bottom:14px">
+                                <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;" id="label-url-hosts">常用快捷图床：</div>
                                 <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').value='https://';document.getElementById('url-input').focus()">🌐 自定义直链</span>
                                     <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://i.imgur.com/xxxxx.jpg'">Imgur</span>
                                     <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://s2.sm.ms/xxxxx.jpg'">SM.MS</span>
-                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://raw.githubusercontent.com/...'">GitHub</span>
+                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://raw.githubusercontent.com/...'">GitHub Raw</span>
                                     <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://xxx.qiniucdn.com/xxx.jpg'">七牛云</span>
                                     <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://xxx.oss-cn-hangzhou.aliyuncs.com/xxx.jpg'">阿里云OSS</span>
                                     <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://xxx.cos.ap-guangzhou.myqcloud.com/xxx.jpg'">腾讯云COS</span>
-                                    <span class="url-provider-tag" onclick="document.getElementById('url-input').placeholder='https://res.cloudinary.com/xxx/image/upload/xxx.jpg'">Cloudinary</span>
                                 </div>
                             </div>
-                            <div style="padding:12px;background:var(--glass);border-radius:var(--radius-sm)">
-                                <div style="font-size:13px;font-weight:500;margin-bottom:8px">📋 批量导入</div>
-                                <textarea class="form-textarea" id="batch-url-input" placeholder="每行一个图片链接" style="min-height:60px;font-size:12px"></textarea>
-                                <button class="btn btn-ghost btn-sm" style="margin-top:8px;width:100%" onclick="addBatchUrls()">批量添加</button>
+                            <div style="padding:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm)">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                                    <div style="font-size:13px;font-weight:600;" id="label-url-batch">📋 批量导入多图链接</div>
+                                    <span style="font-size:11px;color:var(--text-muted);">每行一个图片 URL</span>
+                                </div>
+                                <textarea class="form-textarea" id="batch-url-input" placeholder="https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg" style="min-height:72px;font-size:12px;font-family:ui-monospace,monospace;"></textarea>
+                                <button type="button" class="btn btn-ghost btn-sm" style="margin-top:10px;width:100%;font-weight:600" onclick="addBatchUrls()" id="btn-batch-import">📥 一键批量添加多图</button>
                             </div>
                         </div>
                     </div>
@@ -343,56 +384,65 @@
                     </div>
                     <div class="preview-grid" id="preview-grid"></div>
                 </div>
+
                 <div class="form-group">
-                    <div class="form-label">🏷️ 足迹类型</div>
-                    <div class="record-type-selector">
-                        <button type="button" class="record-type-btn active" id="type-btn-travel" onclick="selectRecordType('travel')">✈️ 旅行探索</button>
-                        <button type="button" class="record-type-btn" id="type-btn-food" onclick="selectRecordType('food')">🍜 美食寻味</button>
+                    <div class="form-label" id="label-record-type">🏷️ 足迹类型</div>
+                    <div class="record-type-selector" style="display:flex;gap:8px;">
+                        <button type="button" class="record-type-btn active" id="type-btn-travel" onclick="selectRecordType('travel')" style="flex:1">✈️ 旅行探索</button>
+                        <button type="button" class="record-type-btn" id="type-btn-food" onclick="selectRecordType('food')" style="flex:1">🍜 美食寻味</button>
+                        <button type="button" class="record-type-btn" id="type-btn-love" onclick="selectRecordType('love')" style="flex:1">💕 专属回忆</button>
                     </div>
                 </div>
+
                 <div class="form-group" id="group-couple-tag" style="display:none">
-                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:8px 12px;background:rgba(236,72,153,0.08);border:1px dashed rgba(236,72,153,0.3);border-radius:8px">
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:10px 14px;background:rgba(236,72,153,0.08);border:1px dashed rgba(236,72,153,0.35);border-radius:10px">
                         <input type="checkbox" id="input-is-couple" style="accent-color:#EC4899;width:18px;height:18px">
-                        <span style="font-size:13px;color:var(--text);font-weight:600">💕 标记为情侣专属回忆</span>
+                        <span style="font-size:13px;color:var(--text);font-weight:600">💕 标记为情侣双人专属回忆</span>
                     </label>
                 </div>
+
                 <div class="form-group">
-                    <div class="form-label" id="label-title">✏️ 标题</div>
-                    <input type="text" class="form-input" id="input-title" placeholder="起个名字">
+                    <div class="form-label" id="label-title">✏️ 旅行标题</div>
+                    <input type="text" class="form-input" id="input-title" placeholder="给这次旅行起个名字">
                 </div>
-                <div class="form-group">
-                    <div class="form-label">📝 描述</div>
-                    <textarea class="form-textarea" id="input-desc" placeholder="写下你的感受..."></textarea>
-                </div>
-                <div class="form-group" style="position:relative">
-                    <div class="form-label" id="label-location">📍 地点</div>
-                    <input type="text" class="form-input" id="input-location" placeholder="搜索地点" oninput="debounceSearch()">
-                    <div class="search-results" id="search-results"></div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <div class="form-label">📅 日期</div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                    <div class="form-group" style="margin-bottom:0;position:relative">
+                        <div class="form-label" id="label-location">📍 旅行地点</div>
+                        <input type="text" class="form-input" id="input-location" placeholder="搜索旅行地点" oninput="debounceSearch()">
+                        <div class="search-results" id="search-results"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <div class="form-label" id="label-date">📅 日期</div>
                         <input type="date" class="form-input" id="input-date">
                     </div>
-                    <div class="form-group" id="group-rating" style="display:none">
-                        <div class="form-label">⭐ 评分</div>
+                </div>
+
+                <div id="group-food-extra" style="display:none;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                    <div class="form-group" style="margin-bottom:0;" id="group-rating">
+                        <div class="form-label" id="label-rating">⭐ 评分推荐</div>
                         <select class="form-select" id="input-rating">
-                            <option value="5">⭐⭐⭐⭐⭐ 5分</option>
-                            <option value="4">⭐⭐⭐⭐ 4分</option>
-                            <option value="3">⭐⭐⭐ 3分</option>
-                            <option value="2">⭐⭐ 2分</option>
-                            <option value="1">⭐ 1分</option>
+                            <option value="5">⭐⭐⭐⭐⭐ 5分 · 绝顶美味</option>
+                            <option value="4">⭐⭐⭐⭐ 4分 · 值得推荐</option>
+                            <option value="3">⭐⭐⭐ 3分 · 口味尚可</option>
+                            <option value="2">⭐⭐ 2分 · 普通平庸</option>
+                            <option value="1">⭐ 1分 · 避坑拔草</option>
                         </select>
                     </div>
-                    <div class="form-group" id="group-price" style="display:none">
-                        <div class="form-label">💰 价格</div>
-                        <input type="number" class="form-input" id="input-price" placeholder="元">
+                    <div class="form-group" style="margin-bottom:0;" id="group-price">
+                        <div class="form-label" id="label-price">💰 人均消费 (元)</div>
+                        <input type="number" class="form-input" id="input-price" placeholder="例如: 88">
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label" id="label-desc">📝 旅途心得与故事</div>
+                    <textarea class="form-textarea" id="input-desc" placeholder="写下这一刻的心情、路过的风景或是难忘的人事物..." style="min-height:80px;line-height:1.6;"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-ghost" onclick="closeModal('add')">取消</button>
-                <button class="btn btn-primary" onclick="saveRecord()">💾 保存</button>
+                <button type="button" class="btn btn-ghost" onclick="closeModal('add')" id="btn-cancel-add">取消</button>
+                <button type="button" class="btn btn-primary" onclick="saveRecord()" style="padding:10px 28px;font-weight:700;" id="btn-save-record">✨ 保存珍贵足迹</button>
             </div>
         </div>
     </div>
@@ -707,7 +757,151 @@
 
         function applyLang() {
             document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
-            applyMode();
+            const isEn = currentLang === 'en';
+
+            // 1. 顶部导航与品牌
+            const brandTitle = document.querySelector('.header-title-main');
+            if (brandTitle) brandTitle.textContent = isEn ? 'Footprint' : '足迹';
+            const brandSlogan = document.querySelector('.header-subtitle-tag');
+            if (brandSlogan) brandSlogan.textContent = isEn ? 'Travel & Food Map' : '旅行与寻味记忆';
+
+            const themeBtn = document.getElementById('theme-toggle');
+            if (themeBtn) themeBtn.title = isEn ? 'Toggle Theme' : '切换主题';
+            const langBtn = document.getElementById('lang-btn');
+            if (langBtn) langBtn.title = isEn ? 'Switch Language' : '切换语言';
+            const adminLink = document.querySelector('.header a[href*="admin"]');
+            if (adminLink) adminLink.title = isEn ? 'Admin Dashboard' : '管理后台';
+
+            // 2. 筛选胶囊 (全部 / 旅行 / 美食 / 专属回忆)
+            const pillAll = document.querySelector('.mode-pill[data-filter="all"]');
+            if (pillAll) pillAll.textContent = isEn ? 'All' : '全部';
+            const pillTravel = document.querySelector('.mode-pill[data-filter="travel"]');
+            if (pillTravel) pillTravel.textContent = isEn ? '✈️ Travel' : '✈️ 旅行探索';
+            const pillFood = document.querySelector('.mode-pill[data-filter="food"]');
+            if (pillFood) pillFood.textContent = isEn ? '🍜 Food' : '🍜 美食寻味';
+            const pillLove = document.querySelector('.mode-pill[data-filter="love"]');
+            if (pillLove) pillLove.textContent = isEn ? '💕 Memories' : '💕 专属回忆';
+
+            // 3. 4 大核心展馆卡片
+            const hubCards = document.querySelectorAll('.hub-card');
+            if (hubCards.length >= 4) {
+                const c1T = hubCards[0].querySelector('[style*="font-weight: 700"]');
+                const c1D = hubCards[0].querySelector('[style*="font-size: 11px"]');
+                if (c1T) c1T.textContent = isEn ? 'Footprint Map' : '足迹地图';
+                if (c1D) c1D.textContent = isEn ? 'Pan, zoom and explore' : '缩放与漫游探索';
+
+                const c2T = hubCards[1].querySelector('[style*="font-weight: 700"]');
+                const c2D = hubCards[1].querySelector('[style*="font-size: 11px"]');
+                if (c2T) c2T.textContent = isEn ? '3D Globe' : '3D点亮地球';
+                if (c2D) c2D.textContent = isEn ? 'Twinkle shimmer beacons' : '星空微光打卡亮点';
+
+                const c3T = hubCards[2].querySelector('[style*="font-weight: 700"]');
+                const c3D = hubCards[2].querySelector('[style*="font-size: 11px"]');
+                if (c3T) c3T.textContent = isEn ? 'Passport Book' : '通关护照本';
+                if (c3D) c3D.textContent = isEn ? 'City vintage seals' : '城市复古海关印章';
+
+                const c4T = hubCards[3].querySelector('[style*="font-weight: 700"]');
+                const c4D = hubCards[3].querySelector('[style*="font-size: 11px"]');
+                if (c4T) c4T.textContent = isEn ? 'Achievements' : '成就勋章';
+                if (c4D) c4D.textContent = isEn ? '8-tier milestones' : '8阶旅行家里程碑';
+            }
+
+            // 4. 工具栏按钮 (Tool Dock)
+            const toolLabels = {
+                foodWheel: isEn ? 'Food Wheel' : '今天吃什么',
+                packingList: isEn ? 'Packing List' : '行前清单',
+                replay: isEn ? 'Replay' : '轨迹回放',
+                timeline: isEn ? 'Timeline' : '时光轨迹',
+                cities: isEn ? 'City Rank' : '城市排行',
+                aiStory: isEn ? 'AI Story' : 'AI游记',
+                expense: isEn ? 'Expenses' : '花费账单',
+                ingredients: isEn ? 'Ingredients' : '美食食材',
+                stats: isEn ? 'Footprint Report' : '足迹报告',
+                export: isEn ? 'Export' : '数据导出'
+            };
+            const btnFoodWheel = document.querySelector('.feature-pill-btn[onclick*="FoodWheel"] span:last-child');
+            if (btnFoodWheel) btnFoodWheel.textContent = toolLabels.foodWheel;
+            const btnPacking = document.querySelector('.feature-pill-btn[onclick*="PackingList"] span:last-child');
+            if (btnPacking) btnPacking.textContent = toolLabels.packingList;
+            const btnReplay = document.querySelector('.feature-pill-btn[onclick*="replay"] span:last-child');
+            if (btnReplay) btnReplay.textContent = toolLabels.replay;
+            const btnTimeline = document.querySelector('.feature-pill-btn[onclick*="timeline"] span:last-child');
+            if (btnTimeline) btnTimeline.textContent = toolLabels.timeline;
+            const btnCities = document.querySelector('.feature-pill-btn[onclick*="cities"] span:last-child');
+            if (btnCities) btnCities.textContent = toolLabels.cities;
+            const btnAi = document.querySelector('.feature-pill-btn[onclick*="ai-story"] span:last-child');
+            if (btnAi) btnAi.textContent = toolLabels.aiStory;
+            const btnExpense = document.querySelector('.feature-pill-btn[onclick*="expense"] span:last-child');
+            if (btnExpense) btnExpense.textContent = toolLabels.expense;
+            const btnIngredients = document.querySelector('.feature-pill-btn[onclick*="ingredients"] span:last-child');
+            if (btnIngredients) btnIngredients.textContent = toolLabels.ingredients;
+            const btnStats = document.querySelector('.feature-pill-btn[onclick*="stats"] span:last-child');
+            if (btnStats) btnStats.textContent = toolLabels.stats;
+            const btnExport = document.querySelector('.feature-pill-btn[onclick*="export"] span:last-child');
+            if (btnExport) btnExport.textContent = toolLabels.export;
+
+            // 5. 快速数据统计面板 (Quick Stats)
+            const statL2 = document.getElementById('stat-l2');
+            if (statL2) statL2.textContent = isEn ? 'Places' : '已点亮地点';
+            const statL3 = document.getElementById('stat-l3');
+            if (statL3) statL3.textContent = isEn ? 'Photos' : '珍贵照片';
+
+            // 6. 列表操作按钮
+            const btnClearDemo = document.getElementById('btn-clear-demo');
+            if (btnClearDemo) btnClearDemo.textContent = isEn ? '🧹 Clear Demo Data' : '🧹 清空示例数据';
+            const btnLoadDemo = document.getElementById('btn-load-demo');
+            if (btnLoadDemo) btnLoadDemo.textContent = isEn ? '✨ Load Demo Data' : '✨ 加载示例数据';
+            const btnViewAll = document.getElementById('btn-view-all');
+            if (btnViewAll) btnViewAll.textContent = isEn ? 'View All →' : '查看全部 →';
+
+            // 7. 添加记录弹窗 (Add Modal)
+            const modalTitle = document.getElementById('modal-add-title');
+            if (modalTitle) modalTitle.textContent = isEn ? '📸 Add Footprint' : '📸 记录精彩足迹';
+            const modalSub = document.getElementById('modal-add-subtitle');
+            if (modalSub) modalSub.textContent = isEn ? 'Capture trips & culinary stories forever' : '定格旅途风景与烟火美味，生成专属时光记忆';
+            const labelPhotos = document.getElementById('label-add-photos');
+            if (labelPhotos) labelPhotos.textContent = isEn ? '📷 Add Photos' : '📷 添加照片';
+            const hintPhotos = document.getElementById('hint-multi-photos');
+            if (hintPhotos) hintPhotos.textContent = isEn ? 'Supports 1, 4, 9 Mosaic Grid' : '支持多图 1、4、9 宫格呈现';
+            const tabLocal = document.getElementById('tab-btn-local');
+            if (tabLocal) tabLocal.textContent = isEn ? 'Local Photos Upload' : '本地多图上传';
+            const tabUrl = document.getElementById('tab-btn-url');
+            if (tabUrl) tabUrl.textContent = isEn ? 'Image URL Direct Link' : '网络图片直链';
+            const dropTitle = document.getElementById('dropzone-title');
+            if (dropTitle) dropTitle.textContent = isEn ? 'Click or Drag Photos Here' : '点击或拖拽照片到此处上传';
+            const dropDesc = document.getElementById('dropzone-desc');
+            if (dropDesc) dropDesc.textContent = isEn ? 'Supports JPG, PNG, GIF, WebP · Multi-files · Paste (Ctrl+V)' : '支持 JPG、PNG、GIF、WebP · 支持同时多选多张 · 支持截图粘贴 (Ctrl+V)';
+            const labelType = document.getElementById('label-record-type');
+            if (labelType) labelType.textContent = isEn ? '🏷️ Footprint Category' : '🏷️ 足迹类型';
+
+            const btnT = document.getElementById('type-btn-travel');
+            if (btnT) btnT.textContent = isEn ? '✈️ Travel' : '✈️ 旅行探索';
+            const btnF = document.getElementById('type-btn-food');
+            if (btnF) btnF.textContent = isEn ? '🍜 Food' : '🍜 美食寻味';
+            const btnL = document.getElementById('type-btn-love');
+            if (btnL) btnL.textContent = isEn ? '💕 Memories' : '💕 专属回忆';
+
+            const labelDate = document.getElementById('label-date');
+            if (labelDate) labelDate.textContent = isEn ? '📅 Date' : '📅 日期';
+            const labelRating = document.getElementById('label-rating');
+            if (labelRating) labelRating.textContent = isEn ? '⭐ Rating' : '⭐ 评分推荐';
+            const labelPrice = document.getElementById('label-price');
+            if (labelPrice) labelPrice.textContent = isEn ? '💰 Price (¥)' : '💰 人均消费 (元)';
+            const labelDesc = document.getElementById('label-desc');
+            if (labelDesc) labelDesc.textContent = isEn ? '📝 Travel Story & Notes' : '📝 旅途心得与故事';
+            const inputDesc = document.getElementById('input-desc');
+            if (inputDesc) inputDesc.placeholder = isEn ? 'Share the feelings, scenes and moments...' : '写下这一刻的心情、路过的风景或是难忘的人事物...';
+
+            const btnCancel = document.getElementById('btn-cancel-add');
+            if (btnCancel) btnCancel.textContent = isEn ? 'Cancel' : '取消';
+            const btnSave = document.getElementById('btn-save-record');
+            if (btnSave) btnSave.textContent = isEn ? '✨ Save Footprint' : '✨ 保存珍贵足迹';
+
+            const fab = document.getElementById('fab');
+            if (fab) fab.title = isEn ? 'Add Footprint' : '记录足迹';
+
+            selectRecordType(selectedRecordType);
+            updateCoupleUI();
         }
 
         function updateModeNames() {
@@ -1265,20 +1459,30 @@
             selectedRecordType = type;
             const btnTravel = document.getElementById('type-btn-travel');
             const btnFood = document.getElementById('type-btn-food');
+            const btnLove = document.getElementById('type-btn-love');
             if (btnTravel) btnTravel.classList.toggle('active', type === 'travel');
             if (btnFood) btnFood.classList.toggle('active', type === 'food');
-            document.getElementById('group-rating').style.display = type === 'food' ? 'block' : 'none';
-            document.getElementById('group-price').style.display = type === 'food' ? 'block' : 'none';
+            if (btnLove) btnLove.classList.toggle('active', type === 'love');
+
+            const groupExtra = document.getElementById('group-food-extra');
+            if (groupExtra) groupExtra.style.display = (type === 'food') ? 'grid' : 'none';
+
+            const isEn = currentLang === 'en';
             if (type === 'food') {
-                document.getElementById('label-title').textContent = '✏️ 美食名称';
-                document.getElementById('input-title').placeholder = '给这道美食或餐厅起个名字';
-                document.getElementById('label-location').textContent = '📍 餐厅地址';
-                document.getElementById('input-location').placeholder = '搜索餐厅地址';
+                document.getElementById('label-title').textContent = isEn ? '✏️ Dish / Restaurant Name' : '✏️ 美食名称';
+                document.getElementById('input-title').placeholder = isEn ? 'Name this food or restaurant' : '给这道美食或餐厅起个名字';
+                document.getElementById('label-location').textContent = isEn ? '📍 Restaurant Address' : '📍 餐厅地址';
+                document.getElementById('input-location').placeholder = isEn ? 'Search restaurant address' : '搜索餐厅地址';
+            } else if (type === 'love') {
+                document.getElementById('label-title').textContent = isEn ? '✏️ Memory Title' : '✏️ 回忆标题';
+                document.getElementById('input-title').placeholder = isEn ? 'Name this sweet memory' : '给这段甜蜜回忆起个名字';
+                document.getElementById('label-location').textContent = isEn ? '📍 Date Location' : '📍 约会地点';
+                document.getElementById('input-location').placeholder = isEn ? 'Search date location' : '搜索约会地点';
             } else {
-                document.getElementById('label-title').textContent = '✏️ 旅行标题';
-                document.getElementById('input-title').placeholder = '给这次旅行起个名字';
-                document.getElementById('label-location').textContent = '📍 旅行地点';
-                document.getElementById('input-location').placeholder = '搜索旅行地点';
+                document.getElementById('label-title').textContent = isEn ? '✏️ Trip Title' : '✏️ 旅行标题';
+                document.getElementById('input-title').placeholder = isEn ? 'Name this trip' : '给这次旅行起个名字';
+                document.getElementById('label-location').textContent = isEn ? '📍 Trip Location' : '📍 旅行地点';
+                document.getElementById('input-location').placeholder = isEn ? 'Search location' : '搜索旅行地点';
             }
         }
 
@@ -1396,18 +1600,19 @@
             document.getElementById('stat-places').textContent = locationSet.size;
             document.getElementById('stat-photos').textContent = filtered.reduce((s,r) => s + (r.images?.length||0), 0);
 
+            const isEn = currentLang === 'en';
             if (state.filter === 'travel') {
-                document.getElementById('stat-l1').textContent = '旅行记录';
-                document.getElementById('records-title').textContent = '✈️ 旅行探索';
+                document.getElementById('stat-l1').textContent = isEn ? 'Trips' : '旅行记录';
+                document.getElementById('records-title').textContent = isEn ? '✈️ Travel Footprints' : '✈️ 旅行探索';
             } else if (state.filter === 'food') {
-                document.getElementById('stat-l1').textContent = '美食打卡';
-                document.getElementById('records-title').textContent = '🍜 美食寻味';
+                document.getElementById('stat-l1').textContent = isEn ? 'Food Spots' : '美食打卡';
+                document.getElementById('records-title').textContent = isEn ? '🍜 Food Discoveries' : '🍜 美食寻味';
             } else if (state.filter === 'love') {
-                document.getElementById('stat-l1').textContent = '专属回忆';
-                document.getElementById('records-title').textContent = '💕 恋爱回忆';
+                document.getElementById('stat-l1').textContent = isEn ? 'Memories' : '专属回忆';
+                document.getElementById('records-title').textContent = isEn ? '💕 Romantic Memories' : '💕 恋爱回忆';
             } else {
-                document.getElementById('stat-l1').textContent = '全部足迹';
-                document.getElementById('records-title').textContent = '📸 最近足迹';
+                document.getElementById('stat-l1').textContent = isEn ? 'All Footprints' : '全部足迹';
+                document.getElementById('records-title').textContent = isEn ? '📸 Recent Footprints' : '📸 最近足迹';
             }
 
             const grid = document.getElementById('photo-grid');
@@ -1422,12 +1627,14 @@
                 grid.innerHTML = recentRecords.map((r, i) => {
                     const isLove = !!(r.is_couple || r.mode === 'love');
                     const tagClass = r.mode === 'food' ? 'tag-food' : (r.mode === 'love' ? 'tag-love' : 'tag-travel');
-                    const modeLabel = r.mode === 'food' ? '🍜 美食' : (r.mode === 'love' ? '💕 回忆' : '✈️ 旅行');
+                    const modeLabel = r.mode === 'food' ? (isEn ? '🍜 Food' : '🍜 美食') : (r.mode === 'love' ? (isEn ? '💕 Memory' : '💕 回忆') : (isEn ? '✈️ Travel' : '✈️ 旅行'));
+                    const coupleBadge = isEn ? '💕 Memory' : '💕 专属回忆';
+                    const priceLabel = isEn ? `Avg ¥${r.price}` : `人均¥${r.price}`;
                     return `
                         <div class="photo-card" onclick="viewRecord('${r.id}')" style="animation:modalIn 0.4s ease ${i*0.05}s backwards">
                             <div style="position:absolute;top:16px;right:16px;display:flex;gap:4px;z-index:2">
                                 <span class="photo-card-tag ${tagClass}">${modeLabel}</span>
-                                ${isLove && r.mode !== 'love' ? '<span class="photo-card-tag tag-love">💕 专属回忆</span>' : ''}
+                                ${isLove && r.mode !== 'love' ? `<span class="photo-card-tag tag-love">${coupleBadge}</span>` : ''}
                             </div>
                             ${renderMosaic(r.images, r.title)}
                             <div class="photo-card-body">
@@ -1436,7 +1643,7 @@
                                     ${r.location ? `<span>📍 ${r.location}</span>` : ''}
                                     <span>📅 ${r.date||''}</span>
                                     ${r.rating ? `<span>⭐ ${r.rating}</span>` : ''}
-                                    ${r.price ? `<span style="color:#F59E0B;font-weight:700;margin-left:auto">人均¥${r.price}</span>` : ''}
+                                    ${r.price ? `<span style="color:#F59E0B;font-weight:700;margin-left:auto">${priceLabel}</span>` : ''}
                                 </div>
                             </div>
                         </div>`;
@@ -1542,13 +1749,41 @@
         // ========== Upload ==========
         function initDragDrop() {
             const zone = document.getElementById('upload-zone');
-            zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-            zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-            zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/')); if (files.length) processFiles(files); });
-            document.getElementById('file-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
-            document.getElementById('folder-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
-            document.getElementById('gallery-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
-            document.getElementById('camera-input').addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+            if (zone) {
+                zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+                zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('dragover');
+                    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                    if (files.length) processFiles(files);
+                });
+            }
+            document.getElementById('file-input')?.addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('folder-input')?.addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('gallery-input')?.addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+            document.getElementById('camera-input')?.addEventListener('change', e => { processFiles(Array.from(e.target.files)); e.target.value = ''; });
+
+            // 监听全局 Ctrl+V 粘贴图片到添加记录弹窗
+            window.addEventListener('paste', e => {
+                const modalAdd = document.getElementById('modal-add');
+                if (!modalAdd || !modalAdd.classList.contains('active')) return;
+                // 如果用户当前聚焦在普通的文本输入框并且剪贴板是普通文字，则不拦截
+                const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                const items = (e.clipboardData || window.clipboardData)?.items;
+                if (!items) return;
+                const imageFiles = [];
+                for (let i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image') !== -1) {
+                        const blob = items[i].getAsFile();
+                        if (blob) imageFiles.push(blob);
+                    }
+                }
+                if (imageFiles.length) {
+                    processFiles(imageFiles);
+                    toast('📋 已自动粘贴并导入剪贴板照片');
+                }
+            });
         }
 
         async function processFiles(files) {
@@ -2411,23 +2646,174 @@
                     break;
                 case 'ingredients':
                     const ingredients = JSON.parse(localStorage.getItem('ingredients')||'[]');
-                    showFeatureModal('🥬 食材追踪', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="ingredient-input" placeholder="添加食材..."><button class="btn btn-primary" onclick="addIngredient()">添加</button></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${ingredients.map((ing,i)=>`<span style="padding:8px 14px;background:var(--mode-bg);border-radius:var(--radius-full);font-size:13px;display:flex;align-items:center;gap:6px">${ing}<span onclick="removeIngredient(${i})" style="cursor:pointer;opacity:0.6">✕</span></span>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无食材</p>'}</div><div style="padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm)"><div style="font-size:13px;font-weight:500;margin-bottom:8px">💡 常用食材</div><div style="display:flex;flex-wrap:wrap;gap:6px">${['番茄','鸡蛋','牛肉','鸡肉','土豆','青椒','洋葱','大蒜'].map(item=>`<span onclick="quickAddIngredient('${item}')" style="padding:4px 10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-full);font-size:12px;cursor:pointer">${item}</span>`).join('')}</div></div>`);
+                    showFeatureModal('🥬 寻味食材库 · 私房备料', `
+                        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:18px;">
+                            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">💡 记录家里冰箱或常做料理的备用食材：</div>
+                            <div style="display:flex;gap:8px">
+                                <input type="text" class="form-input" id="ingredient-input" placeholder="输入食材名称（如: 牛里脊、松茸、意面...）" onkeypress="if(event.key==='Enter')addIngredient()">
+                                <button class="btn btn-primary" onclick="addIngredient()" style="white-space:nowrap;padding:0 20px;">➕ 存入</button>
+                            </div>
+                        </div>
+                        <div style="margin-bottom:20px;">
+                            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between;">
+                                <span>📦 当前库存食材 (${ingredients.length})</span>
+                                ${ingredients.length ? '<span style="font-size:11px;color:var(--text-muted)">点击 ✕ 移除</span>' : ''}
+                            </div>
+                            <div style="display:flex;flex-wrap:wrap;gap:8px;min-height:50px;align-items:center;">
+                                ${ingredients.map((ing,i)=>`
+                                    <span style="padding:6px 14px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.4);border-radius:999px;font-size:13px;font-weight:600;color:#10B981;display:inline-flex;align-items:center;gap:8px;">
+                                        <span>🥬 ${ing}</span>
+                                        <span onclick="removeIngredient(${i})" style="cursor:pointer;opacity:0.75;font-weight:800;" title="删除">✕</span>
+                                    </span>
+                                `).join('') || '<div style="color:var(--text-muted);font-size:13px;padding:12px 0;">食材库空空如也，快从下方快捷添加吧 ✨</div>'}
+                            </div>
+                        </div>
+                        <div style="padding:16px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);">
+                            <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:10px;">🌟 快捷加入灵感分类：</div>
+                            <div style="margin-bottom:8px;">
+                                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">🥬 蔬菜菌菇:</div>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                    ${['番茄','土豆','洋葱','青椒','大蒜','西兰花','金针菇','生菜'].map(item=>`<button type="button" onclick="quickAddIngredient('${item}')" class="btn btn-xs btn-ghost" style="padding:3px 10px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border);font-size:11px;">+${item}</button>`).join('')}
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">🥩 优质肉禽与主食:</div>
+                                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                                    ${['牛肉','鸡胸肉','五花肉','虾仁','鸡蛋','豆腐','乌冬面','意面'].map(item=>`<button type="button" onclick="quickAddIngredient('${item}')" class="btn btn-xs btn-ghost" style="padding:3px 10px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border);font-size:11px;">+${item}</button>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `);
                     break;
+
                 case 'anniversary':
                     const anniversaries = JSON.parse(localStorage.getItem('anniversaries')||'[]');
-                    showFeatureModal('📅 纪念日', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="anniversary-name" placeholder="名称"><input type="date" class="form-input" id="anniversary-date" style="width:160px"><button class="btn btn-primary" onclick="addAnniversary()">添加</button></div><div>${anniversaries.map((a,i)=>{const diff=Math.floor((new Date()-new Date(a.date))/(1000*60*60*24));const future=diff<0;return`<div class="list-item"><div class="list-icon">📅</div><div class="list-content"><div class="list-title">${a.name}</div><div class="list-desc">${a.date}</div></div><div style="text-align:right"><div style="font-size:18px;font-weight:700;color:var(--primary)">${Math.abs(diff)}</div><div style="font-size:11px;color:var(--text-muted)">${future?'天后':'天前'}</div></div><div class="list-action" onclick="removeAnniversary(${i})">✕</div></div>`}).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无纪念日</p>'}</div>`);
+                    showFeatureModal('📅 甜蜜纪念日 · 时光里程碑', `
+                        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:18px;">
+                            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">添加重要的纪念日或重要日子：</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <input type="text" class="form-input" id="anniversary-name" placeholder="纪念日名称（如: 认识TA的日子 / 订婚纪念）" style="flex:1;min-width:180px;">
+                                <input type="date" class="form-input" id="anniversary-date" style="width:160px;">
+                                <button class="btn btn-primary" onclick="addAnniversary()" style="padding:0 20px;font-weight:700;">➕ 添加</button>
+                            </div>
+                        </div>
+                        <div>
+                            ${anniversaries.map((a,i)=>{
+                                const diff = Math.floor((new Date() - new Date(a.date)) / (1000 * 60 * 60 * 24));
+                                const future = diff < 0;
+                                return `
+                                    <div class="list-item" style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:10px;transition:var(--transition);">
+                                        <div style="font-size:24px;margin-right:12px;">🎉</div>
+                                        <div class="list-content" style="flex:1">
+                                            <div style="font-weight:700;font-size:14px;color:var(--text);">${a.name}</div>
+                                            <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">📅 ${a.date}</div>
+                                        </div>
+                                        <div style="text-align:right;margin-right:16px;">
+                                            <div style="font-size:22px;font-weight:800;color:#EC4899;line-height:1">${Math.abs(diff)}</div>
+                                            <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${future ? '天后' : '天前'}</div>
+                                        </div>
+                                        <button class="btn btn-ghost btn-sm" onclick="removeAnniversary(${i})" style="color:var(--danger);padding:4px 8px;" title="删除">✕</button>
+                                    </div>
+                                `;
+                            }).join('') || '<p style="text-align:center;color:var(--text-muted);padding:30px 0;">暂无记录纪念日，快添加属于你们的专属节日吧 ✨</p>'}
+                        </div>
+                    `);
                     break;
+
                 case 'notes':
                     const notes = JSON.parse(localStorage.getItem('love_notes')||'[]');
-                    showFeatureModal('💌 爱情笔记', `<div style="margin-bottom:16px"><textarea class="form-textarea" id="love-note-input" placeholder="写下心里话..." style="min-height:80px"></textarea><button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="addLoveNote()">💌 保存</button></div><div>${notes.map((n,i)=>`<div style="padding:16px;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:10px;border-left:3px solid var(--primary)"><div style="font-size:13px;color:var(--text-sec);margin-bottom:8px;white-space:pre-wrap">${n.content}</div><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:11px;color:var(--text-muted)">${n.date}</div><div onclick="removeLoveNote(${i})" style="cursor:pointer;font-size:12px;color:var(--text-muted)">删除</div></div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无笔记</p>'}</div>`);
+                    showFeatureModal('💌 恋爱手账 · 悄悄话密语', `
+                        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:18px;">
+                            <textarea class="form-textarea" id="love-note-input" placeholder="写下想对TA说的一句温柔的话、小确幸或是今天的甜蜜心事..." style="min-height:90px;line-height:1.6;"></textarea>
+                            <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                                <button class="btn btn-primary" onclick="addLoveNote()" style="padding:8px 24px;font-weight:700;background:linear-gradient(135deg,#EC4899,#F43F5E);border:none;">💌 留存这份温柔</button>
+                            </div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+                            ${notes.map((n,i)=>`
+                                <div style="padding:16px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);border-left:4px solid #EC4899;box-shadow:0 4px 14px rgba(0,0,0,0.06);">
+                                    <div style="font-size:14px;color:var(--text);line-height:1.7;white-space:pre-wrap;margin-bottom:10px;">${n.content}</div>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text-muted);padding-top:8px;border-top:1px dashed var(--border);">
+                                        <span>📅 ${n.date}</span>
+                                        <span onclick="removeLoveNote(${i})" style="cursor:pointer;color:var(--danger);font-weight:600;">删除便签</span>
+                                    </div>
+                                </div>
+                            `).join('') || '<p style="text-align:center;color:var(--text-muted);padding:30px 0;">还没有手账笔记，留下第一句情话吧 💕</p>'}
+                        </div>
+                    `);
                     break;
+
                 case 'date':
                     const dp = JSON.parse(localStorage.getItem('date_plans')||'[]');
-                    showFeatureModal('💑 约会计划', `<div style="margin-bottom:16px"><div class="form-group"><input type="text" class="form-input" id="date-plan-title" placeholder="约会主题"></div><div style="display:flex;gap:8px;margin-bottom:8px"><input type="date" class="form-input" id="date-plan-date"><input type="text" class="form-input" id="date-plan-location" placeholder="地点"></div><textarea class="form-textarea" id="date-plan-desc" placeholder="安排..." style="min-height:60px"></textarea><button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="addDatePlan()">添加计划</button></div><div>${dp.map((p,i)=>`<div style="padding:16px;background:var(--bg-elevated);border-radius:var(--radius-sm);margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><div style="font-weight:600">${p.title}</div><div onclick="removeDatePlan(${i})" style="cursor:pointer;font-size:12px;color:var(--text-muted)">删除</div></div><div style="font-size:13px;color:var(--text-muted)">📅 ${p.date||'未定'} 📍 ${p.location||'未定'}</div>${p.desc?`<div style="font-size:13px;color:var(--text-sec);margin-top:4px">${p.desc}</div>`:''}</div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无计划</p>'}</div>`);
+                    showFeatureModal('💑 约会计划 · 浪漫行程清单', `
+                        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:18px;">
+                            <div class="form-group" style="margin-bottom:10px;">
+                                <input type="text" class="form-input" id="date-plan-title" placeholder="约会主题（如: 周末游乐园约会 / 烛光晚餐）">
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+                                <input type="date" class="form-input" id="date-plan-date">
+                                <input type="text" class="form-input" id="date-plan-location" placeholder="约会地点">
+                            </div>
+                            <textarea class="form-textarea" id="date-plan-desc" placeholder="详细安排与备忘（如: 提前买票、带小外套...）" style="min-height:60px;margin-bottom:10px;"></textarea>
+                            <button class="btn btn-primary" style="width:100%;font-weight:700;" onclick="addDatePlan()">➕ 确定约会安排</button>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:10px;">
+                            ${dp.map((p,i)=>`
+                                <div style="padding:16px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                        <div style="font-weight:700;font-size:15px;color:var(--text);">✨ ${p.title}</div>
+                                        <button class="btn btn-ghost btn-sm" onclick="removeDatePlan(${i})" style="color:var(--danger);padding:2px 8px;">✕</button>
+                                    </div>
+                                    <div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted);margin-bottom:6px;">
+                                        <span>📅 ${p.date || '未定日期'}</span>
+                                        <span>📍 ${p.location || '未定地点'}</span>
+                                    </div>
+                                    ${p.desc ? `<div style="font-size:13px;color:var(--text-sec);line-height:1.6;background:var(--bg-elevated);padding:8px 12px;border-radius:6px;">${p.desc}</div>` : ''}
+                                </div>
+                            `).join('') || '<p style="text-align:center;color:var(--text-muted);padding:30px 0;">暂无约会计划，计划一场专属的心动之旅吧 🎈</p>'}
+                        </div>
+                    `);
                     break;
+
                 case 'tasks':
                     const ct = JSON.parse(localStorage.getItem('couple_tasks')||'[]');
-                    showFeatureModal('✅ 情侣任务', `<div style="margin-bottom:16px;display:flex;gap:8px"><input type="text" class="form-input" id="couple-task-input" placeholder="添加任务..."><button class="btn btn-primary" onclick="addCoupleTask()">添加</button></div><div style="margin-bottom:16px;padding:12px;background:var(--mode-bg);border-radius:var(--radius-sm);text-align:center;font-size:13px">完成进度: <strong>${ct.filter(t=>t.done).length}/${ct.length}</strong></div><div>${ct.map((t,i)=>`<div class="list-item" onclick="toggleCoupleTask(${i})" style="cursor:pointer"><div class="list-icon">${t.done?'✅':'⬜'}</div><div class="list-content" style="${t.done?'text-decoration:line-through;opacity:0.6':''}"><div class="list-title">${t.title}</div><div class="list-desc">${t.date||''}</div></div><div class="list-action" onclick="event.stopPropagation();removeCoupleTask(${i})">✕</div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted)">暂无任务</p>'}</div><div style="margin-top:16px;padding:12px;background:var(--bg-elevated);border-radius:var(--radius-sm)"><div style="font-size:13px;font-weight:500;margin-bottom:8px">💡 任务建议</div><div style="display:flex;flex-wrap:wrap;gap:6px">${['一起看电影','一起做饭','一起旅行','一起运动','一起读书','一起散步'].map(t=>`<span onclick="quickAddTask('${t}')" style="padding:4px 10px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-full);font-size:12px;cursor:pointer">${t}</span>`).join('')}</div></div>`);
+                    const doneCount = ct.filter(t=>t.done).length;
+                    const percent = ct.length ? Math.round(doneCount / ct.length * 100) : 0;
+                    showFeatureModal('❤️ 甜蜜心愿任务 · 恋爱100件小事', `
+                        <div style="background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:18px;">
+                            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                                <input type="text" class="form-input" id="couple-task-input" placeholder="输入甜蜜愿望（如: 一起看日出、去迪士尼...）" onkeypress="if(event.key==='Enter')addCoupleTask()">
+                                <button class="btn btn-primary" onclick="addCoupleTask()" style="padding:0 20px;font-weight:700;">➕ 添加</button>
+                            </div>
+                            <div style="margin-bottom:4px;display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);">
+                                <span>愿望实现进度: <strong>${doneCount} / ${ct.length}</strong></span>
+                                <span>${percent}%</span>
+                            </div>
+                            <div style="height:6px;background:var(--border);border-radius:999px;overflow:hidden;">
+                                <div style="height:100%;width:${percent}%;background:linear-gradient(90deg,#EC4899,#F43F5E);border-radius:999px;transition:width 0.3s ease;"></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+                            ${ct.map((t,i)=>`
+                                <div class="list-item" onclick="toggleCoupleTask(${i})" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;transition:var(--transition);">
+                                    <div style="font-size:18px;margin-right:12px;">${t.done ? '💖' : '🤍'}</div>
+                                    <div class="list-content" style="flex:1;${t.done ? 'text-decoration:line-through;opacity:0.6;' : ''}">
+                                        <div style="font-weight:600;font-size:14px;color:var(--text);">${t.title}</div>
+                                        <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">${t.date || ''}</div>
+                                    </div>
+                                    <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();removeCoupleTask(${i})" style="color:var(--danger);padding:4px 8px;">✕</button>
+                                </div>
+                            `).join('') || '<p style="text-align:center;color:var(--text-muted);padding:24px 0;">心愿清单还是空的，快从下方挑选加入吧 ✨</p>'}
+                        </div>
+                        <div style="padding:14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-sm);">
+                            <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:8px;">💡 浪漫灵感推荐（点击一键加入）：</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                ${['一起看一场日落','一起做一顿饭','拍一套胶片合影','穿情侣装去游乐园','一起去海边吹晚风','拼完一幅千块拼图','一起去自驾露营','看一次初雪'].map(t=>`
+                                    <button type="button" class="btn btn-xs btn-ghost" style="padding:4px 10px;border-radius:999px;background:var(--bg-card);border:1px solid var(--border);font-size:11px;" onclick="quickAddTask('${t}')">+${t}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `);
                     break;
                 case 'days':
                     const first = filtered.length ? new Date(filtered[filtered.length-1].createdAt) : new Date();

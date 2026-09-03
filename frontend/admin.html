@@ -518,6 +518,48 @@
             color: var(--primary);
             font-weight: 600;
         }
+        .feature-subtabs-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            overflow-x: auto;
+            padding: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            scrollbar-width: none;
+        }
+        .feature-subtabs-bar::-webkit-scrollbar { display: none; }
+        .feature-subtab-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-sec);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .feature-subtab-btn:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .feature-subtab-btn.active {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(244, 63, 94, 0.2));
+            border-color: rgba(236, 72, 153, 0.6);
+            color: #F43F5E;
+            box-shadow: 0 2px 10px rgba(244, 63, 94, 0.2);
+        }
+        [data-theme="light"] .feature-subtab-btn.active {
+            background: #FFE4E6;
+            border-color: #FB7185;
+            color: #E11D48;
+        }
 
         /* Modal */
         .modal-overlay {
@@ -930,13 +972,13 @@
                         <div id="couple-pair-card-container"></div>
                     </div>
 
-                    <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px">
-                        <button class="btn btn-primary btn-sm feature-subtab-btn" data-feature="love_notes" onclick="switchFeatureSubtab('love_notes')">💌 恋爱手账</button>
-                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="anniversaries" onclick="switchFeatureSubtab('anniversaries')">📅 纪念日</button>
-                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="date_plans" onclick="switchFeatureSubtab('date_plans')">💑 约会计划</button>
-                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="wishes" onclick="switchFeatureSubtab('wishes')">❤️ 甜蜜心愿任务</button>
-                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="travel_plans" onclick="switchFeatureSubtab('travel_plans')">🗺️ 旅行行程</button>
-                        <button class="btn btn-ghost btn-sm feature-subtab-btn" data-feature="ingredients" onclick="switchFeatureSubtab('ingredients')">🥬 美食食材</button>
+                    <div class="feature-subtabs-bar">
+                        <button class="feature-subtab-btn active" data-feature="love_notes" onclick="switchFeatureSubtab('love_notes')">💌 恋爱手账</button>
+                        <button class="feature-subtab-btn" data-feature="anniversaries" onclick="switchFeatureSubtab('anniversaries')">📅 纪念日</button>
+                        <button class="feature-subtab-btn" data-feature="date_plans" onclick="switchFeatureSubtab('date_plans')">💑 约会计划</button>
+                        <button class="feature-subtab-btn" data-feature="wishes" onclick="switchFeatureSubtab('wishes')">❤️ 甜蜜心愿任务</button>
+                        <button class="feature-subtab-btn" data-feature="travel_plans" onclick="switchFeatureSubtab('travel_plans')">🗺️ 旅行行程</button>
+                        <button class="feature-subtab-btn" data-feature="ingredients" onclick="switchFeatureSubtab('ingredients')">🥬 美食食材</button>
                     </div>
 
                     <div class="card">
@@ -1871,8 +1913,7 @@
         function switchFeatureSubtab(subtabKey) {
             adminState.activeFeatureSubtab = subtabKey;
             document.querySelectorAll('.feature-subtab-btn').forEach(btn => {
-                btn.classList.toggle('btn-primary', btn.dataset.feature === subtabKey);
-                btn.classList.toggle('btn-ghost', btn.dataset.feature !== subtabKey);
+                btn.classList.toggle('active', btn.dataset.feature === subtabKey);
             });
             renderFeatureSubtabContent();
         }
