@@ -225,10 +225,11 @@ const i18n = {
     }
 };
 
-let currentLang = (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh';
+window.currentLang = (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh';
 
 function t(key, params = {}) {
-    let text = i18n[currentLang]?.[key] || i18n.zh[key] || key;
+    const lang = window.currentLang || 'zh';
+    let text = (typeof i18n !== 'undefined' && i18n[lang]?.[key]) || (typeof i18n !== 'undefined' && i18n.zh?.[key]) || key;
     Object.keys(params).forEach(k => {
         text = text.replace(`{${k}}`, params[k]);
     });
@@ -237,6 +238,5 @@ function t(key, params = {}) {
 
 if (typeof window !== 'undefined') {
     window.i18n = i18n;
-    window.currentLang = currentLang;
     window.t = t;
 }

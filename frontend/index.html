@@ -527,16 +527,16 @@
         }
 
         // ========== i18n 多语言管理 (字典表由 js/i18n.js 提供) ==========
-        if (typeof currentLang === 'undefined') {
-            var currentLang = (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh';
+        if (typeof window.currentLang === 'undefined') {
+            window.currentLang = (typeof localStorage !== 'undefined' && localStorage.getItem('lang')) || 'zh';
         }
 
         function toggleLang() {
-            currentLang = currentLang === 'zh' ? 'en' : 'zh';
-            localStorage.setItem('lang', currentLang);
+            window.currentLang = (window.currentLang === 'zh') ? 'en' : 'zh';
+            localStorage.setItem('lang', window.currentLang);
             applyLang();
             render();
-            toast(currentLang === 'zh' ? '🌐 已切换到中文' : '🌐 Switched to English');
+            toast(window.currentLang === 'zh' ? '🌐 已切换到中文' : '🌐 Switched to English');
         }
 
         function applyLang() {
@@ -1024,12 +1024,17 @@
                 CouplePair.fetchStatus();
             }
 
-            // 绑定徽章点击手动同步事件
-            const badge = document.getElementById('connection-status-badge');
-            if (badge && !badge._syncBound) {
-                badge._syncBound = true;
-                badge.addEventListener('click', triggerManualSync);
-            }
+            // 点击模态框灰色遮罩背景自动关闭弹窗
+            document.querySelectorAll('.modal-overlay').forEach(overlay => {
+                if (!overlay._backdropBound) {
+                    overlay._backdropBound = true;
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) {
+                            overlay.classList.remove('active');
+                        }
+                    });
+                }
+            });
 
             // Show guide for new users (once only)
             if (!state.records.length && !localStorage.getItem('footprint_guide_seen')) {
