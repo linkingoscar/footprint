@@ -1,0 +1,41 @@
+name: 🐞 Bug 报告 / Bug Report
+description: 提交在使用足迹 (Footprint) 过程中遇到的问题或缺陷
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你抽出宝贵时间反馈问题！请尽量详细提供复现步骤与环境信息。
+  - type: input
+    id: version
+    attributes:
+      label: 系统与客户端版本 / Version & Environment
+      description: 操作系统 (Windows/macOS/Linux/iOS/Android)、浏览器类型及版本
+      placeholder: 例如: Windows 11 / Chrome 124 / Docker Compose
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤 / Steps To Reproduce
+      description: 请逐步列出如何触发该 Bug
+      placeholder: |
+        1. 打开首页
+        2. 点击 ...
+        3. 发现 ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期表现 / Expected Behavior
+      description: 期望看到的正常表现
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 控制台日志 / Console Error Logs
+      description: 如有浏览器 F12 控制台或服务端输出日志，请贴在此处
+      render: shell

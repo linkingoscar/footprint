@@ -1,0 +1,29 @@
+name: 💡 功能建议 / Feature Request
+description: 为足迹 (Footprint) 提出新的产品想法或功能改进建议
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎提出有价值的想法！我们致力于打造最优雅纯粹的生活方式足迹记录体验。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到了什么痛点？ / Is your feature request related to a problem?
+      description: 清晰描述当前缺少什么功能或现有体验存在的不便
+      placeholder: 当我想在...的时候，发现很难...
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: 你期望的解决方案 / Proposed Solution
+      description: 描述你希望看到的功能设计或交互流程
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 其他备选思路 / Alternatives Considered
+      description: 是否有考虑过其他替代方案或参考应用？

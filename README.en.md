@@ -2,20 +2,22 @@
 
 <div align="center">
 
-[![Release](https://img.shields.io/badge/Release-v1.0.0-emerald.svg)](https://github.com/linkingoscar/footprint)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-2ea44f?style=flat&logo=github)](https://linkingoscar.github.io/footprint/)
+[![CI](https://github.com/linkingoscar/footprint/actions/workflows/ci.yml/badge.svg)](https://github.com/linkingoscar/footprint/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-quick-start)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0%2B-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![Three.js](https://img.shields.io/badge/WebGL-Globe.gl-000000?logo=three.dot.js&logoColor=white)](https://globe.gl/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?logo=leaflet&logoColor=white)](https://leafletjs.com/)
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
-[![Design](https://img.shields.io/badge/Design-Swiss_Aesthetic-D97706)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <p align="center">
   <strong>A modern lifestyle footprint logging platform focused on Travel & Food</strong><br>
   Built-in Dual-User Couple Space · 3D WebGL Globe Conquest · Virtual Passport Stamp Wall · Zero-Install Offline Desktop Mode
 </p>
 
+[🌐 Instant Live Demo](https://linkingoscar.github.io/footprint/) •
 [✨ Highlights](#-feature-highlights) •
 [🚀 Quick Start](#-quick-start) •
 [🍃 Offline Desktop Mode](#-zero-backend-offline-desktop-mode) •

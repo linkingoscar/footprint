@@ -2,24 +2,26 @@
 
 <div align="center">
 
-[![Release](https://img.shields.io/badge/Release-v1.0.3-emerald.svg)](https://github.com/linkingoscar/footprint)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-2ea44f?style=flat&logo=github)](https://linkingoscar.github.io/footprint/)
+[![CI](https://github.com/linkingoscar/footprint/actions/workflows/ci.yml/badge.svg)](https://github.com/linkingoscar/footprint/actions/workflows/ci.yml)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](#-快速上手)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0%2B-000000?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![Three.js](https://img.shields.io/badge/WebGL-Globe.gl-000000?logo=three.dot.js&logoColor=white)](https://globe.gl/)
 [![Leaflet](https://img.shields.io/badge/Leaflet-1.9-199900?logo=leaflet&logoColor=white)](https://leafletjs.com/)
 [![PWA](https://img.shields.io/badge/PWA-Ready-5A0FC8?logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
 [![i18n](https://img.shields.io/badge/i18n-中英双语-0EA5E9)](#)
-[![Design](https://img.shields.io/badge/Design-Swiss_Aesthetic-D97706)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 <p align="center">
   <strong>聚焦“旅行探索 + 美食寻味”的高颜值生活方式足迹记录平台</strong><br>
   内置 1/4/9 宫格多图排版 · 奢华时光轨迹时间轴 · 3D WebGL 点亮地球 · 通关护照印章册 · 真实双人情侣协同空间 · 免安装离线桌面双模驱动
 </p>
 
+[🌐 线上极速免装体验 (Live Demo)](https://linkingoscar.github.io/footprint/) •
 [✨ 功能亮点](#-核心功能亮点) •
 [🚀 快速上手](#-快速上手) •
-[🍃 本地伪应用模式](#-纯本地免装桌面伪应用) •
+[🍃 本地免装伪应用](#-纯本地免装桌面伪应用) •
 [🎨 美学规范](#-去-ai-塑料感与大地美学) •
 [🏗️ 架构底座](#-系统架构与二次开发) •
 [📑 API 文档](docs/API.md)
