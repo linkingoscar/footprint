@@ -5,7 +5,7 @@
 oss2==2.18.4
 cos-python-sdk-v5==1.9.44
 qiniu==7.12.0
-boto3==1.34.0
+boto3==1.43.87
 google-cloud-storage==2.14.0
 azure-storage-blob==12.19.0
 
